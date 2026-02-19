@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LogOut } from "lucide-react";
+import { Home, TrendingUp, Receipt, Building, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
@@ -16,6 +16,9 @@ export function Sidebar({ userEmail }: SidebarProps) {
 
   const navItems = [
     { href: "/dashboard", label: "홈", icon: Home },
+    { href: "/dashboard/revenue", label: "매출 관리", icon: TrendingUp },
+    { href: "/dashboard/expense", label: "비용 관리", icon: Receipt },
+    { href: "/dashboard/fixed-costs", label: "고정비 관리", icon: Building },
   ];
 
   return (
@@ -27,7 +30,10 @@ export function Sidebar({ userEmail }: SidebarProps) {
       <nav className="flex-1 px-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
             return (
               <li key={item.href}>
                 <Link
