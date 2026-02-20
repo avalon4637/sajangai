@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, TrendingUp, Receipt, Building, LogOut } from "lucide-react";
+import { Home, TrendingUp, Receipt, Building, Upload, FlaskConical, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
@@ -16,9 +16,11 @@ export function Sidebar({ userEmail }: SidebarProps) {
 
   const navItems = [
     { href: "/dashboard", label: "홈", icon: Home },
-    { href: "/dashboard/revenue", label: "매출 관리", icon: TrendingUp },
-    { href: "/dashboard/expense", label: "비용 관리", icon: Receipt },
-    { href: "/dashboard/fixed-costs", label: "고정비 관리", icon: Building },
+    { href: "/revenue", label: "매출 관리", icon: TrendingUp },
+    { href: "/expense", label: "비용 관리", icon: Receipt },
+    { href: "/fixed-costs", label: "고정비 관리", icon: Building },
+    { href: "/import", label: "데이터 임포트", icon: Upload },
+    { href: "/simulation", label: "시뮬레이션", icon: FlaskConical },
   ];
 
   return (

@@ -38,7 +38,7 @@ export async function createRevenue(
     }
 
     await recalculateMonthlyKpi(businessId, getYearMonth(dateStr));
-    revalidatePath("/dashboard/revenue");
+    revalidatePath("/revenue");
     return { success: true };
   } catch (err) {
     return {
@@ -75,7 +75,7 @@ export async function updateRevenue(
     }
 
     await recalculateMonthlyKpi(businessId, getYearMonth(dateStr));
-    revalidatePath("/dashboard/revenue");
+    revalidatePath("/revenue");
     return { success: true };
   } catch (err) {
     return {
@@ -112,7 +112,7 @@ export async function deleteRevenue(id: string): Promise<ActionResult> {
       await recalculateMonthlyKpi(businessId, getYearMonth(record.date));
     }
 
-    revalidatePath("/dashboard/revenue");
+    revalidatePath("/revenue");
     return { success: true };
   } catch (err) {
     return {

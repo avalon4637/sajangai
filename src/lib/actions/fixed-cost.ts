@@ -40,7 +40,7 @@ export async function createFixedCost(
 
     // Recalculate current month KPI since fixed costs affect all months
     await recalculateMonthlyKpi(businessId, getCurrentYearMonth());
-    revalidatePath("/dashboard/fixed-costs");
+    revalidatePath("/fixed-costs");
     return { success: true };
   } catch (err) {
     return {
@@ -76,7 +76,7 @@ export async function updateFixedCost(
     }
 
     await recalculateMonthlyKpi(businessId, getCurrentYearMonth());
-    revalidatePath("/dashboard/fixed-costs");
+    revalidatePath("/fixed-costs");
     return { success: true };
   } catch (err) {
     return {
@@ -102,7 +102,7 @@ export async function deleteFixedCost(id: string): Promise<ActionResult> {
     }
 
     await recalculateMonthlyKpi(businessId, getCurrentYearMonth());
-    revalidatePath("/dashboard/fixed-costs");
+    revalidatePath("/fixed-costs");
     return { success: true };
   } catch (err) {
     return {

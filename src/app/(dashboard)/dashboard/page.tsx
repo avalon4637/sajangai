@@ -18,6 +18,7 @@ import { KpiTrendChart } from "@/components/dashboard/kpi-trend-chart";
 import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-chart";
 import { RevenueChannelBreakdown } from "@/components/dashboard/revenue-channel-breakdown";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { AiInsightWidget } from "@/components/dashboard/ai-insight-widget";
 
 interface DashboardPageProps {
   searchParams: Promise<{ month?: string }>;
@@ -52,6 +53,14 @@ export default async function DashboardPage({
   const [year, month] = currentMonth.split("-").map(Number);
   const prevDate = new Date(year, month - 2, 1);
   const previousMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+
+  // Fetch business type for AI analysis
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("business_type")
+    .eq("id", businessId)
+    .single();
+  const businessType = business?.business_type ?? undefined;
 
   // Fetch all dashboard data in parallel
   const [currentKpi, previousKpi, trend, revenueByChannel, expenseBreakdown] =
@@ -98,6 +107,19 @@ export default async function DashboardPage({
 
           {/* KPI Trend */}
           <KpiTrendChart data={trend} />
+
+          {/* AI Insight Widget */}
+          <AiInsightWidget
+            kpiData={currentKpi ? {
+              grossProfit: currentKpi.gross_profit,
+              netProfit: currentKpi.net_profit,
+              grossMargin: currentKpi.gross_margin,
+              laborRatio: currentKpi.labor_ratio,
+              fixedCostRatio: currentKpi.fixed_cost_ratio,
+              survivalScore: currentKpi.survival_score,
+            } : null}
+            businessType={businessType}
+          />
 
           {/* Channel Breakdown + Quick Actions */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
