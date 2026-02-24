@@ -214,6 +214,75 @@ export type Database = {
         };
         Relationships: [];
       };
+      api_connections: {
+        Row: {
+          id: string;
+          business_id: string;
+          provider: string;
+          connection_type: "card_sales" | "delivery";
+          status: "active" | "inactive" | "error" | "expired";
+          config: Record<string, unknown>;
+          last_synced_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          provider?: string;
+          connection_type: "card_sales" | "delivery";
+          status?: "active" | "inactive" | "error" | "expired";
+          config?: Record<string, unknown>;
+          last_synced_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          provider?: string;
+          connection_type?: "card_sales" | "delivery";
+          status?: "active" | "inactive" | "error" | "expired";
+          config?: Record<string, unknown>;
+          last_synced_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      sync_logs: {
+        Row: {
+          id: string;
+          connection_id: string;
+          sync_type: "card_sales" | "delivery";
+          status: "pending" | "running" | "completed" | "failed";
+          records_count: number;
+          error_message: string | null;
+          started_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          connection_id: string;
+          sync_type: "card_sales" | "delivery";
+          status?: "pending" | "running" | "completed" | "failed";
+          records_count?: number;
+          error_message?: string | null;
+          started_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          connection_id?: string;
+          sync_type?: "card_sales" | "delivery";
+          status?: "pending" | "running" | "completed" | "failed";
+          records_count?: number;
+          error_message?: string | null;
+          started_at?: string;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

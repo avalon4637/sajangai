@@ -2,9 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, TrendingUp, Receipt, Building, Upload, FlaskConical, LogOut } from "lucide-react";
+import { Home, TrendingUp, Receipt, Building, Upload, FlaskConical, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+
+/** Navigation items shared between desktop sidebar and mobile drawer */
+export const navItems = [
+  { href: "/dashboard", label: "홈", icon: Home },
+  { href: "/revenue", label: "매출 관리", icon: TrendingUp },
+  { href: "/expense", label: "비용 관리", icon: Receipt },
+  { href: "/fixed-costs", label: "고정비 관리", icon: Building },
+  { href: "/import", label: "데이터 임포트", icon: Upload },
+  { href: "/simulation", label: "시뮬레이션", icon: FlaskConical },
+];
 
 interface SidebarProps {
   userEmail: string;
@@ -14,17 +24,8 @@ export function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
 
-  const navItems = [
-    { href: "/dashboard", label: "홈", icon: Home },
-    { href: "/revenue", label: "매출 관리", icon: TrendingUp },
-    { href: "/expense", label: "비용 관리", icon: Receipt },
-    { href: "/fixed-costs", label: "고정비 관리", icon: Building },
-    { href: "/import", label: "데이터 임포트", icon: Upload },
-    { href: "/simulation", label: "시뮬레이션", icon: FlaskConical },
-  ];
-
   return (
-    <aside className="flex w-64 flex-col border-r bg-card min-h-screen">
+    <aside className="hidden md:flex w-64 flex-col border-r bg-card min-h-screen">
       <div className="p-6">
         <h1 className="text-xl font-bold">사장.ai</h1>
       </div>
@@ -55,8 +56,19 @@ export function Sidebar({ userEmail }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="border-t p-4">
-        <p className="mb-3 truncate text-sm text-muted-foreground">
+      <div className="border-t p-4 space-y-2">
+        <Link
+          href="/settings"
+          className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            pathname.startsWith("/settings")
+              ? "bg-accent text-accent-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
+        >
+          <Settings className="size-4" />
+          설정
+        </Link>
+        <p className="truncate px-3 text-sm text-muted-foreground">
           {userEmail}
         </p>
         <Button

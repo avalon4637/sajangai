@@ -94,7 +94,7 @@ export function KpiSummaryCards({ current, previous }: KpiSummaryCardsProps) {
     : undefined;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <KpiCard
         title="총매출"
         value={formatCurrency(current.total_revenue)}

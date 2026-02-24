@@ -3,10 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusinessId } from "@/lib/queries/business";
 import { getMonthlyKpi } from "@/lib/queries/monthly-summary";
 import { SimulationForm } from "@/components/simulation/simulation-form";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { KpiInput } from "@/lib/kpi/calculator";
-import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3 } from "lucide-react";
-import Link from "next/link";
+import { FlaskConical } from "lucide-react";
 
 export default async function SimulationPage() {
   const supabase = await createClient();
@@ -40,23 +39,13 @@ export default async function SimulationPage() {
       </div>
 
       {!kpiData ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-lg font-semibold mb-2">
-              데이터가 필요합니다
-            </h2>
-            <p className="text-sm text-muted-foreground mb-6 text-center max-w-md">
-              시뮬레이션을 실행하려면 먼저 경영 데이터를 입력해주세요.
-            </p>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-background hover:bg-accent transition-colors text-sm font-medium"
-            >
-              대시보드로 이동
-            </Link>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={FlaskConical}
+          title="데이터가 필요합니다"
+          description="시뮬레이션을 실행하려면 먼저 경영 데이터를 입력해주세요."
+          actionLabel="대시보드로 이동"
+          actionHref="/dashboard"
+        />
       ) : (
         <SimulationForm
           currentInput={

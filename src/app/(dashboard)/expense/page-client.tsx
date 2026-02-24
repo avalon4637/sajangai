@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthPicker } from "@/components/data-entry/month-picker";
 import { ExpenseForm } from "@/components/data-entry/expense-form";
 import { ExpenseTable } from "@/components/data-entry/expense-table";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Expense } from "@/types/data-entry";
 
 interface ExpensePageClientProps {
@@ -26,9 +28,9 @@ export function ExpensePageClient({ expenses }: ExpensePageClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <MonthPicker basePath="/dashboard/expense" />
-        <div className="flex gap-4 text-sm">
+        <div className="flex flex-wrap gap-4 text-sm">
           <span>
             고정비:{" "}
             <span className="font-semibold text-destructive">
@@ -66,10 +68,22 @@ export function ExpensePageClient({ expenses }: ExpensePageClientProps) {
         </CardContent>
       </Card>
 
-      <ExpenseTable
-        data={expenses}
-        onEdit={(expense) => setEditingExpense(expense)}
-      />
+      {expenses.length === 0 ? (
+        <EmptyState
+          icon={Receipt}
+          title="아직 등록된 비용이 없습니다"
+          description="위 양식에서 비용 데이터를 입력하거나, CSV 파일로 한꺼번에 임포트하세요."
+          actionLabel="CSV 임포트"
+          actionHref="/import"
+        />
+      ) : (
+        <div className="overflow-x-auto">
+          <ExpenseTable
+            data={expenses}
+            onEdit={(expense) => setEditingExpense(expense)}
+          />
+        </div>
+      )}
     </div>
   );
 }

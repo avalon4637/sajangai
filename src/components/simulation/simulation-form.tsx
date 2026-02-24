@@ -151,6 +151,7 @@ export function SimulationForm({ currentInput }: SimulationFormProps) {
                 <Input
                   id="sim-value"
                   type="number"
+                  inputMode="numeric"
                   placeholder={
                     isPercentage
                       ? "변동 비율 입력 (예: 10, -20)"

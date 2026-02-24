@@ -152,6 +152,7 @@ export function FixedCostForm({
           <Input
             id="fc-amount"
             type="number"
+            inputMode="numeric"
             placeholder="금액 입력"
             {...register("amount", { valueAsNumber: true })}
           />

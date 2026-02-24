@@ -173,13 +173,26 @@ export function CsvUploadZone() {
               <Upload className="size-8 text-muted-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-lg font-medium">
+              <p className="text-lg font-medium hidden sm:block">
                 CSV 파일을 드래그하거나 클릭하여 선택하세요
+              </p>
+              <p className="text-lg font-medium sm:hidden">
+                탭하여 CSV 파일을 선택하세요
               </p>
               <p className="text-sm text-muted-foreground mt-1">
                 .csv 파일만 지원 (최대 5MB)
               </p>
             </div>
+            <Button
+              variant="outline"
+              className="sm:hidden"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+            >
+              파일 선택
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -248,7 +261,7 @@ export function CsvUploadZone() {
               </div>
             )}
 
-            <div className="rounded-lg border">
+            <div className="overflow-x-auto rounded-lg border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -301,6 +314,7 @@ export function CsvUploadZone() {
                       <TableCell>
                         <Input
                           type="number"
+                          inputMode="numeric"
                           value={row.amount}
                           onChange={(e) =>
                             updateRow(
@@ -414,7 +428,7 @@ export function CsvUploadZone() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="rounded-lg border p-4 text-center">
               <p className="text-2xl font-bold text-green-600">
                 {importResult.success}
