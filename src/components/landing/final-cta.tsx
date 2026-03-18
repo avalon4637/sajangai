@@ -1,36 +1,64 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function FinalCTASection() {
   return (
     <section
       id="cta-final"
-      className="py-20 sm:py-28"
       style={{
-        background:
-          "linear-gradient(135deg, var(--landing-primary) 0%, var(--landing-primary-dark) 100%)",
+        background: "linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%)",
+        padding: "80px 120px",
+        textAlign: "center",
       }}
+      className="py-[80px] px-6 md:px-[120px]"
     >
-      <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-        <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-          답장이, 세리, 바이럴
-          <br className="sm:hidden" /> AI 팀을 만나보세요
+      <div style={{ maxWidth: "1440px", margin: "0 auto" }}>
+        {/* Title */}
+        <h2
+          style={{
+            color: "#FFFFFF",
+            fontFamily: "Inter, sans-serif",
+            fontSize: "36px",
+            fontWeight: 700,
+            lineHeight: 1.3,
+            marginBottom: "16px",
+            whiteSpace: "pre-line",
+          }}
+          className="text-2xl md:text-[36px]"
+        >
+          {`매장 운영, 오늘부터\nAI 점장에게 맡기세요`}
         </h2>
-        <p className="mt-4 text-sm text-white/80 sm:text-base">
-          가입 후 바로 사용할 수 있어요. 카드 등록 없이 AI 팀이 바로 일합니다.
+
+        {/* Subtitle */}
+        <p
+          style={{
+            color: "#BFDBFE",
+            fontFamily: "Inter, sans-serif",
+            fontSize: "16px",
+            marginBottom: "32px",
+          }}
+        >
+          7일 무료 체험 · 카드 등록 없음 · 월 9,900원
         </p>
-        <div className="mt-8">
-          <a href="/auth/login">
-            <Button
-              size="lg"
-              className="rounded-full bg-white px-8 text-base font-semibold shadow-lg transition-colors hover:bg-white/90"
-              style={{ color: "var(--landing-primary-dark)" }}
-            >
-              무료 체험 시작하기
-              <ArrowRight className="ml-1 size-4" />
-            </Button>
-          </a>
-        </div>
+
+        {/* CTA Button */}
+        <Link href="/auth/login">
+          <button
+            style={{
+              backgroundColor: "#FFFFFF",
+              color: "#2563EB",
+              fontFamily: "Inter, sans-serif",
+              fontSize: "18px",
+              fontWeight: 700,
+              borderRadius: "12px",
+              padding: "16px 40px",
+              border: "none",
+              cursor: "pointer",
+              display: "inline-block",
+            }}
+          >
+            7일 무료 체험 시작하기 →
+          </button>
+        </Link>
       </div>
     </section>
   );

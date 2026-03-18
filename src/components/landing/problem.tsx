@@ -1,51 +1,87 @@
-import { Clock, PenLine, TrendingDown } from "lucide-react";
-
 const problems = [
   {
-    icon: Clock,
-    text: "바빠서 리뷰 답변을 미루다 보면 어느새 10개 넘게 쌓여있다",
+    icon: "😤",
+    text: "리뷰 플랫폼 3개를 매일 확인하느라 시간이 너무 많이 든다",
   },
   {
-    icon: PenLine,
-    text: "하나하나 직접 쓰자니 시간이 너무 걸린다",
+    icon: "📊",
+    text: "매출이 왜 떨어지는지 원인을 파악하기가 어렵다",
   },
   {
-    icon: TrendingDown,
-    text: "답변 없는 리뷰가 많으면 매장 평점에도 영향이 간다",
+    icon: "📣",
+    text: "단골 고객 관리나 마케팅은 엄두도 못 내고 있다",
   },
 ];
 
 export function ProblemSection() {
   return (
-    <section id="problem" className="bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+    <section
+      id="problem"
+      style={{
+        backgroundColor: "#FFFFFF",
+        padding: "80px 120px",
+      }}
+      className="py-[80px] px-6 md:px-[120px]"
+    >
+      <div style={{ maxWidth: "1440px", margin: "0 auto" }}>
+        {/* Title */}
+        <h2
+          style={{
+            color: "#18181B",
+            fontFamily: "Inter, sans-serif",
+            fontSize: "32px",
+            fontWeight: 700,
+            textAlign: "center",
+            marginBottom: "48px",
+          }}
+          className="text-2xl md:text-[32px]"
+        >
           이런 경험, 있으시죠?
         </h2>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-3 sm:gap-8">
-          {problems.map((item, i) => {
-            const Icon = item.icon;
-            return (
+        {/* Cards */}
+        <div
+          style={{
+            display: "flex",
+            gap: "24px",
+            justifyContent: "center",
+          }}
+          className="flex flex-col md:flex-row gap-6"
+        >
+          {problems.map((item, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                maxWidth: "360px",
+                border: "1px solid #F4F4F5",
+                borderRadius: "16px",
+                padding: "32px 24px",
+                textAlign: "center",
+                backgroundColor: "#FAFAFA",
+              }}
+              className="w-full"
+            >
               <div
-                key={i}
-                className="group flex flex-col items-center rounded-2xl border border-gray-100 bg-gray-50/70 p-8 text-center transition-all hover:border-gray-200 hover:shadow-md"
+                style={{
+                  fontSize: "40px",
+                  marginBottom: "16px",
+                }}
               >
-                <div
-                  className="mb-5 flex size-14 items-center justify-center rounded-xl transition-colors"
-                  style={{ backgroundColor: "oklch(0.95 0.02 250)" }}
-                >
-                  <Icon
-                    className="size-7"
-                    style={{ color: "var(--landing-primary)" }}
-                  />
-                </div>
-                <p className="text-sm leading-relaxed text-gray-700 sm:text-base">
-                  {item.text}
-                </p>
+                {item.icon}
               </div>
-            );
-          })}
+              <p
+                style={{
+                  color: "#18181B",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "15px",
+                  lineHeight: 1.6,
+                }}
+              >
+                {item.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
