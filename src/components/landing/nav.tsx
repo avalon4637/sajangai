@@ -38,7 +38,7 @@ export function LandingNav() {
           className="text-xl font-bold tracking-tight"
           style={{ color: "var(--landing-primary)" }}
         >
-          sajang.ai
+          사장 AI
         </button>
 
         {/* Desktop nav links */}

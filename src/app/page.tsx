@@ -14,11 +14,11 @@ import { LandingFooter } from "@/components/landing/footer";
 import { MobileCTA } from "@/components/landing/mobile-cta";
 
 export const metadata: Metadata = {
-  title: "sajang.ai - AI 매장 운영 파트너",
+  title: "사장 AI - AI 매장 운영 파트너",
   description:
     "답장이, 세리, 바이럴 - 3명의 AI 팀이 리뷰 답변, 매출 분석, 마케팅까지 대신 챙겨드립니다.",
   openGraph: {
-    title: "sajang.ai - AI 매장 운영 파트너",
+    title: "사장 AI - AI 매장 운영 파트너",
     description:
       "답장이, 세리, 바이럴 - 3명의 AI 팀이 리뷰 답변, 매출 분석, 마케팅까지 대신 챙겨드립니다.",
     type: "website",

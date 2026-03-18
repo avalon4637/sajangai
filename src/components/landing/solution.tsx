@@ -40,7 +40,7 @@ export function SolutionSection() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            sajang.ai는 이렇게 해결합니다
+            사장 AI는 이렇게 해결합니다
           </h2>
           <p className="mt-3 text-muted-foreground">
             AI 팀이 먼저 일하고, 사장님은 확인만 하세요

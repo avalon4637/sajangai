@@ -31,7 +31,7 @@ export function LoginForm() {
       {/* Logo and tagline */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          sajang.ai
+          사장 AI
         </h1>
         <p className="text-muted-foreground text-sm">
           하루 330원, 점장 한 명

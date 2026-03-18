@@ -16,7 +16,7 @@ export function TrustSection() {
             지금 베타 서비스 운영 중입니다
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            sajang.ai는 현재 얼리버드 사용자를 모집하고 있습니다. 베타 기간
+            사장 AI는 현재 얼리버드 사용자를 모집하고 있습니다. 베타 기간
             동안 모든 기능을 무료로 사용할 수 있으며, 정식 출시 후에도 얼리버드
             특별 혜택을 드립니다.
           </p>

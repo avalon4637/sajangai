@@ -41,7 +41,7 @@ export function ComparisonSection() {
             <div className="mb-6 flex items-center gap-2">
               <Clock className="size-5 text-red-400" />
               <h3 className="text-lg font-bold text-gray-800">
-                sajang.ai 없이
+                사장 AI 없이
               </h3>
             </div>
             <ul className="space-y-4">
@@ -72,7 +72,7 @@ export function ComparisonSection() {
             <div className="mb-6 flex items-center gap-2">
               <Zap className="size-5" style={{ color: "var(--landing-primary)" }} />
               <h3 className="text-lg font-bold text-gray-800">
-                sajang.ai 사용
+                사장 AI 사용
               </h3>
             </div>
             <ul className="space-y-4">

@@ -51,7 +51,7 @@ export function Sidebar({ userEmail }: SidebarProps) {
       {/* Logo */}
       <div className="px-6 py-5 border-b">
         <h1 className="text-lg font-bold text-[#18181B] tracking-tight">
-          sajang.ai
+          사장 AI
         </h1>
         <p className="text-xs text-[#71717A] mt-0.5">AI 점장 서비스</p>
       </div>

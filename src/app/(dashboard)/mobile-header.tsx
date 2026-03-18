@@ -32,7 +32,7 @@ export function MobileHeader({ userEmail }: MobileHeaderProps) {
     <header className="flex md:hidden items-center justify-between border-b bg-white px-4 py-3">
       <div>
         <h1 className="text-base font-bold text-[#18181B] tracking-tight">
-          sajang.ai
+          사장 AI
         </h1>
         <p className="text-xs text-[#71717A]">AI 점장 서비스</p>
       </div>
@@ -46,7 +46,7 @@ export function MobileHeader({ userEmail }: MobileHeaderProps) {
         <SheetContent side="left" className="w-72 p-0 bg-white">
           <SheetHeader className="px-6 py-5 border-b">
             <SheetTitle className="text-lg font-bold text-[#18181B] tracking-tight text-left">
-              sajang.ai
+              사장 AI
             </SheetTitle>
             <p className="text-xs text-[#71717A] mt-0.5 text-left">
               AI 점장 서비스

@@ -92,7 +92,7 @@ function KakaoMock() {
               S
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">sajang.ai</p>
+              <p className="text-sm font-semibold text-gray-900">사장 AI</p>
               <p className="text-xs text-gray-500">AI 점장</p>
             </div>
           </div>
@@ -101,7 +101,7 @@ function KakaoMock() {
           <div className="rounded-2xl bg-white p-4 shadow-sm">
             <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-gray-500">
               <Bell className="size-3.5" style={{ color: "var(--landing-primary)" }} />
-              sajang.ai 알림
+              사장 AI 알림
             </div>
             <p className="text-sm font-medium text-gray-900">
               미응답 리뷰 3건이 있어요!

@@ -8,7 +8,7 @@ export function LandingFooter() {
             className="text-lg font-bold"
             style={{ color: "var(--landing-primary)" }}
           >
-            sajang.ai
+            사장 AI
           </span>
 
           {/* Links */}
@@ -24,7 +24,7 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-6 flex flex-col items-center gap-1 text-center text-xs text-muted-foreground sm:flex-row sm:justify-between">
-          <p>&copy; 2025 sajang.ai. All rights reserved.</p>
+          <p>&copy; 2025 사장 AI. All rights reserved.</p>
           <p>
             문의:{" "}
             <a
