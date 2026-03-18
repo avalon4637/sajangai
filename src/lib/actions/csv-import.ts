@@ -27,36 +27,51 @@ function getYearMonth(dateStr: string): string {
 
 export async function checkDuplicates(
   rows: ImportRow[]
-): Promise<Set<number>> {
+): Promise<number[]> {
+  if (rows.length === 0) return [];
+
   const businessId = await getCurrentBusinessId();
   const supabase = await createClient();
-  const duplicateIndices = new Set<number>();
+  const dates = [...new Set(rows.map((r) => r.date))];
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const table = row.type === "revenue" ? "revenues" : "expenses";
-
-    const query = supabase
-      .from(table)
-      .select("id")
+  // Batch: exactly 2 queries instead of N
+  const [
+    { data: existingRevenues, error: revError },
+    { data: existingExpenses, error: expError },
+  ] = await Promise.all([
+    supabase
+      .from("revenues")
+      .select("date, amount, channel")
       .eq("business_id", businessId)
-      .eq("date", row.date)
-      .eq("amount", row.amount);
+      .in("date", dates),
+    supabase
+      .from("expenses")
+      .select("date, amount, category")
+      .eq("business_id", businessId)
+      .in("date", dates),
+  ]);
 
-    if (row.type === "revenue") {
-      query.eq("channel", row.channel);
-    } else {
-      query.eq("category", row.category);
-    }
+  if (revError)
+    throw new Error(`Revenue duplicate check failed: ${revError.message}`);
+  if (expError)
+    throw new Error(`Expense duplicate check failed: ${expError.message}`);
 
-    const { data } = await query.limit(1);
+  // O(1) lookup sets
+  const revSet = new Set(
+    (existingRevenues ?? []).map((r) => `${r.date}|${r.amount}|${r.channel}`)
+  );
+  const expSet = new Set(
+    (existingExpenses ?? []).map((e) => `${e.date}|${e.amount}|${e.category}`)
+  );
 
-    if (data && data.length > 0) {
-      duplicateIndices.add(i);
-    }
-  }
-
-  return duplicateIndices;
+  return rows.reduce<number[]>((acc, row, i) => {
+    const key =
+      row.type === "revenue"
+        ? `${row.date}|${row.amount}|${row.channel}`
+        : `${row.date}|${row.amount}|${row.category}`;
+    if ((row.type === "revenue" ? revSet : expSet).has(key)) acc.push(i);
+    return acc;
+  }, []);
 }
 
 export async function importCsvData(

@@ -1,0 +1,246 @@
+// Message sender - wraps Solapi client with business context lookup
+// Looks up user phone from Supabase auth metadata or businesses table
+// All sends are best-effort (fire and forget), results are logged
+// SMS fallback triggered automatically on AlimTalk failure
+
+import { createClient } from "@/lib/supabase/server";
+import { sendAlimTalk, sendSMS } from "./solapi-client";
+import { TEMPLATES, buildVariables, type TemplateId } from "./templates";
+
+export interface SendResult {
+  success: boolean;
+  channel: "alimtalk" | "sms" | "none";
+  error?: string;
+}
+
+// @MX:ANCHOR: Phone number lookup - called by all send functions in this module
+// @MX:REASON: Fan-in from sendDailyBriefing, sendUrgentAlert, sendWeeklySummary
+async function getBusinessPhone(businessId: string): Promise<string | null> {
+  const supabase = await createClient();
+
+  // Step 1: Get the user_id for this business
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("user_id")
+    .eq("id", businessId)
+    .single();
+
+  if (!business) return null;
+
+  // Step 2: Try to get phone from auth user metadata
+  const {
+    data: { user },
+  } = await supabase.auth.admin.getUserById(business.user_id);
+
+  const phone =
+    user?.phone ??
+    (user?.user_metadata?.phone as string | undefined) ??
+    null;
+
+  return phone;
+}
+
+/**
+ * Log message send attempt to sync_logs for audit trail.
+ * Non-blocking - errors here do not affect the send result.
+ */
+async function logMessageSend(
+  businessId: string,
+  templateId: TemplateId | "sms",
+  channel: string,
+  success: boolean,
+  error?: string
+): Promise<void> {
+  try {
+    const supabase = await createClient();
+    await supabase.from("agent_activity_log").insert({
+      business_id: businessId,
+      agent_type: "manager",
+      action: "message_sent",
+      summary: `${templateId} via ${channel}: ${success ? "성공" : "실패"}`,
+      details: { templateId, channel, success, error } as unknown as Record<string, unknown>,
+    });
+  } catch {
+    // Swallow logging errors to avoid breaking the caller
+  }
+}
+
+/**
+ * Send morning daily briefing via KakaoTalk AlimTalk.
+ * Falls back to SMS if AlimTalk delivery fails.
+ *
+ * @param businessId - UUID of the business
+ * @param briefingContent - Structured content for the briefing template
+ */
+export async function sendDailyBriefing(
+  businessId: string,
+  briefingContent: {
+    businessName: string;
+    summary: string;
+    revenue: string;
+    reviewCount: string;
+    alert: string;
+  }
+): Promise<SendResult> {
+  const phone = await getBusinessPhone(businessId);
+  if (!phone) {
+    return { success: false, channel: "none", error: "No phone number found" };
+  }
+
+  const template = TEMPLATES.DAILY_BRIEFING;
+  const variables = buildVariables("DAILY_BRIEFING", {
+    business_name: briefingContent.businessName,
+    summary: briefingContent.summary,
+    revenue: briefingContent.revenue,
+    review_count: briefingContent.reviewCount,
+    alert: briefingContent.alert,
+  });
+
+  // Attempt AlimTalk first
+  const alimResult = await sendAlimTalk(
+    phone,
+    template.templateId,
+    variables,
+    template.buttons
+  );
+
+  if (alimResult.success) {
+    await logMessageSend(businessId, "DAILY_BRIEFING", "alimtalk", true);
+    return { success: true, channel: "alimtalk" };
+  }
+
+  // SMS fallback
+  const smsText = `[${briefingContent.businessName}] ${briefingContent.summary}\n매출: ${briefingContent.revenue} | 리뷰: ${briefingContent.reviewCount}건\n${briefingContent.alert}`;
+  const smsResult = await sendSMS(phone, smsText);
+
+  await logMessageSend(
+    businessId,
+    "DAILY_BRIEFING",
+    smsResult.success ? "sms" : "none",
+    smsResult.success,
+    smsResult.error
+  );
+
+  return {
+    success: smsResult.success,
+    channel: smsResult.success ? "sms" : "none",
+    error: smsResult.error,
+  };
+}
+
+/**
+ * Send urgent alert (negative review, cash flow warning) via AlimTalk with SMS fallback.
+ *
+ * @param businessId - UUID of the business
+ * @param alertType - Type of alert to send
+ * @param content - Alert-specific content for template variables
+ */
+export async function sendUrgentAlert(
+  businessId: string,
+  alertType: "URGENT_REVIEW" | "CASHFLOW_WARNING",
+  content: Record<string, string>
+): Promise<SendResult> {
+  const phone = await getBusinessPhone(businessId);
+  if (!phone) {
+    return { success: false, channel: "none", error: "No phone number found" };
+  }
+
+  const template = TEMPLATES[alertType];
+  const variables = buildVariables(alertType, content);
+
+  const alimResult = await sendAlimTalk(
+    phone,
+    template.templateId,
+    variables,
+    template.buttons
+  );
+
+  if (alimResult.success) {
+    await logMessageSend(businessId, alertType, "alimtalk", true);
+    return { success: true, channel: "alimtalk" };
+  }
+
+  // SMS fallback with condensed alert text
+  const alertLabel =
+    alertType === "URGENT_REVIEW"
+      ? `[긴급 리뷰] ${content.rating}점 리뷰: ${content.review_excerpt}`
+      : `[자금 경고] ${content.alert_date} 예상 잔액 ${content.expected_balance}원`;
+
+  const smsText = `[${content.business_name}] ${alertLabel}`;
+  const smsResult = await sendSMS(phone, smsText);
+
+  await logMessageSend(
+    businessId,
+    alertType,
+    smsResult.success ? "sms" : "none",
+    smsResult.success,
+    smsResult.error
+  );
+
+  return {
+    success: smsResult.success,
+    channel: smsResult.success ? "sms" : "none",
+    error: smsResult.error,
+  };
+}
+
+/**
+ * Send weekly performance summary via AlimTalk with SMS fallback.
+ *
+ * @param businessId - UUID of the business
+ * @param summaryContent - Weekly stats for template variables
+ */
+export async function sendWeeklySummary(
+  businessId: string,
+  summaryContent: {
+    businessName: string;
+    weekRevenue: string;
+    weekProfit: string;
+    reviewAvg: string;
+    highlight: string;
+  }
+): Promise<SendResult> {
+  const phone = await getBusinessPhone(businessId);
+  if (!phone) {
+    return { success: false, channel: "none", error: "No phone number found" };
+  }
+
+  const template = TEMPLATES.WEEKLY_SUMMARY;
+  const variables = buildVariables("WEEKLY_SUMMARY", {
+    business_name: summaryContent.businessName,
+    week_revenue: summaryContent.weekRevenue,
+    week_profit: summaryContent.weekProfit,
+    review_avg: summaryContent.reviewAvg,
+    highlight: summaryContent.highlight,
+  });
+
+  const alimResult = await sendAlimTalk(
+    phone,
+    template.templateId,
+    variables,
+    template.buttons
+  );
+
+  if (alimResult.success) {
+    await logMessageSend(businessId, "WEEKLY_SUMMARY", "alimtalk", true);
+    return { success: true, channel: "alimtalk" };
+  }
+
+  // SMS fallback
+  const smsText = `[${summaryContent.businessName}] 주간 요약\n매출: ${summaryContent.weekRevenue} | 순이익: ${summaryContent.weekProfit}\n평균 리뷰: ${summaryContent.reviewAvg}점\n${summaryContent.highlight}`;
+  const smsResult = await sendSMS(phone, smsText);
+
+  await logMessageSend(
+    businessId,
+    "WEEKLY_SUMMARY",
+    smsResult.success ? "sms" : "none",
+    smsResult.success,
+    smsResult.error
+  );
+
+  return {
+    success: smsResult.success,
+    channel: smsResult.success ? "sms" : "none",
+    error: smsResult.error,
+  };
+}

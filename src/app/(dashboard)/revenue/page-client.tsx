@@ -23,7 +23,7 @@ export function RevenuePageClient({ revenues }: RevenuePageClientProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <MonthPicker basePath="/dashboard/revenue" />
+        <MonthPicker basePath="/revenue" />
         <div className="text-lg font-semibold">
           월 매출 합계:{" "}
           <span className="text-primary">

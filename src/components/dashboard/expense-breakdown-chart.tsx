@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -55,11 +56,15 @@ export function ExpenseBreakdownChart({ data }: ExpenseBreakdownChartProps) {
     );
   }
 
-  const chartData = [
-    { name: "변동비", value: data.variable },
-    { name: "인건비", value: data.labor },
-    { name: "기타 고정비", value: data.fixed },
-  ].filter((item) => item.value > 0);
+  const chartData = useMemo(
+    () =>
+      [
+        { name: "변동비", value: data.variable },
+        { name: "인건비", value: data.labor },
+        { name: "기타 고정비", value: data.fixed },
+      ].filter((item) => item.value > 0),
+    [data.variable, data.labor, data.fixed]
+  );
 
   return (
     <Card>

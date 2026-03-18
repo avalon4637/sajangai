@@ -9,24 +9,20 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-// Mock Supabase client
-const mockInsert = vi.fn();
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    from: () => ({
-      insert: mockInsert,
-    }),
-  }),
+// Mock registerBusiness server action
+const mockRegisterBusiness = vi.fn();
+vi.mock("@/lib/actions/business", () => ({
+  registerBusiness: (...args: unknown[]) => mockRegisterBusiness(...args),
 }));
 
 describe("OnboardingForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockInsert.mockResolvedValue({ error: null });
+    mockRegisterBusiness.mockResolvedValue({ success: true });
   });
 
   it("should render all form fields", () => {
-    render(<OnboardingForm userId="test-user-id" />);
+    render(<OnboardingForm />);
 
     expect(
       screen.getByText("서비스를 이용하려면 사업장 정보를 등록해주세요.")
@@ -37,7 +33,7 @@ describe("OnboardingForm", () => {
   });
 
   it("should render submit button", () => {
-    render(<OnboardingForm userId="test-user-id" />);
+    render(<OnboardingForm />);
 
     const button = screen.getByRole("button", { name: "사업장 등록" });
     expect(button).toBeInTheDocument();
@@ -46,7 +42,7 @@ describe("OnboardingForm", () => {
 
   it("should show validation error when name is empty", async () => {
     const user = userEvent.setup();
-    render(<OnboardingForm userId="test-user-id" />);
+    render(<OnboardingForm />);
 
     const button = screen.getByRole("button", { name: "사업장 등록" });
     await user.click(button);
@@ -58,7 +54,7 @@ describe("OnboardingForm", () => {
 
   it("should submit form with valid data", async () => {
     const user = userEvent.setup();
-    render(<OnboardingForm userId="test-user-id" />);
+    render(<OnboardingForm />);
 
     await user.type(screen.getByLabelText(/사업장명/), "Test Business");
     await user.type(screen.getByLabelText("업종"), "Restaurant");
@@ -67,8 +63,7 @@ describe("OnboardingForm", () => {
     await user.click(screen.getByRole("button", { name: "사업장 등록" }));
 
     await vi.waitFor(() => {
-      expect(mockInsert).toHaveBeenCalledWith({
-        user_id: "test-user-id",
+      expect(mockRegisterBusiness).toHaveBeenCalledWith({
         name: "Test Business",
         business_type: "Restaurant",
         address: "Seoul",
@@ -78,7 +73,7 @@ describe("OnboardingForm", () => {
 
   it("should redirect to dashboard on successful submit", async () => {
     const user = userEvent.setup();
-    render(<OnboardingForm userId="test-user-id" />);
+    render(<OnboardingForm />);
 
     await user.type(screen.getByLabelText(/사업장명/), "Test Business");
     await user.click(screen.getByRole("button", { name: "사업장 등록" }));
@@ -88,19 +83,20 @@ describe("OnboardingForm", () => {
     });
   });
 
-  it("should show error message on insert failure", async () => {
-    mockInsert.mockResolvedValue({
-      error: { message: "Database error" },
+  it("should show error message on registration failure", async () => {
+    mockRegisterBusiness.mockResolvedValue({
+      success: false,
+      error: "사업장 등록에 실패했습니다.",
     });
 
     const user = userEvent.setup();
-    render(<OnboardingForm userId="test-user-id" />);
+    render(<OnboardingForm />);
 
     await user.type(screen.getByLabelText(/사업장명/), "Test Business");
     await user.click(screen.getByRole("button", { name: "사업장 등록" }));
 
     expect(
-      await screen.findByText("사업장 등록에 실패했습니다. 다시 시도해주세요.")
+      await screen.findByText("사업장 등록에 실패했습니다.")
     ).toBeInTheDocument();
   });
 });

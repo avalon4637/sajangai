@@ -16,7 +16,7 @@ export default async function ImportPage() {
   try {
     await getCurrentBusinessId();
   } catch {
-    redirect("/onboarding");
+    redirect("/auth/onboarding");
   }
 
   return (

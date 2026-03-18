@@ -5,6 +5,10 @@
 
 import Papa from "papaparse";
 
+const MAX_AMOUNT = 10_000_000_000;
+
+const sanitize = (s: string) => s.replace(/[<>"'&]/g, "").trim().slice(0, 200);
+
 export interface ParsedRow {
   date: string;
   channel: string;
@@ -63,7 +67,7 @@ function normalizeRow(row: Record<string, string>): ParsedRow | null {
 
   const rawAmount = row[amountKey].replace(/[,원\s]/g, "");
   const amount = Math.abs(parseInt(rawAmount, 10));
-  if (isNaN(amount) || amount === 0) return null;
+  if (isNaN(amount) || amount === 0 || amount > MAX_AMOUNT) return null;
 
   // 채널 추론
   const channelKey = findKey(row, ["채널", "channel", "결제수단", "가맹점"]);
@@ -79,18 +83,22 @@ function normalizeRow(row: Record<string, string>): ParsedRow | null {
   ]);
   const category = categoryKey ? row[categoryKey] : "미분류";
 
+  // Date validation
+  const date = normalizeDate(row[dateKey]);
+  if (!date) return null;
+
   // 수입/지출 판단
   const isExpense =
     parseInt(row[amountKey].replace(/[,원\s]/g, ""), 10) < 0 ||
     findKey(row, ["매입", "지출"]) !== null;
 
   return {
-    date: normalizeDate(row[dateKey]),
-    channel,
-    category,
+    date,
+    channel: sanitize(channel),
+    category: sanitize(category),
     amount,
     type: isExpense ? "expense" : "revenue",
-    memo: row["메모"] || row["memo"] || row["비고"] || "",
+    memo: sanitize(row["메모"] || row["memo"] || row["비고"] || ""),
   };
 }
 
@@ -123,18 +131,24 @@ function classifyChannel(value: string): string {
   return "기타";
 }
 
-function normalizeDate(raw: string): string {
-  // 다양한 날짜 형식 정규화 → YYYY-MM-DD
+function normalizeDate(raw: string): string | null {
+  // Normalize various date formats to YYYY-MM-DD
   const cleaned = raw.replace(/[./년월일]/g, "-").replace(/-+$/, "");
   const parts = cleaned.split("-").filter(Boolean);
 
   if (parts.length === 3) {
-    const year =
-      parts[0].length === 2 ? `20${parts[0]}` : parts[0];
-    const month = parts[1].padStart(2, "0");
-    const day = parts[2].padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    const year = parts[0].length === 2 ? `20${parts[0]}` : parts[0];
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj.getTime())) return null;
+
+    return dateStr;
   }
 
-  return raw;
+  return null;
 }

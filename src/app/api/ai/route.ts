@@ -1,14 +1,55 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
-import type { KpiResult } from "@/lib/kpi/calculator";
+import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
+const AiRequestSchema = z.object({
+  kpiData: z.object({
+    grossProfit: z.number(),
+    netProfit: z.number(),
+    grossMargin: z.number(),
+    laborRatio: z.number(),
+    fixedCostRatio: z.number(),
+    survivalScore: z.number(),
+  }),
+  businessType: z.string().optional(),
+});
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { kpiData, businessType } = (await req.json()) as {
-    kpiData: KpiResult;
-    businessType?: string;
-  };
+  // Authentication check
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: "인증이 필요합니다." }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "ANTHROPIC_API_KEY가 설정되지 않았습니다." }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // Request body validation
+  const body = await req.json();
+  const parsed = AiRequestSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return new Response(
+      JSON.stringify({ error: "잘못된 요청 형식입니다.", details: parsed.error.flatten() }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const { kpiData, businessType } = parsed.data;
 
   const systemPrompt = `당신은 소상공인 경영 분석 AI 비서입니다.
 주어진 KPI 데이터를 분석하여 사장님이 이해하기 쉬운 한국어로 경영 인사이트를 제공하세요.
@@ -31,7 +72,7 @@ export async function POST(req: Request) {
 이 데이터를 기반으로 경영 상태를 분석하고 인사이트를 제공해주세요.`;
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: anthropic("claude-sonnet-4-5-20250514"),
     system: systemPrompt,
     prompt: userPrompt,
   });

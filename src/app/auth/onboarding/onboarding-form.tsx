@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OnboardingSchema, type OnboardingFormData } from "@/lib/validations/auth";
-import { createClient } from "@/lib/supabase/client";
+import { registerBusiness, verifyBusinessNumber } from "@/lib/actions/business";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,15 +17,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-interface OnboardingFormProps {
-  userId: string;
+interface VerifiedBusiness {
+  businessNumber: string;
+  isActive: boolean;
+  validMsg: string;
 }
 
-export function OnboardingForm({ userId }: OnboardingFormProps) {
+export function OnboardingForm() {
   const router = useRouter();
+
+  // Business number verification state
+  const [rawBusinessNumber, setRawBusinessNumber] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [verified, setVerified] = useState<VerifiedBusiness | null>(null);
+
   const {
     register,
     handleSubmit,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<OnboardingFormData>({
@@ -36,18 +47,70 @@ export function OnboardingForm({ userId }: OnboardingFormProps) {
     },
   });
 
+  // Format a 10-digit string as XXX-XX-XXXXX for display
+  const formatBusinessNumber = (value: string): string => {
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleBusinessNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setRawBusinessNumber(raw);
+    setVerified(null);
+    setVerifyError(null);
+  };
+
+  const handleVerify = async () => {
+    if (rawBusinessNumber.length !== 10) {
+      setVerifyError("사업자등록번호 10자리를 모두 입력해주세요.");
+      return;
+    }
+
+    setIsVerifying(true);
+    setVerifyError(null);
+    setVerified(null);
+
+    const result = await verifyBusinessNumber(rawBusinessNumber);
+
+    setIsVerifying(false);
+
+    if (!result.success) {
+      setVerifyError(result.error ?? "인증에 실패했습니다.");
+      return;
+    }
+
+    if (!result.isActive) {
+      setVerifyError(
+        `${result.validMsg ?? "휴폐업 사업자입니다."} 계속 사업 중인 사업자만 등록 가능합니다.`
+      );
+      return;
+    }
+
+    setVerified({
+      businessNumber: result.businessNumber ?? rawBusinessNumber,
+      isActive: result.isActive,
+      validMsg: result.validMsg ?? "계속사업자",
+    });
+  };
+
   const onSubmit = async (data: OnboardingFormData) => {
-    const supabase = createClient();
-    const { error } = await supabase.from("businesses").insert({
-      user_id: userId,
+    // Block submission if business number field has content but is not verified
+    if (rawBusinessNumber && !verified) {
+      setVerifyError("사업자등록번호 인증을 완료해주세요.");
+      return;
+    }
+
+    const result = await registerBusiness({
       name: data.name,
-      business_type: data.business_type || null,
-      address: data.address || null,
+      business_type: data.business_type || undefined,
+      address: data.address || undefined,
     });
 
-    if (error) {
+    if (!result.success) {
       setError("root", {
-        message: "사업장 등록에 실패했습니다. 다시 시도해주세요.",
+        message: result.error || "사업장 등록에 실패했습니다.",
       });
       return;
     }
@@ -57,54 +120,101 @@ export function OnboardingForm({ userId }: OnboardingFormProps) {
 
   return (
     <Card>
-        <CardHeader>
-          <CardTitle>사업장 등록</CardTitle>
-          <CardDescription>
-            서비스를 이용하려면 사업장 정보를 등록해주세요.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">사업장명 *</Label>
+      <CardHeader>
+        <CardTitle>사업장 등록</CardTitle>
+        <CardDescription>
+          서비스를 이용하려면 사업장 정보를 등록해주세요.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+          {/* Business registration number */}
+          <div className="space-y-2">
+            <Label htmlFor="businessNumber">
+              사업자등록번호
+              <span className="ml-1 text-xs text-muted-foreground">(선택)</span>
+            </Label>
+            <div className="flex gap-2">
               <Input
-                id="name"
-                placeholder="사업장명을 입력해주세요"
-                {...register("name")}
-                aria-invalid={!!errors.name}
+                id="businessNumber"
+                type="text"
+                inputMode="numeric"
+                placeholder="000-00-00000"
+                value={formatBusinessNumber(rawBusinessNumber)}
+                onChange={handleBusinessNumberChange}
+                className="flex-1"
+                aria-describedby={verifyError ? "verify-error" : undefined}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleVerify}
+                disabled={isVerifying || rawBusinessNumber.length !== 10}
+                className="shrink-0"
+              >
+                {isVerifying ? "조회 중..." : "인증하기"}
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="business_type">업종</Label>
-              <Input
-                id="business_type"
-                placeholder="예: 음식점, 카페, 소매업"
-                {...register("business_type")}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">주소</Label>
-              <Input
-                id="address"
-                placeholder="사업장 주소를 입력해주세요"
-                {...register("address")}
-              />
-            </div>
-
-            {errors.root && (
-              <p className="text-sm text-destructive">{errors.root.message}</p>
+            {/* Verification error */}
+            {verifyError && (
+              <p id="verify-error" className="text-sm text-destructive">
+                {verifyError}
+              </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "등록 중..." : "사업장 등록"}
-            </Button>
-          </form>
-        </CardContent>
+            {/* Verification success */}
+            {verified && (
+              <div className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800 space-y-0.5">
+                <p className="font-medium">인증 완료</p>
+                <p className="text-green-700">{verified.validMsg}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Business name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">사업장명 *</Label>
+            <Input
+              id="name"
+              placeholder="사업장명을 입력해주세요"
+              {...register("name")}
+              aria-invalid={!!errors.name}
+            />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Business type */}
+          <div className="space-y-2">
+            <Label htmlFor="business_type">업종</Label>
+            <Input
+              id="business_type"
+              placeholder="예: 음식점, 카페, 소매업"
+              {...register("business_type")}
+            />
+          </div>
+
+          {/* Address */}
+          <div className="space-y-2">
+            <Label htmlFor="address">주소</Label>
+            <Input
+              id="address"
+              placeholder="사업장 주소를 입력해주세요"
+              {...register("address")}
+            />
+          </div>
+
+          {errors.root && (
+            <p className="text-sm text-destructive">{errors.root.message}</p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "등록 중..." : "사업장 등록"}
+          </Button>
+        </form>
+      </CardContent>
     </Card>
   );
 }

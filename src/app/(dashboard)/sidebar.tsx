@@ -2,18 +2,40 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, TrendingUp, Receipt, Building, Upload, FlaskConical, Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
-/** Navigation items shared between desktop sidebar and mobile drawer */
-export const navItems = [
-  { href: "/dashboard", label: "홈", icon: Home },
-  { href: "/revenue", label: "매출 관리", icon: TrendingUp },
-  { href: "/expense", label: "비용 관리", icon: Receipt },
-  { href: "/fixed-costs", label: "고정비 관리", icon: Building },
-  { href: "/import", label: "데이터 임포트", icon: Upload },
-  { href: "/simulation", label: "시뮬레이션", icon: FlaskConical },
+/** Agent-persona-based navigation items */
+export const agentNavItems = [
+  {
+    href: "/dashboard",
+    emoji: "👨‍💼",
+    name: "점장",
+    role: "홈 · 종합 브리핑",
+    exact: true,
+  },
+  {
+    href: "/analysis",
+    emoji: "📊",
+    name: "세리",
+    role: "매출 분석",
+    exact: false,
+  },
+  {
+    href: "/review",
+    emoji: "⭐",
+    name: "답장이",
+    role: "리뷰 분석",
+    exact: false,
+  },
+  {
+    href: "/marketing",
+    emoji: "📢",
+    name: "바이럴",
+    role: "마케팅",
+    exact: false,
+  },
 ];
 
 interface SidebarProps {
@@ -25,30 +47,49 @@ export function Sidebar({ userEmail }: SidebarProps) {
   const { signOut } = useAuth();
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-card min-h-screen">
-      <div className="p-6">
-        <h1 className="text-xl font-bold">사장.ai</h1>
+    <aside className="hidden md:flex w-64 flex-col border-r bg-white min-h-screen">
+      {/* Logo */}
+      <div className="px-6 py-5 border-b">
+        <h1 className="text-lg font-bold text-[#18181B] tracking-tight">
+          sajang.ai
+        </h1>
+        <p className="text-xs text-[#71717A] mt-0.5">AI 점장 서비스</p>
       </div>
 
-      <nav className="flex-1 px-4">
+      {/* Agent navigation */}
+      <nav className="flex-1 px-3 py-4">
         <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
+          {agentNavItems.map((item) => {
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                     isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-[#EFF6FF] text-[#2563EB]"
+                      : "text-[#18181B] hover:bg-gray-50"
                   }`}
                 >
-                  <item.icon className="size-4" />
-                  {item.label}
+                  <span className="text-xl leading-none">{item.emoji}</span>
+                  <div className="min-w-0">
+                    <p
+                      className={`text-sm leading-tight ${
+                        isActive ? "font-semibold" : "font-medium"
+                      }`}
+                    >
+                      {item.name}
+                    </p>
+                    <p
+                      className={`text-xs leading-tight mt-0.5 ${
+                        isActive ? "text-[#2563EB]/70" : "text-[#71717A]"
+                      }`}
+                    >
+                      {item.role}
+                    </p>
+                  </div>
                 </Link>
               </li>
             );
@@ -56,25 +97,52 @@ export function Sidebar({ userEmail }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="border-t p-4 space-y-2">
+      {/* Bottom section */}
+      <div className="border-t px-3 py-4 space-y-1">
+        {/* Billing */}
         <Link
-          href="/settings"
-          className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-            pathname.startsWith("/settings")
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          href="/billing"
+          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+            pathname.startsWith("/billing")
+              ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
+              : "text-[#71717A] hover:bg-gray-50 font-medium"
           }`}
         >
-          <Settings className="size-4" />
+          <CreditCard className="size-4 shrink-0" />
+          요금제
+        </Link>
+
+        {/* Settings */}
+        <Link
+          href="/settings"
+          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+            pathname.startsWith("/settings")
+              ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
+              : "text-[#71717A] hover:bg-gray-50 font-medium"
+          }`}
+        >
+          <Settings className="size-4 shrink-0" />
           설정
         </Link>
-        <p className="truncate px-3 text-sm text-muted-foreground">
-          {userEmail}
-        </p>
+
+        {/* User profile */}
+        <div className="px-3 py-2.5 rounded-lg bg-gray-50">
+          <p className="text-sm font-semibold text-[#18181B] truncate">
+            김사장님
+          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-xs font-medium text-[#2563EB]">
+              점장 고용 중
+            </span>
+          </div>
+          <p className="text-xs text-[#71717A] truncate mt-1">{userEmail}</p>
+        </div>
+
+        {/* Logout */}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2"
+          className="w-full justify-start gap-2 text-[#71717A] hover:text-[#18181B] font-medium"
           onClick={signOut}
         >
           <LogOut className="size-4" />

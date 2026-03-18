@@ -19,6 +19,8 @@ import { ExpenseBreakdownChart } from "@/components/dashboard/expense-breakdown-
 import { RevenueChannelBreakdown } from "@/components/dashboard/revenue-channel-breakdown";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { AiInsightWidget } from "@/components/dashboard/ai-insight-widget";
+import { JeongjangBriefingCard } from "@/components/dashboard/jeongjang-briefing-card";
+import { ManagementGrid } from "@/components/dashboard/management-grid";
 
 interface DashboardPageProps {
   searchParams: Promise<{ month?: string }>;
@@ -46,7 +48,7 @@ export default async function DashboardPage({
   try {
     businessId = await getCurrentBusinessId();
   } catch {
-    redirect("/onboarding");
+    redirect("/auth/onboarding");
   }
 
   // Calculate previous month for comparison
@@ -62,29 +64,50 @@ export default async function DashboardPage({
     .single();
   const businessType = business?.business_type ?? undefined;
 
-  // Fetch all dashboard data in parallel
-  const [currentKpi, previousKpi, trend, revenueByChannel, expenseBreakdown] =
+  // Fetch all dashboard data in parallel (including latest briefing)
+  const [currentKpi, previousKpi, trend, revenueByChannel, expenseBreakdown, latestBriefing] =
     await Promise.all([
       getMonthlyKpi(businessId, currentMonth),
       getMonthlyKpi(businessId, previousMonth),
       getMonthlyTrend(businessId, 12),
       getRevenueByChannel(businessId, currentMonth),
       getExpenseBreakdown(businessId, currentMonth),
+      supabase
+        .from("daily_reports")
+        .select("id, report_date, summary, content")
+        .eq("business_id", businessId)
+        .eq("report_type", "jeongjang_briefing")
+        .order("report_date", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then((res) => res.data),
     ]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">대시보드</h1>
-          <p className="text-muted-foreground mt-1">
-            사업장의 핵심 경영 지표를 한눈에 확인하세요.
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            <span>👨‍💼</span>
+            <span>점장 · 종합 브리핑</span>
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            오늘의 매장 현황을 한눈에 확인하세요
           </p>
         </div>
         <Suspense fallback={null}>
           <MonthPicker basePath="/dashboard" />
         </Suspense>
       </div>
+
+      {/* Jeongjang Briefing Card - shown when available */}
+      {latestBriefing && (
+        <JeongjangBriefingCard
+          date={latestBriefing.report_date}
+          summary={latestBriefing.summary ?? ""}
+          content={latestBriefing.content as Record<string, unknown> | null}
+        />
+      )}
 
       {!currentKpi ? (
         <DashboardEmptyState />
@@ -128,6 +151,12 @@ export default async function DashboardPage({
           </div>
         </>
       )}
+
+      {/* Management Section */}
+      <div>
+        <h2 className="text-base font-semibold mb-3 text-foreground">관리</h2>
+        <ManagementGrid />
+      </div>
     </div>
   );
 }

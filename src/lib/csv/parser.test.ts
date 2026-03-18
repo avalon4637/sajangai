@@ -227,6 +227,73 @@ describe("parseCsv", () => {
     });
   });
 
+  describe("input validation", () => {
+    it("should reject amounts exceeding 10 billion won", () => {
+      const csv = buildCsv(["날짜", "금액"], [["2026-01-15", "99999999999"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(0);
+    });
+
+    it("should accept amounts up to 10 billion won", () => {
+      const csv = buildCsv(["날짜", "금액"], [["2026-01-15", "10000000000"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(1);
+    });
+
+    it("should sanitize HTML tags from category field", () => {
+      const csv = buildCsv(
+        ["날짜", "금액", "카테고리"],
+        [["2026-01-15", "10000", "<script>alert('xss')</script>"]]
+      );
+      const result = parseCsv(csv);
+      expect(result.rows[0].category).not.toContain("<");
+      expect(result.rows[0].category).not.toContain(">");
+    });
+
+    it("should truncate long string fields to 200 characters", () => {
+      const longMemo = "a".repeat(300);
+      const csv = buildCsv(
+        ["날짜", "금액", "메모"],
+        [["2026-01-15", "10000", longMemo]]
+      );
+      const result = parseCsv(csv);
+      expect(result.rows[0].memo.length).toBeLessThanOrEqual(200);
+    });
+  });
+
+  describe("date validation", () => {
+    it("should reject month > 12", () => {
+      const csv = buildCsv(["날짜", "금액"], [["2026-13-01", "10000"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(0);
+    });
+
+    it("should reject day > 31", () => {
+      const csv = buildCsv(["날짜", "금액"], [["2026-01-32", "10000"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(0);
+    });
+
+    it("should reject month 0", () => {
+      const csv = buildCsv(["날짜", "금액"], [["2026-00-15", "10000"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(0);
+    });
+
+    it("should reject unparseable date format", () => {
+      const csv = buildCsv(["날짜", "금액"], [["not-a-date", "10000"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(0);
+    });
+
+    it("should accept valid date 2026-02-28", () => {
+      const csv = buildCsv(["날짜", "금액"], [["2026-02-28", "10000"]]);
+      const result = parseCsv(csv);
+      expect(result.rows).toHaveLength(1);
+      expect(result.rows[0].date).toBe("2026-02-28");
+    });
+  });
+
   describe("large dataset handling", () => {
     it("should parse 100+ rows without error", () => {
       const rows: string[][] = [];

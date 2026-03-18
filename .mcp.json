@@ -10,6 +10,11 @@
       "$comment": "Step-by-step reasoning for complex problems",
       "command": "cmd.exe",
       "args": ["/c", "npx -y @modelcontextprotocol/server-sequential-thinking"]
+    },
+    "supabase": {
+      "$comment": "Supabase project management and SQL execution",
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=kdswausexsnqdeghdmas"
     }
   },
   "staggeredStartup": {

@@ -124,3 +124,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Landing page brand colors */
+.landing {
+  --landing-primary: oklch(0.55 0.2 250);
+  --landing-primary-light: oklch(0.65 0.18 250);
+  --landing-primary-dark: oklch(0.45 0.22 250);
+  --landing-primary-foreground: oklch(0.99 0 0);
+  --landing-accent: oklch(0.6 0.15 200);
+  --landing-kakao: oklch(0.88 0.12 95);
+  --landing-kakao-dark: oklch(0.78 0.14 95);
+  --landing-before-bg: oklch(0.97 0.005 15);
+  --landing-after-bg: oklch(0.96 0.02 250);
+}

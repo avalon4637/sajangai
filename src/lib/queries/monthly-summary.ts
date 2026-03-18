@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getLastDayOfMonth } from "@/lib/utils";
 import type { MonthlySummary } from "@/types/data-entry";
 
 /**
@@ -62,7 +63,7 @@ export async function getRevenueByChannel(
     .select("channel, amount")
     .eq("business_id", businessId)
     .gte("date", `${yearMonth}-01`)
-    .lte("date", `${yearMonth}-31`);
+    .lte("date", getLastDayOfMonth(yearMonth));
 
   if (error) {
     throw new Error(`채널별 매출 조회 실패: ${error.message}`);
@@ -96,7 +97,7 @@ export async function getExpenseBreakdown(
     .eq("business_id", businessId)
     .eq("type", "variable")
     .gte("date", `${yearMonth}-01`)
-    .lte("date", `${yearMonth}-31`);
+    .lte("date", getLastDayOfMonth(yearMonth));
 
   if (varError) {
     throw new Error(`변동비 조회 실패: ${varError.message}`);
@@ -109,32 +110,41 @@ export async function getExpenseBreakdown(
     .eq("business_id", businessId)
     .eq("type", "fixed")
     .gte("date", `${yearMonth}-01`)
-    .lte("date", `${yearMonth}-31`);
+    .lte("date", getLastDayOfMonth(yearMonth));
 
   if (fixedExpError) {
     throw new Error(`고정 비용 조회 실패: ${fixedExpError.message}`);
   }
 
-  // Fixed costs from fixed_costs table (recurring costs)
+  // Fixed costs from fixed_costs table (recurring costs, filtered by date)
+  const monthStart = `${yearMonth}-01`;
+  const monthEnd = getLastDayOfMonth(yearMonth);
   const { data: fixedCostData, error: fcError } = await supabase
     .from("fixed_costs")
-    .select("amount, is_labor")
+    .select("amount, is_labor, start_date, end_date")
     .eq("business_id", businessId);
 
   if (fcError) {
     throw new Error(`고정비 조회 실패: ${fcError.message}`);
   }
 
+  // Filter: include if (start_date is null OR start_date <= monthEnd) AND (end_date is null OR end_date >= monthStart)
+  const activeFixedCosts = (fixedCostData ?? []).filter((r) => {
+    const startOk = !r.start_date || r.start_date <= monthEnd;
+    const endOk = !r.end_date || r.end_date >= monthStart;
+    return startOk && endOk;
+  });
+
   const variable =
     variableData?.reduce((sum, r) => sum + r.amount, 0) ?? 0;
   const fixedExpense =
     fixedExpenseData?.reduce((sum, r) => sum + r.amount, 0) ?? 0;
   const fixedCostTotal =
-    fixedCostData?.reduce((sum, r) => sum + r.amount, 0) ?? 0;
+    activeFixedCosts.reduce((sum, r) => sum + r.amount, 0);
   const labor =
-    fixedCostData
-      ?.filter((r) => r.is_labor)
-      .reduce((sum, r) => sum + r.amount, 0) ?? 0;
+    activeFixedCosts
+      .filter((r) => r.is_labor)
+      .reduce((sum, r) => sum + r.amount, 0);
 
   // Fixed = all fixed costs minus labor (to show labor separately)
   const fixed = fixedExpense + fixedCostTotal - labor;

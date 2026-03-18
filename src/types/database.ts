@@ -1,5 +1,17 @@
-// Supabase 데이터베이스 타입 정의
-// Supabase CLI gen types 형식 준수
+// Database type definitions for sajang.ai
+// Follows Supabase CLI gen types format
+//
+// Migration order:
+//   00001_initial_schema.sql      - Core tables (businesses, revenues, expenses, etc.)
+//   20260224000000_rls_policies   - Granular RLS policies
+//   20260224000001_api_connections - api_connections + sync_logs tables
+//   00002_agent_tables.sql        - Agent system tables
+//   00003_store_context.sql       - Drops agent_events, adds store_context
+//   00004_hyphen_integration.sql  - Adds encrypted_credentials/last_sync_at/sync_frequency to api_connections + delivery_reviews
+//   00005_daily_reports.sql       - daily_reports table
+//   00006_brand_voice.sql         - brand_voice_profiles table
+//   00007_subscriptions.sql       - subscriptions + payments tables
+//   00008_expense_categories.sql  - expense_categories, merchant_mappings, labor_records, invoices, vendors
 
 export type Database = {
   public: {
@@ -215,6 +227,10 @@ export type Database = {
         Relationships: [];
       };
       api_connections: {
+        // NOTE: Two separate timestamp fields exist due to migration history:
+        //   last_synced_at - added in 20260224000001_api_connections (original sync timestamp)
+        //   last_sync_at   - added in 00004_hyphen_integration (Hyphen-specific sync timestamp)
+        // Both fields are present in the database and should be maintained separately.
         Row: {
           id: string;
           business_id: string;
@@ -223,6 +239,9 @@ export type Database = {
           status: "active" | "inactive" | "error" | "expired";
           config: Record<string, unknown>;
           last_synced_at: string | null;
+          encrypted_credentials: string | null;
+          last_sync_at: string | null;
+          sync_frequency: "daily" | "weekly" | "manual";
           created_at: string;
           updated_at: string;
         };
@@ -234,6 +253,9 @@ export type Database = {
           status?: "active" | "inactive" | "error" | "expired";
           config?: Record<string, unknown>;
           last_synced_at?: string | null;
+          encrypted_credentials?: string | null;
+          last_sync_at?: string | null;
+          sync_frequency?: "daily" | "weekly" | "manual";
           created_at?: string;
           updated_at?: string;
         };
@@ -245,8 +267,256 @@ export type Database = {
           status?: "active" | "inactive" | "error" | "expired";
           config?: Record<string, unknown>;
           last_synced_at?: string | null;
+          encrypted_credentials?: string | null;
+          last_sync_at?: string | null;
+          sync_frequency?: "daily" | "weekly" | "manual";
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      delivery_reviews: {
+        Row: {
+          id: string;
+          business_id: string;
+          platform: "baemin" | "coupangeats" | "yogiyo";
+          external_id: string | null;
+          rating: number;
+          content: string | null;
+          customer_name: string | null;
+          order_summary: string | null;
+          review_date: string;
+          ai_reply: string | null;
+          reply_status: "pending" | "auto_published" | "draft" | "published" | "skipped";
+          sentiment_score: number | null;
+          keywords: string[] | null;
+          synced_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          platform: "baemin" | "coupangeats" | "yogiyo";
+          external_id?: string | null;
+          rating: number;
+          content?: string | null;
+          customer_name?: string | null;
+          order_summary?: string | null;
+          review_date: string;
+          ai_reply?: string | null;
+          reply_status?: "pending" | "auto_published" | "draft" | "published" | "skipped";
+          sentiment_score?: number | null;
+          keywords?: string[] | null;
+          synced_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          platform?: "baemin" | "coupangeats" | "yogiyo";
+          external_id?: string | null;
+          rating?: number;
+          content?: string | null;
+          customer_name?: string | null;
+          order_summary?: string | null;
+          review_date?: string;
+          ai_reply?: string | null;
+          reply_status?: "pending" | "auto_published" | "draft" | "published" | "skipped";
+          sentiment_score?: number | null;
+          keywords?: string[] | null;
+          synced_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      agent_profiles: {
+        Row: {
+          id: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral";
+          display_name: string;
+          is_active: boolean;
+          config: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral";
+          display_name: string;
+          is_active?: boolean;
+          config?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          agent_type?: "manager" | "dapjangi" | "seri" | "viral";
+          display_name?: string;
+          is_active?: boolean;
+          config?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral" | "team";
+          title: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral" | "team";
+          title?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          agent_type?: "manager" | "dapjangi" | "seri" | "viral" | "team";
+          title?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          business_id: string;
+          role: "user" | "assistant" | "system";
+          content: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral" | null;
+          // metadata is jsonb DEFAULT '{}' in SQL (no NOT NULL constraint) — treat as nullable
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          business_id: string;
+          role: "user" | "assistant" | "system";
+          content: string;
+          agent_type?: "manager" | "dapjangi" | "seri" | "viral" | null;
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          business_id?: string;
+          role?: "user" | "assistant" | "system";
+          content?: string;
+          agent_type?: "manager" | "dapjangi" | "seri" | "viral" | null;
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      agent_memory: {
+        Row: {
+          id: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral";
+          memory_type: "fact" | "preference" | "insight" | "decision";
+          content: string;
+          importance: number;
+          source_message_id: string | null;
+          expires_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral";
+          memory_type: "fact" | "preference" | "insight" | "decision";
+          content: string;
+          importance?: number;
+          source_message_id?: string | null;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          agent_type?: "manager" | "dapjangi" | "seri" | "viral";
+          memory_type?: "fact" | "preference" | "insight" | "decision";
+          content?: string;
+          importance?: number;
+          source_message_id?: string | null;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      store_context: {
+        Row: {
+          id: string;
+          business_id: string;
+          agent_type: "dapjangi" | "seri" | "viral";
+          context_data: Record<string, unknown>;
+          summary: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          agent_type: "dapjangi" | "seri" | "viral";
+          context_data?: Record<string, unknown>;
+          summary?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          agent_type?: "dapjangi" | "seri" | "viral";
+          context_data?: Record<string, unknown>;
+          summary?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      agent_activity_log: {
+        Row: {
+          id: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral" | "system";
+          action: string;
+          summary: string;
+          // details is jsonb DEFAULT '{}' in SQL (no NOT NULL constraint) — treat as nullable
+          details: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          agent_type: "manager" | "dapjangi" | "seri" | "viral" | "system";
+          action: string;
+          summary: string;
+          details?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          agent_type?: "manager" | "dapjangi" | "seri" | "viral" | "system";
+          action?: string;
+          summary?: string;
+          details?: Record<string, unknown> | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -280,6 +550,325 @@ export type Database = {
           error_message?: string | null;
           started_at?: string;
           completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      daily_reports: {
+        Row: {
+          id: string;
+          business_id: string;
+          report_date: string;
+          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing";
+          content: Record<string, unknown>;
+          summary: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          report_date: string;
+          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing";
+          content: Record<string, unknown>;
+          summary?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          report_date?: string;
+          report_type?: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing";
+          content?: Record<string, unknown>;
+          summary?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      brand_voice_profiles: {
+        Row: {
+          id: string;
+          business_id: string;
+          sample_replies: string[];
+          voice_traits: Record<string, unknown>;
+          tone: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          sample_replies?: string[];
+          voice_traits?: Record<string, unknown>;
+          tone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          sample_replies?: string[];
+          voice_traits?: Record<string, unknown>;
+          tone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          business_id: string;
+          plan: "trial" | "paid";
+          status: "trial" | "active" | "past_due" | "cancelled" | "expired";
+          billing_key: string | null;
+          trial_ends_at: string | null;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          plan?: "trial" | "paid";
+          status?: "trial" | "active" | "past_due" | "cancelled" | "expired";
+          billing_key?: string | null;
+          trial_ends_at?: string | null;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          plan?: "trial" | "paid";
+          status?: "trial" | "active" | "past_due" | "cancelled" | "expired";
+          billing_key?: string | null;
+          trial_ends_at?: string | null;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      payments: {
+        Row: {
+          id: string;
+          subscription_id: string;
+          amount: number;
+          status: "pending" | "paid" | "failed" | "refunded";
+          portone_payment_id: string | null;
+          paid_at: string | null;
+          failed_reason: string | null;
+          retry_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          subscription_id: string;
+          amount?: number;
+          status?: "pending" | "paid" | "failed" | "refunded";
+          portone_payment_id?: string | null;
+          paid_at?: string | null;
+          failed_reason?: string | null;
+          retry_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          subscription_id?: string;
+          amount?: number;
+          status?: "pending" | "paid" | "failed" | "refunded";
+          portone_payment_id?: string | null;
+          paid_at?: string | null;
+          failed_reason?: string | null;
+          retry_count?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      expense_categories: {
+        Row: {
+          id: string;
+          business_id: string;
+          major_category: string;
+          sub_category: string;
+          display_order: number;
+          is_default: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          major_category: string;
+          sub_category: string;
+          display_order?: number;
+          is_default?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          major_category?: string;
+          sub_category?: string;
+          display_order?: number;
+          is_default?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      merchant_mappings: {
+        Row: {
+          id: string;
+          business_id: string;
+          merchant_name_pattern: string;
+          major_category: string;
+          sub_category: string | null;
+          confidence: number;
+          usage_count: number;
+          created_by: "user" | "ai";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          merchant_name_pattern: string;
+          major_category: string;
+          sub_category?: string | null;
+          confidence?: number;
+          usage_count?: number;
+          created_by?: "user" | "ai";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          merchant_name_pattern?: string;
+          major_category?: string;
+          sub_category?: string | null;
+          confidence?: number;
+          usage_count?: number;
+          created_by?: "user" | "ai";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      labor_records: {
+        Row: {
+          id: string;
+          business_id: string;
+          employee_name: string;
+          payment_date: string;
+          gross_amount: number;
+          deductions: number;
+          net_amount: number;
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          employee_name: string;
+          payment_date: string;
+          gross_amount: number;
+          deductions?: number;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          employee_name?: string;
+          payment_date?: string;
+          gross_amount?: number;
+          deductions?: number;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      invoices: {
+        Row: {
+          id: string;
+          business_id: string;
+          type: "receivable" | "payable";
+          counterparty: string;
+          amount: number;
+          issue_date: string;
+          due_date: string | null;
+          paid_date: string | null;
+          status: "pending" | "paid" | "overdue";
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          type: "receivable" | "payable";
+          counterparty: string;
+          amount: number;
+          issue_date: string;
+          due_date?: string | null;
+          paid_date?: string | null;
+          status?: "pending" | "paid" | "overdue";
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          type?: "receivable" | "payable";
+          counterparty?: string;
+          amount?: number;
+          issue_date?: string;
+          due_date?: string | null;
+          paid_date?: string | null;
+          status?: "pending" | "paid" | "overdue";
+          memo?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      vendors: {
+        Row: {
+          id: string;
+          business_id: string;
+          name: string;
+          category: string | null;
+          contact_name: string | null;
+          phone: string | null;
+          business_number: string | null;
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          name: string;
+          category?: string | null;
+          contact_name?: string | null;
+          phone?: string | null;
+          business_number?: string | null;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          name?: string;
+          category?: string | null;
+          contact_name?: string | null;
+          phone?: string | null;
+          business_number?: string | null;
+          memo?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };

@@ -29,7 +29,7 @@ export default async function ExpensePage({ searchParams }: ExpensePageProps) {
   try {
     businessId = await getCurrentBusinessId();
   } catch {
-    redirect("/onboarding");
+    redirect("/auth/onboarding");
   }
 
   const expenses = await getExpenses(businessId, currentMonth);

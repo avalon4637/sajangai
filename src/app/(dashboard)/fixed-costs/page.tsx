@@ -19,7 +19,7 @@ export default async function FixedCostsPage() {
   try {
     businessId = await getCurrentBusinessId();
   } catch {
-    redirect("/onboarding");
+    redirect("/auth/onboarding");
   }
 
   const fixedCosts = await getFixedCosts(businessId);

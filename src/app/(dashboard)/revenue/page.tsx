@@ -29,7 +29,7 @@ export default async function RevenuePage({ searchParams }: RevenuePageProps) {
   try {
     businessId = await getCurrentBusinessId();
   } catch {
-    redirect("/onboarding");
+    redirect("/auth/onboarding");
   }
 
   const revenues = await getRevenues(businessId, currentMonth);

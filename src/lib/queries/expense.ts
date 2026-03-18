@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getLastDayOfMonth } from "@/lib/utils";
 import type { Expense } from "@/types/data-entry";
 
 /**
@@ -19,7 +20,7 @@ export async function getExpenses(
   if (yearMonth) {
     query = query
       .gte("date", `${yearMonth}-01`)
-      .lte("date", `${yearMonth}-31`);
+      .lte("date", getLastDayOfMonth(yearMonth));
   }
 
   const { data, error } = await query;

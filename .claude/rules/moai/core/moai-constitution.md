@@ -28,7 +28,7 @@ Rules:
 - Launch multiple agents in a single message when tasks are independent
 - Use sequential execution only when dependencies exist
 - Maximum 10 parallel agents for optimal throughput
-- For sub-agent mode: Launch multiple Task() calls in a single message for parallel execution
+- For sub-agent mode: Launch multiple Agent() calls in a single message for parallel execution
 - For team mode: Use TeamCreate for persistent team coordination, SendMessage for inter-teammate communication
 - Team agents share TaskList for work coordination; sub-agents return results directly
 
@@ -53,6 +53,19 @@ Rules:
 - Trackable: Conventional commits, issue references
 - Team mode quality: TeammateIdle hook validates work before idle acceptance
 - Team mode quality: TaskCompleted hook validates deliverables before completion
+
+## MX Tag Quality Gates
+
+Code changes should include appropriate @MX annotations.
+
+Rules:
+- New exported functions: Consider @MX:NOTE or @MX:ANCHOR
+- High fan_in functions (>=3 callers): MUST have @MX:ANCHOR
+- Dangerous patterns (goroutines, complexity >=15): SHOULD have @MX:WARN
+- Untested public functions: SHOULD have @MX:TODO
+- Legacy code without SPEC: Use @MX:LEGACY sub-line
+- MX tags are autonomous: Agents add/update/remove without human approval
+- Reports notify humans of tag changes
 
 ## URL Verification
 
@@ -93,3 +106,18 @@ Rules:
 - Validate all external inputs
 - Follow OWASP guidelines for web security
 - Use environment variables for credentials
+
+## Lessons Protocol
+
+Capture and reuse learnings from user corrections and agent failures across sessions.
+
+Rules:
+- When user corrects agent behavior, capture the pattern in auto-memory
+- Store lessons at auto-memory `lessons.md` (path: `~/.claude/projects/{project-hash}/memory/lessons.md`)
+- Each lesson entry: category, incorrect pattern, correct approach, date added
+- Review relevant lessons before starting tasks in the same domain
+- Lesson categories: architecture, testing, naming, workflow, security, performance
+- Maximum 50 active lessons per project; archive older entries to `lessons-archive.md` in the same directory
+- Lessons are additive: never overwrite a lesson, append corrections as updates
+- To supersede a lesson, add `[SUPERSEDED by #{new_lesson_number}]` prefix to the old entry
+- Session start: scan lessons for patterns matching current task domain

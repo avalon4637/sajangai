@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { calculateKpi } from "@/lib/kpi/calculator";
+import { getLastDayOfMonth, filterActiveFixedCosts } from "@/lib/utils";
 
 /**
  * Recalculate monthly KPI summary for a given business and month.
@@ -20,7 +21,7 @@ export async function recalculateMonthlyKpi(
     .select("amount")
     .eq("business_id", businessId)
     .gte("date", `${yearMonth}-01`)
-    .lte("date", `${yearMonth}-31`);
+    .lte("date", getLastDayOfMonth(yearMonth));
 
   const totalRevenue =
     revenueData?.reduce((sum, r) => sum + r.amount, 0) ?? 0;
@@ -32,7 +33,7 @@ export async function recalculateMonthlyKpi(
     .eq("business_id", businessId)
     .eq("type", "variable")
     .gte("date", `${yearMonth}-01`)
-    .lte("date", `${yearMonth}-31`);
+    .lte("date", getLastDayOfMonth(yearMonth));
 
   const totalExpense =
     expenseData?.reduce((sum, e) => sum + e.amount, 0) ?? 0;
@@ -44,23 +45,28 @@ export async function recalculateMonthlyKpi(
     .eq("business_id", businessId)
     .eq("type", "fixed")
     .gte("date", `${yearMonth}-01`)
-    .lte("date", `${yearMonth}-31`);
+    .lte("date", getLastDayOfMonth(yearMonth));
 
   const totalFixedExpense =
     fixedExpenseData?.reduce((sum, e) => sum + e.amount, 0) ?? 0;
 
-  // 4. Fixed costs from fixed_costs table (all entries)
+  // 4. Fixed costs from fixed_costs table (filter by date range)
+  const monthStart = `${yearMonth}-01`;
+  const monthEnd = getLastDayOfMonth(yearMonth);
   const { data: fixedCostData } = await supabase
     .from("fixed_costs")
-    .select("amount, is_labor")
+    .select("amount, is_labor, start_date, end_date")
     .eq("business_id", businessId);
 
+  // Filter active fixed costs by date range overlap with the month
+  const activeFixedCosts = filterActiveFixedCosts(fixedCostData ?? [], monthStart, monthEnd);
+
   const totalFixedCostFromTable =
-    fixedCostData?.reduce((sum, f) => sum + f.amount, 0) ?? 0;
+    activeFixedCosts.reduce((sum, f) => sum + f.amount, 0);
   const totalLaborCost =
-    fixedCostData
-      ?.filter((f) => f.is_labor)
-      .reduce((sum, f) => sum + f.amount, 0) ?? 0;
+    activeFixedCosts
+      .filter((f) => f.is_labor)
+      .reduce((sum, f) => sum + f.amount, 0);
 
   // Combined fixed costs = fixed_costs table + fixed type expenses
   const totalFixedCost = totalFixedCostFromTable + totalFixedExpense;

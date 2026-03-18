@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.kr.sajang.ai",
+        "paths": ["/dashboard", "/analysis", "/review", "/marketing", "/settings"]
+      }
+    ]
+  }
+}

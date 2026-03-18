@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, useTransition } from "react";
 import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { parseCsv, type ParsedRow } from "@/lib/csv/parser";
-import { importCsvData, type ImportRow, type ImportResult } from "@/lib/actions/csv-import";
+import { checkDuplicates, importCsvData, type ImportRow, type ImportResult } from "@/lib/actions/csv-import";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +34,21 @@ interface EditableRow extends ParsedRow {
   errorMessage?: string;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const WARN_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+/**
+ * Detect file encoding and decode content.
+ * Tries UTF-8 first (with fatal mode), falls back to EUC-KR for Korean bank exports.
+ */
+function decodeFileContent(buffer: ArrayBuffer): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    // UTF-8 decode failed, try EUC-KR (common for Korean bank/card exports)
+    return new TextDecoder("euc-kr").decode(buffer);
+  }
+}
 
 export function CsvUploadZone() {
   const [state, setState] = useState<ImportState>("idle");
@@ -44,6 +58,7 @@ export function CsvUploadZone() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isDragging, setIsDragging] = useState(false);
+  const [warning, setWarning] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback((file: File) => {
@@ -53,15 +68,22 @@ export function CsvUploadZone() {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      alert("파일 크기는 5MB 이하여야 합니다.");
+      alert("파일 크기는 10MB 이하여야 합니다.");
       return;
+    }
+
+    if (file.size > WARN_FILE_SIZE) {
+      setWarning("파일이 큽니다. 처리에 시간이 걸릴 수 있습니다.");
+    } else {
+      setWarning("");
     }
 
     setFileName(file.name);
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
+    reader.onload = async (e) => {
+      const buffer = e.target?.result as ArrayBuffer;
+      const content = decodeFileContent(buffer);
       const result = parseCsv(content);
 
       const editableRows: EditableRow[] = result.rows.map((row) => ({
@@ -73,8 +95,32 @@ export function CsvUploadZone() {
       setRows(editableRows);
       setParseErrors(result.errors);
       setState("preview");
+
+      // Check for duplicates in the background
+      try {
+        const importRows: ImportRow[] = result.rows.map((r) => ({
+          date: r.date,
+          channel: r.channel,
+          category: r.category,
+          amount: r.amount,
+          type: r.type,
+          memo: r.memo,
+        }));
+        const duplicateIndices = await checkDuplicates(importRows);
+        if (duplicateIndices.length > 0) {
+          const dupSet = new Set(duplicateIndices);
+          setRows((prev) =>
+            prev.map((row, i) => ({
+              ...row,
+              isDuplicate: dupSet.has(i),
+            }))
+          );
+        }
+      } catch {
+        // Duplicate check is best-effort; don't block import
+      }
     };
-    reader.readAsText(file, "UTF-8");
+    reader.readAsArrayBuffer(file);
   }, []);
 
   const handleDrop = useCallback(
@@ -147,6 +193,7 @@ export function CsvUploadZone() {
     setRows([]);
     setParseErrors([]);
     setFileName("");
+    setWarning("");
     setImportResult(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -180,7 +227,7 @@ export function CsvUploadZone() {
                 탭하여 CSV 파일을 선택하세요
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                .csv 파일만 지원 (최대 5MB)
+                .csv 파일만 지원 (최대 10MB)
               </p>
             </div>
             <Button
@@ -258,6 +305,14 @@ export function CsvUploadZone() {
                     <li>...외 {parseErrors.length - 5}건</li>
                   )}
                 </ul>
+              </div>
+            )}
+
+            {warning && (
+              <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  {warning}
+                </p>
               </div>
             )}
 

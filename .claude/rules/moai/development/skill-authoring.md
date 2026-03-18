@@ -1,3 +1,7 @@
+---
+paths: "**/.claude/skills/**"
+---
+
 # Skill Authoring
 
 Guidelines for creating MoAI skills following the Agent Skills open standard (agentskills.io).
@@ -15,7 +19,7 @@ Required fields:
 Optional standard fields:
 - license: SPDX license identifier (default: Apache-2.0)
 - compatibility: Target platform description, max 500 characters (default: Designed for Claude Code)
-- allowed-tools: Space-delimited string of tool names the skill can use (experimental)
+- allowed-tools: Comma-separated string of tool names the skill can use (experimental)
 - user-invocable: Boolean to control slash command menu visibility (default: true, set to false to hide from / menu)
 
 ### metadata Map
@@ -62,7 +66,7 @@ description: >
   Use YAML folded scalar (>) for multi-line descriptions.
 license: Apache-2.0
 compatibility: Designed for Claude Code
-allowed-tools: Read Grep Glob Bash mcp__context7__resolve-library-id mcp__context7__get-library-docs
+allowed-tools: Read, Grep, Glob, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 user-invocable: false
 metadata:
   version: "1.0.0"
@@ -88,9 +92,10 @@ triggers:
 
 ### Key Format Rules
 
-allowed-tools format: Space-delimited string, not YAML array.
-- Correct: `allowed-tools: Read Grep Glob Bash`
-- Wrong: `allowed-tools: [Read, Grep, Glob, Bash]`
+allowed-tools format: Comma-separated string (recommended) or YAML array (supported since v2.1.0).
+- Recommended: `allowed-tools: Read, Grep, Glob, Bash`
+- Also valid: YAML-style list syntax (supported since v2.1.0)
+- MoAI convention: Use CSV format for consistency with existing skills
 
 metadata values: All values must be quoted strings.
 - Correct: `version: "1.0.0"`
@@ -149,6 +154,18 @@ triggers:
   languages: ["python", "typescript"]
 ```
 
+## Built-in Variables
+
+Variables available inside skill SKILL.md content:
+
+| Variable | Description | Available Since |
+|----------|-------------|-----------------|
+| `${CLAUDE_SKILL_DIR}` | Absolute path to the skill's own directory | v2.1.69 |
+| `${CLAUDE_SESSION_ID}` | Current session identifier | v2.1.9 |
+| `${CLAUDE_PLUGIN_ROOT}` | Plugin root directory (plugin skills only) | v2.0.12 |
+
+Use `${CLAUDE_SKILL_DIR}` for referencing files within the skill directory instead of relative paths. This is more reliable across different invocation contexts.
+
 ## Best Practices
 
 - Use minimum required permissions
@@ -158,5 +175,6 @@ triggers:
 - Overestimate token usage by 10-20% for safety
 - Use YAML folded scalar (>) for description field
 - Keep all metadata values as quoted strings
-- Use space-delimited format for allowed-tools
+- Use comma-separated format for allowed-tools (YAML arrays also supported since v2.1.0)
 - Mark MoAI extension fields with standardized comments
+- Use `${CLAUDE_SKILL_DIR}` for self-referencing paths within skill content

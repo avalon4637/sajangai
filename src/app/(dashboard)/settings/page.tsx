@@ -18,7 +18,12 @@ export default async function SettingsPage() {
     redirect("/auth/login");
   }
 
-  const businessId = await getCurrentBusinessId();
+  let businessId: string;
+  try {
+    businessId = await getCurrentBusinessId();
+  } catch {
+    redirect("/auth/onboarding");
+  }
   const apiKeySet = isHyphenConfigured();
 
   // Fetch connections and sync logs in parallel

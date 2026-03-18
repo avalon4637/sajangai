@@ -1,11 +1,12 @@
 // Hyphen API client for card sales and delivery app integration
-// Provides type-safe HTTP methods with retry logic and error handling
+// Provides type-safe HTTP methods with retry logic, error handling, and OAuth token refresh
 
 import {
   type HyphenConfig,
   type HyphenApiResponse,
   HyphenApiError,
 } from "./types";
+import { getAccessToken, invalidateToken } from "./oauth";
 
 const DEFAULT_CONFIG: Omit<HyphenConfig, "apiKey"> = {
   baseUrl: "https://api.hyphen.im",
@@ -23,33 +24,57 @@ export function isHyphenConfigured(): boolean {
   return !!process.env.HYPHEN_API_KEY;
 }
 
+/** Extended config with optional OAuth credentials */
+interface HyphenClientConfig extends HyphenConfig {
+  oauthClientId?: string;
+  oauthClientSecret?: string;
+}
+
 /**
  * Create a configured Hyphen API client instance.
- * Throws if HYPHEN_API_KEY is not set.
+ * Supports both API key auth (MVP) and OAuth2 token refresh.
+ * Falls back gracefully if HYPHEN_API_KEY is not set (mock mode).
  */
-export function createHyphenClient(overrides?: Partial<HyphenConfig>) {
+export function createHyphenClient(overrides?: Partial<HyphenClientConfig>) {
   const apiKey = overrides?.apiKey ?? process.env.HYPHEN_API_KEY;
+  const oauthClientId =
+    overrides?.oauthClientId ?? process.env.HYPHEN_CLIENT_ID;
+  const oauthClientSecret =
+    overrides?.oauthClientSecret ?? process.env.HYPHEN_CLIENT_SECRET;
 
-  if (!apiKey) {
-    throw new HyphenApiError(
-      401,
-      "MISSING_API_KEY",
-      "HYPHEN_API_KEY environment variable is not set"
-    );
-  }
-
-  const config: HyphenConfig = {
-    apiKey,
+  const config: HyphenClientConfig = {
+    apiKey: apiKey ?? "mock-key",
     baseUrl: overrides?.baseUrl ?? DEFAULT_CONFIG.baseUrl,
     timeout: overrides?.timeout ?? DEFAULT_CONFIG.timeout,
     retries: overrides?.retries ?? DEFAULT_CONFIG.retries,
+    oauthClientId,
+    oauthClientSecret,
   };
 
   const isDev = process.env.NODE_ENV === "development";
 
   /**
-   * Execute an HTTP request with retry logic and exponential backoff.
-   * Retries on 5xx errors and network failures up to config.retries times.
+   * Resolve the current access token.
+   * Uses OAuth2 if credentials are available, falls back to API key.
+   */
+  async function resolveToken(): Promise<string> {
+    if (oauthClientId && oauthClientSecret) {
+      return getAccessToken(oauthClientId, oauthClientSecret);
+    }
+    // MVP: use API key directly as bearer token
+    if (apiKey) {
+      return apiKey;
+    }
+    throw new HyphenApiError(
+      401,
+      "MISSING_CREDENTIALS",
+      "No Hyphen credentials available. Set HYPHEN_API_KEY or HYPHEN_CLIENT_ID/SECRET."
+    );
+  }
+
+  /**
+   * Execute an HTTP request with retry logic, exponential backoff, and
+   * automatic token refresh on 401 responses.
    */
   async function request<T>(
     method: "GET" | "POST",
@@ -67,22 +92,8 @@ export function createHyphenClient(overrides?: Partial<HyphenConfig>) {
       }
     }
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.apiKey}`,
-    };
-
-    const fetchOptions: RequestInit = {
-      method,
-      headers,
-      signal: AbortSignal.timeout(config.timeout),
-    };
-
-    if (method === "POST" && options?.body) {
-      fetchOptions.body = JSON.stringify(options.body);
-    }
-
     let lastError: Error | null = null;
+    let tokenRefreshed = false;
 
     for (let attempt = 0; attempt <= config.retries; attempt++) {
       if (attempt > 0) {
@@ -97,11 +108,38 @@ export function createHyphenClient(overrides?: Partial<HyphenConfig>) {
       }
 
       try {
+        // Resolve current access token (may refresh if needed)
+        const token = await resolveToken();
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+
+        const fetchOptions: RequestInit = {
+          method,
+          headers,
+          signal: AbortSignal.timeout(config.timeout),
+        };
+
+        if (method === "POST" && options?.body) {
+          fetchOptions.body = JSON.stringify(options.body);
+        }
+
         if (isDev) {
           console.log(`[Hyphen] ${method} ${url.toString()}`);
         }
 
         const response = await fetch(url.toString(), fetchOptions);
+
+        // Handle 401 with token refresh (once per request)
+        if (response.status === 401 && !tokenRefreshed && oauthClientId) {
+          tokenRefreshed = true;
+          invalidateToken(oauthClientId);
+          // Retry immediately without counting as a regular retry
+          attempt--;
+          continue;
+        }
 
         if (!response.ok) {
           const errorBody = await response.text();
