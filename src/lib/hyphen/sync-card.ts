@@ -1,48 +1,36 @@
 // Card sales sync module
-// Fetches card approval and settlement data from Hyphen API
-// Maps to the revenues table with channel='카드'
+// Uses actual Hyphen API endpoints: POST /in0007000033 (approval), /in0007000769 (deposit)
 
 import { createClient } from "@/lib/supabase/server";
-import { createHyphenClient } from "./client";
+import { createHyphenClient, isHyphenConfigured } from "./client";
 import {
-  normalizeCardSale,
-  type HyphenCardApproval,
-  type HyphenCardSettlement,
+  normalizeCardApproval,
+  normalizeCardDeposit,
+  type NormalizedCardDeposit,
 } from "./normalizer";
+import {
+  CARD_ENDPOINTS,
+  CARD_COMPANY_CODES,
+  type HyphenCardApprovalData,
+  type HyphenCardDepositData,
+  type CardApprovalRequestBody,
+  type CardDepositRequestBody,
+} from "./types";
 
-/** Mock card approval data for development without real API credentials */
-function getMockCardApprovals(count: number = 10): HyphenCardApproval[] {
-  const today = new Date();
-  return Array.from({ length: count }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(date.getDate() - Math.floor(i / 3));
-    const hour = 10 + (i % 12);
-    return {
-      approvalNo: `MOCK-CARD-${Date.now()}-${i}`,
-      approvalDate: date.toISOString().slice(0, 10),
-      approvalDatetime: `${date.toISOString().slice(0, 10)}T${String(hour).padStart(2, "0")}:${String(i * 5 % 60).padStart(2, "0")}:00`,
-      cardCompany: ["신한카드", "KB국민카드", "현대카드", "롯데카드"][i % 4],
-      cardNo: `****-****-****-${String(1000 + i).slice(-4)}`,
-      approvalAmount: 10000 + Math.floor(Math.random() * 50000),
-      isCancelled: false,
-    };
-  });
-}
-
-/** Result of a card sales sync operation */
 export interface CardSyncResult {
   approvalsCount: number;
   skippedCount: number;
   error?: string;
 }
 
+/** Convert ISO date to yyyymmdd */
+function toYmd(isoDate: string): string {
+  return isoDate.replace(/-/g, "").slice(0, 8);
+}
+
 /**
  * Sync card approval records for a business.
- * Maps to revenues table with channel='카드' for tracking card payment income.
- *
- * @param businessId - Business to sync for
- * @param credentials - Card sales API credentials (may be undefined for mock mode)
- * @param lastSyncAt - ISO timestamp of last successful sync
+ * Calls POST /in0007000033 for each configured card company.
  */
 export async function syncCardSales(
   businessId: string,
@@ -58,110 +46,110 @@ export async function syncCardSales(
       })();
   const endDate = new Date().toISOString().slice(0, 10);
 
-  let rawApprovals: HyphenCardApproval[];
-
-  const useMock =
-    !credentials?.apiKey && !process.env.HYPHEN_API_KEY;
-
-  if (useMock) {
-    rawApprovals = getMockCardApprovals();
-  } else {
-    try {
-      const client = createHyphenClient(
-        credentials?.apiKey ? { apiKey: credentials.apiKey } : undefined
-      );
-      const response = await client.get<{ approvals: HyphenCardApproval[] }>(
-        "/v1/card/approvals",
-        {
-          startDate,
-          endDate,
-          merchantNo: credentials?.merchantNo ?? "",
-        }
-      );
-      rawApprovals = response.approvals ?? [];
-    } catch (error) {
-      return {
-        approvalsCount: 0,
-        skippedCount: 0,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+  // Mock mode if no credentials
+  if (!credentials?.userId || !isHyphenConfigured()) {
+    return getMockCardResult();
   }
 
-  const supabase = await createClient();
-  let insertedCount = 0;
-  let skippedCount = 0;
+  const client = createHyphenClient();
+  const cardCd = credentials.cardCd ?? "001"; // Default to Shinhan
+  const cardCompanyName =
+    CARD_COMPANY_CODES[cardCd] ?? "카드";
 
-  for (const approval of rawApprovals) {
-    // Skip cancelled/reversed transactions
-    if (approval.isCancelled) {
-      skippedCount++;
-      continue;
-    }
+  try {
+    const body: CardApprovalRequestBody = {
+      cardCd,
+      loginMethod: "ID",
+      userId: credentials.cardUserId ?? credentials.userId,
+      userPw: credentials.cardUserPw ?? credentials.userPw,
+      sdate: toYmd(startDate),
+      edate: toYmd(endDate),
+      memberYn: credentials.memberNo ? "Y" : "N",
+      memberNo: credentials.memberNo,
+    };
 
-    const normalized = normalizeCardSale(approval, businessId);
+    const response = await client.post<HyphenCardApprovalData>(
+      CARD_ENDPOINTS.approval,
+      body as unknown as Record<string, unknown>
+    );
 
-    const { error } = await supabase.from("revenues").insert(normalized);
+    const approvals = response.data?.list ?? [];
 
-    if (error) {
-      if (error.code === "23505") {
-        // Duplicate - already synced
+    const supabase = await createClient();
+    let insertedCount = 0;
+    let skippedCount = 0;
+
+    for (const approval of approvals) {
+      // Skip cancelled
+      if (approval.appCancel === "Y" || approval.pchCancel === "Y") {
         skippedCount++;
-      } else {
-        console.error("[SyncCard] Insert error:", error.message);
-        skippedCount++;
+        continue;
       }
-    } else {
-      insertedCount++;
-    }
-  }
 
-  return {
-    approvalsCount: insertedCount,
-    skippedCount,
-  };
+      const normalized = normalizeCardApproval(
+        approval,
+        businessId,
+        cardCompanyName
+      );
+
+      const { error } = await supabase.from("revenues").insert(normalized);
+
+      if (error) {
+        if (error.code === "23505") {
+          skippedCount++;
+        } else {
+          console.error("[SyncCard] Insert error:", error.message);
+          skippedCount++;
+        }
+      } else {
+        insertedCount++;
+      }
+    }
+
+    return { approvalsCount: insertedCount, skippedCount };
+  } catch (error) {
+    return {
+      approvalsCount: 0,
+      skippedCount: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
 
 /**
- * Fetch card settlement summary (not stored individually, used for reporting).
- * Returns aggregated settlement data for a date range.
- *
- * @param credentials - Card sales API credentials
- * @param startDate - YYYY-MM-DD
- * @param endDate - YYYY-MM-DD
+ * Fetch card deposit (settlement) data for cash flow prediction.
+ * Calls POST /in0007000769.
  */
-export async function fetchCardSettlements(
-  credentials: Record<string, string> | undefined,
+export async function fetchCardDeposits(
+  credentials: Record<string, string>,
   startDate: string,
   endDate: string
-): Promise<HyphenCardSettlement[]> {
-  const useMock =
-    !credentials?.apiKey && !process.env.HYPHEN_API_KEY;
-
-  if (useMock) {
-    // Return mock settlement summary
-    return [
-      {
-        settlementDate: endDate,
-        cardCompany: "전체",
-        totalAmount: 500000,
-        feeAmount: 15000,
-        netAmount: 485000,
-        transactionCount: 25,
-      },
-    ];
+): Promise<NormalizedCardDeposit[]> {
+  if (!isHyphenConfigured()) {
+    return [];
   }
 
-  const client = createHyphenClient(
-    credentials?.apiKey ? { apiKey: credentials.apiKey } : undefined
+  const client = createHyphenClient();
+
+  const body: CardDepositRequestBody = {
+    cardCd: credentials.cardCd ?? "001",
+    loginMethod: "ID",
+    userId: credentials.cardUserId ?? credentials.userId,
+    userPw: credentials.cardUserPw ?? credentials.userPw,
+    sdate: toYmd(startDate),
+    edate: toYmd(endDate),
+    memberYn: credentials.memberNo ? "Y" : "N",
+    memberNo: credentials.memberNo,
+  };
+
+  const response = await client.post<HyphenCardDepositData>(
+    CARD_ENDPOINTS.deposit,
+    body as unknown as Record<string, unknown>
   );
-  const response = await client.get<{ settlements: HyphenCardSettlement[] }>(
-    "/v1/card/settlements",
-    {
-      startDate,
-      endDate,
-      merchantNo: credentials?.merchantNo ?? "",
-    }
-  );
-  return response.settlements ?? [];
+
+  return (response.data?.list ?? []).map(normalizeCardDeposit);
+}
+
+function getMockCardResult(): CardSyncResult {
+  return { approvalsCount: 0, skippedCount: 0 };
 }

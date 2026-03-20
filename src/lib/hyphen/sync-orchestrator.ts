@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { decryptCredentials } from "./encryption";
 import { syncDeliverySales, syncDeliveryReviews } from "./sync-delivery";
 import { syncCardSales } from "./sync-card";
-import type { DeliveryPlatform } from "./normalizer";
+import type { DeliveryPlatform } from "./types";
 
 /** Individual sync operation result */
 interface SyncOperationResult {

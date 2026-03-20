@@ -3,7 +3,7 @@
 // Deduplicates using external_id + platform unique constraint
 
 import { syncDeliveryReviews, type ReviewSyncResult } from "./sync-delivery";
-import type { DeliveryPlatform } from "./normalizer";
+import type { DeliveryPlatform } from "./types";
 
 /** Platforms supported for review sync */
 export const REVIEW_PLATFORMS: DeliveryPlatform[] = [

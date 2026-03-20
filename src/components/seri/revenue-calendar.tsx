@@ -1,15 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { ko } from "date-fns/locale";
-import {
-  DayPicker,
-  getDefaultClassNames,
-  type DayButton,
-} from "react-day-picker";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface DailyRevenue {
   date: string; // yyyy-MM-dd
@@ -23,29 +16,23 @@ interface RevenueCalendarProps {
   onDayClick?: (date: Date, amount: number) => void;
 }
 
-function getHeatmapColor(amount: number, max: number): string {
-  if (amount === 0 || max === 0) return "bg-muted/40";
-  const ratio = amount / max;
-  if (ratio < 0.2) return "bg-blue-50 dark:bg-blue-950/30";
-  if (ratio < 0.4) return "bg-blue-100 dark:bg-blue-900/40";
-  if (ratio < 0.6) return "bg-blue-200 dark:bg-blue-800/50";
-  if (ratio < 0.8) return "bg-blue-400 text-white dark:bg-blue-600";
-  return "bg-blue-600 text-white dark:bg-blue-500";
-}
+const DAY_HEADERS = ["일", "월", "화", "수", "목", "금", "토"];
 
-function getTextColor(amount: number, max: number): string {
-  if (amount === 0 || max === 0) return "text-muted-foreground";
-  const ratio = amount / max;
-  if (ratio >= 0.6) return "text-white";
-  if (ratio >= 0.4) return "text-blue-900 dark:text-blue-100";
-  return "text-blue-700 dark:text-blue-300";
-}
-
-function formatAmount(amount: number): string {
+function formatCompact(amount: number): string {
   if (amount === 0) return "-";
-  if (amount >= 10000) return `${Math.round(amount / 10000)}만`;
-  if (amount >= 1000) return `${(amount / 10000).toFixed(1)}만`;
-  return `${amount.toLocaleString()}`;
+  if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억`;
+  if (amount >= 10_000) return `${Math.round(amount / 10_000).toLocaleString()}만`;
+  return amount.toLocaleString();
+}
+
+function getHeatColor(amount: number, max: number): string {
+  if (amount === 0 || max === 0) return "";
+  const ratio = amount / max;
+  if (ratio >= 0.8) return "bg-emerald-500/20 dark:bg-emerald-500/30";
+  if (ratio >= 0.6) return "bg-emerald-400/15 dark:bg-emerald-400/25";
+  if (ratio >= 0.4) return "bg-emerald-300/15 dark:bg-emerald-300/20";
+  if (ratio >= 0.2) return "bg-emerald-200/20 dark:bg-emerald-200/15";
+  return "bg-emerald-100/20 dark:bg-emerald-100/10";
 }
 
 export function RevenueCalendar({
@@ -54,32 +41,90 @@ export function RevenueCalendar({
   dailyRevenues,
   onDayClick,
 }: RevenueCalendarProps) {
-  const revenueMap = React.useMemo(() => {
-    const map = new Map<string, number>();
-    for (const r of dailyRevenues) {
-      map.set(r.date, r.amount);
-    }
-    return map;
-  }, [dailyRevenues]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const maxRevenue = React.useMemo(() => {
-    if (dailyRevenues.length === 0) return 0;
-    return Math.max(...dailyRevenues.map((r) => r.amount));
-  }, [dailyRevenues]);
+  const yearMonth = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
 
-  const totalRevenue = React.useMemo(
-    () => dailyRevenues.reduce((sum, r) => sum + r.amount, 0),
-    [dailyRevenues]
-  );
+  const { calendarDays, maxAmount, weeklyTotals, totalRevenue, businessDays, avgRevenue } =
+    useMemo(() => {
+      const [year, m] = yearMonth.split("-").map(Number);
+      const firstDay = new Date(year, m - 1, 1).getDay();
+      const daysInMonth = new Date(year, m, 0).getDate();
 
-  const businessDays = React.useMemo(
-    () => dailyRevenues.filter((r) => r.amount > 0).length,
-    [dailyRevenues]
-  );
+      // Build lookup map
+      const dataMap = new Map<string, number>();
+      let max = 0;
+      for (const r of dailyRevenues) {
+        dataMap.set(r.date, r.amount);
+        if (r.amount > max) max = r.amount;
+      }
 
-  const avgRevenue = businessDays > 0 ? totalRevenue / businessDays : 0;
+      // Build calendar grid
+      const days: (null | { day: number; date: string; amount: number })[] = [];
 
-  const defaultClassNames = getDefaultClassNames();
+      // Leading empty cells
+      for (let i = 0; i < firstDay; i++) {
+        days.push(null);
+      }
+
+      // Actual days
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${yearMonth}-${String(d).padStart(2, "0")}`;
+        days.push({ day: d, date: dateStr, amount: dataMap.get(dateStr) ?? 0 });
+      }
+
+      // Calculate weekly totals
+      const weeks: number[][] = [];
+      let currentWeek: number[] = [];
+      for (let i = 0; i < days.length; i++) {
+        currentWeek.push(days[i]?.amount ?? 0);
+        if ((i + 1) % 7 === 0) {
+          weeks.push(currentWeek);
+          currentWeek = [];
+        }
+      }
+      if (currentWeek.length > 0) {
+        weeks.push(currentWeek);
+      }
+      const totals = weeks.map((week) => week.reduce((sum, a) => sum + a, 0));
+
+      // KPI stats
+      const total = dailyRevenues.reduce((sum, r) => sum + r.amount, 0);
+      const activeDays = dailyRevenues.filter((r) => r.amount > 0).length;
+      const avg = activeDays > 0 ? total / activeDays : 0;
+
+      return {
+        calendarDays: days,
+        maxAmount: max,
+        weeklyTotals: totals,
+        totalRevenue: total,
+        businessDays: activeDays,
+        avgRevenue: avg,
+      };
+    }, [dailyRevenues, yearMonth]);
+
+  // Split into weeks
+  const weeks: typeof calendarDays[] = [];
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    weeks.push(calendarDays.slice(i, i + 7));
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const handleDayClick = (date: string, amount: number, dayDate: Date) => {
+    setSelectedDate(date === selectedDate ? null : date);
+    onDayClick?.(dayDate, amount);
+  };
+
+  const handlePrevMonth = () => {
+    const prev = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+    onMonthChange(prev);
+  };
+
+  const handleNextMonth = () => {
+    const next = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+    onMonthChange(next);
+  };
 
   return (
     <div className="space-y-4">
@@ -97,125 +142,134 @@ export function RevenueCalendar({
         </div>
         <div className="rounded-lg border bg-card p-3 space-y-1">
           <p className="text-xs text-muted-foreground">일평균</p>
-          <p className="text-lg font-bold">{formatAmount(avgRevenue)}원</p>
+          <p className="text-lg font-bold">{formatCompact(avgRevenue)}원</p>
         </div>
       </div>
 
       {/* Calendar */}
-      <div className="rounded-lg border bg-card p-4">
-        <DayPicker
-          mode="single"
-          month={month}
-          onMonthChange={onMonthChange}
-          locale={ko}
-          showOutsideDays={false}
-          className="w-full"
-          classNames={{
-            root: cn("w-full", defaultClassNames.root),
-            months: cn("flex flex-col w-full", defaultClassNames.months),
-            month: cn("flex flex-col w-full gap-2", defaultClassNames.month),
-            nav: cn(
-              "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
-              defaultClassNames.nav
-            ),
-            button_previous: cn(
-              buttonVariants({ variant: "ghost" }),
-              "size-8 p-0",
-              defaultClassNames.button_previous
-            ),
-            button_next: cn(
-              buttonVariants({ variant: "ghost" }),
-              "size-8 p-0",
-              defaultClassNames.button_next
-            ),
-            month_caption: cn(
-              "flex items-center justify-center h-8 w-full px-8",
-              defaultClassNames.month_caption
-            ),
-            caption_label: "text-sm font-semibold",
-            table: "w-full border-collapse",
-            weekdays: cn("flex", defaultClassNames.weekdays),
-            weekday: cn(
-              "text-muted-foreground flex-1 font-normal text-xs text-center py-2",
-              defaultClassNames.weekday
-            ),
-            week: cn("flex w-full gap-1 mt-1", defaultClassNames.week),
-            day: cn(
-              "relative flex-1 p-0 text-center select-none",
-              defaultClassNames.day
-            ),
-            outside: "invisible",
-            today: "",
-          }}
-          components={{
-            Chevron: ({ orientation, ...props }) =>
-              orientation === "left" ? (
-                <ChevronLeftIcon className="size-4" {...props} />
-              ) : (
-                <ChevronRightIcon className="size-4" {...props} />
-              ),
-            DayButton: ({ day, modifiers, ...props }) => {
-              const dateStr = `${day.date.getFullYear()}-${String(day.date.getMonth() + 1).padStart(2, "0")}-${String(day.date.getDate()).padStart(2, "0")}`;
-              const amount = revenueMap.get(dateStr) ?? 0;
-              const bgColor = getHeatmapColor(amount, maxRevenue);
-              const txtColor = getTextColor(amount, maxRevenue);
-              const isToday =
-                day.date.toDateString() === new Date().toDateString();
-              const isSunday = day.date.getDay() === 0;
-              const isSaturday = day.date.getDay() === 6;
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="p-1.5 rounded-md hover:bg-muted transition-colors text-sm"
+              aria-label="이전 달"
+            >
+              &#8249;
+            </button>
+            <CardTitle className="text-base">
+              {month.getFullYear()}년 {month.getMonth() + 1}월 일별 매출
+            </CardTitle>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="p-1.5 rounded-md hover:bg-muted transition-colors text-sm"
+              aria-label="다음 달"
+            >
+              &#8250;
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-2 sm:p-4">
+          {/* Day headers */}
+          <div className="grid grid-cols-8 gap-1 mb-1">
+            {DAY_HEADERS.map((label, i) => (
+              <div
+                key={label}
+                className={cn(
+                  "text-center text-xs font-medium py-1.5",
+                  i === 0 && "text-red-500",
+                  i === 6 && "text-blue-500"
+                )}
+              >
+                {label}
+              </div>
+            ))}
+            <div className="text-center text-xs font-medium py-1.5 text-muted-foreground">
+              주간
+            </div>
+          </div>
 
-              return (
-                <button
-                  type="button"
-                  onClick={() => onDayClick?.(day.date, amount)}
-                  className={cn(
-                    "flex flex-col items-center justify-center w-full aspect-[4/3] rounded-md transition-colors gap-0.5 min-h-[60px]",
-                    bgColor,
-                    isToday && "ring-2 ring-primary ring-offset-1"
-                  )}
-                  {...props}
-                >
-                  <span
+          {/* Calendar grid */}
+          {weeks.map((week, weekIdx) => (
+            <div key={weekIdx} className="grid grid-cols-8 gap-1 mb-1">
+              {week.map((cell, cellIdx) => {
+                if (!cell) {
+                  return <div key={`empty-${cellIdx}`} className="min-h-[72px]" />;
+                }
+
+                const { day, date, amount } = cell;
+                const isSelected = date === selectedDate;
+                const isToday = date === today;
+                const isSunday = cellIdx === 0;
+                const isSaturday = cellIdx === 6;
+                const dayDate = new Date(date);
+
+                return (
+                  <button
+                    key={date}
+                    type="button"
+                    onClick={() => handleDayClick(date, amount, dayDate)}
                     className={cn(
-                      "text-xs font-medium",
-                      txtColor,
-                      isSunday && amount === 0 && "text-red-400",
-                      isSaturday && amount === 0 && "text-blue-400"
+                      "min-h-[72px] rounded-md border text-left p-1.5 transition-all hover:border-primary/50 cursor-pointer",
+                      amount > 0 && getHeatColor(amount, maxAmount),
+                      isSelected && "ring-2 ring-primary border-primary",
+                      isToday && "border-primary/70",
+                      !amount && "border-dashed border-muted"
                     )}
                   >
-                    {day.date.getDate()}
-                  </span>
-                  <span className={cn("text-[10px] font-semibold", txtColor)}>
-                    {formatAmount(amount)}
-                  </span>
-                </button>
-              );
-            },
-          }}
-        />
-
-        {/* Legend */}
-        <div className="flex items-center gap-3 mt-3 pt-3 border-t justify-center flex-wrap">
-          <span className="text-xs text-muted-foreground">매출 강도:</span>
-          {[
-            { color: "bg-muted/40", label: "휴무" },
-            { color: "bg-blue-50", label: "~20%" },
-            { color: "bg-blue-100", label: "~40%" },
-            { color: "bg-blue-200", label: "~60%" },
-            { color: "bg-blue-400", label: "~80%" },
-            { color: "bg-blue-600", label: "최고" },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-1">
-              <div
-                className={cn("w-3 h-3 rounded-sm border", item.color)}
-              />
-              <span className="text-[10px] text-muted-foreground">
-                {item.label}
-              </span>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          isToday &&
+                            "bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center",
+                          isSunday && !isToday && "text-red-500",
+                          isSaturday && !isToday && "text-blue-500"
+                        )}
+                      >
+                        {day}
+                      </span>
+                    </div>
+                    {amount > 0 && (
+                      <div className="mt-1">
+                        <div className="text-xs font-semibold truncate">
+                          {formatCompact(amount)}원
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+              {/* Weekly total */}
+              <div className="min-h-[72px] rounded-md bg-muted/50 p-1.5 flex flex-col justify-center items-center">
+                {weeklyTotals[weekIdx] > 0 ? (
+                  <>
+                    <div className="text-[10px] text-muted-foreground">합계</div>
+                    <div className="text-xs font-semibold">
+                      {formatCompact(weeklyTotals[weekIdx])}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-[10px] text-muted-foreground">-</div>
+                )}
+              </div>
             </div>
           ))}
-        </div>
-      </div>
+
+          {/* Heatmap legend */}
+          <div className="flex items-center justify-end gap-1 mt-3 text-[10px] text-muted-foreground">
+            <span>적음</span>
+            <div className="w-3 h-3 rounded-sm bg-emerald-100/30 border" />
+            <div className="w-3 h-3 rounded-sm bg-emerald-200/30 border" />
+            <div className="w-3 h-3 rounded-sm bg-emerald-300/30 border" />
+            <div className="w-3 h-3 rounded-sm bg-emerald-400/30 border" />
+            <div className="w-3 h-3 rounded-sm bg-emerald-500/30 border" />
+            <span>많음</span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
