@@ -2,12 +2,10 @@
 // Analyzes owner's existing replies to extract communication style traits
 // Stores extracted traits in brand_voice_profiles table for consistent AI reply generation
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { VOICE_LEARNING_PROMPT } from "./dapjangi-prompts";
-
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+import { callClaudeObject } from "./claude-client";
+import { VoiceTraitsSchema } from "./schemas";
 
 // @MX:ANCHOR: Core voice profile structure - used by review-responder and dapjangi-engine
 // @MX:REASON: Fan-in from brand-voice.ts, review-responder.ts, dapjangi-engine.ts
@@ -49,9 +47,6 @@ async function extractVoiceTraits(sampleReplies: string[]): Promise<VoiceTraits>
     return DEFAULT_VOICE_TRAITS;
   }
 
-  const anthropic = createAnthropic();
-  const model = anthropic(CLAUDE_MODEL);
-
   const repliesText = sampleReplies
     .slice(0, 20)
     .map((reply, i) => `[답글 ${i + 1}]\n${reply}`)
@@ -59,27 +54,8 @@ async function extractVoiceTraits(sampleReplies: string[]): Promise<VoiceTraits>
 
   const prompt = `다음은 사장님이 직접 작성한 리뷰 답글 샘플입니다. 분석해주세요.\n\n${repliesText}`;
 
-  const { text } = await generateText({
-    model,
-    system: VOICE_LEARNING_PROMPT,
-    prompt,
-    maxOutputTokens: 512,
-  });
-
   try {
-    // Extract JSON from response (Claude may include extra text)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found in response");
-
-    const parsed = JSON.parse(jsonMatch[0]) as VoiceTraits;
-    return {
-      tone: parsed.tone ?? "friendly",
-      greetingStyle: parsed.greetingStyle ?? DEFAULT_VOICE_TRAITS.greetingStyle,
-      closingStyle: parsed.closingStyle ?? DEFAULT_VOICE_TRAITS.closingStyle,
-      commonExpressions: parsed.commonExpressions ?? [],
-      avoidExpressions: parsed.avoidExpressions ?? [],
-      personality: parsed.personality ?? DEFAULT_VOICE_TRAITS.personality,
-    };
+    return await callClaudeObject(VOICE_LEARNING_PROMPT, prompt, VoiceTraitsSchema, 512);
   } catch {
     // Fall back to defaults if parsing fails
     return DEFAULT_VOICE_TRAITS;

@@ -2,13 +2,10 @@
 // Composes morning briefing by combining Seri (financial) and Dapjangi (review) reports
 // Uses Claude to write natural Korean narrative, stores result in daily_reports
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import type { SeriReportContent } from "./seri-engine";
 import { BRIEFING_SYSTEM_PROMPT } from "./jeongjang-prompts";
-
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+import { callClaudeText } from "./claude-client";
 
 export interface BriefingContent {
   generatedAt: string;
@@ -230,12 +227,7 @@ export async function generateDailyBriefing(
 
   // Build and call Claude
   const prompt = buildBriefingPrompt(seri, dapjangi, yearMonth);
-  const anthropic = createAnthropic();
-  const { text: narrative } = await generateText({
-    model: anthropic(CLAUDE_MODEL),
-    system: BRIEFING_SYSTEM_PROMPT,
-    prompt,
-  });
+  const narrative = await callClaudeText(BRIEFING_SYSTEM_PROMPT, prompt);
 
   const structured = parseNarrativeToStructured(narrative, seri, dapjangi);
 

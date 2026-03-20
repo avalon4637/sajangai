@@ -2,15 +2,13 @@
 // Batch analyzes delivery reviews for keywords, sentiment scores, and trend detection
 // Groups results by category: 맛, 양, 배달, 서비스, 가격, 위생, 기타
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import {
   SENTIMENT_BATCH_PROMPT,
   REVIEW_INSIGHTS_PROMPT,
 } from "./dapjangi-prompts";
-
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+import { callClaudeObject, callClaudeText } from "./claude-client";
+import { SentimentBatchSchema } from "./schemas";
 
 export type ReviewCategory = "맛" | "양" | "배달" | "서비스" | "가격" | "위생" | "기타";
 
@@ -62,9 +60,6 @@ export async function analyzeReviewBatch(
     return { results: [], trends: [] };
   }
 
-  const anthropic = createAnthropic();
-  const model = anthropic(CLAUDE_MODEL);
-
   // Process in groups of 20 reviews to stay within token limits
   const BATCH_SIZE = 20;
   const allResults: ReviewSentimentResult[] = [];
@@ -82,50 +77,25 @@ export async function analyzeReviewBatch(
 
     const prompt = SENTIMENT_BATCH_PROMPT.replace("{REVIEWS_JSON}", reviewsJson);
 
-    const { text } = await generateText({
-      model,
-      prompt,
-      maxOutputTokens: 1024,
-    });
-
     try {
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) continue;
+      const parsed = await callClaudeObject("", prompt, SentimentBatchSchema, 1024);
 
-      const parsed = JSON.parse(jsonMatch[0]) as {
-        results: Array<{
-          id: string;
-          sentiment_score: number;
-          keywords: string[];
-          category: ReviewCategory;
-        }>;
-        trends: Array<{
-          pattern: string;
-          count: number;
-          category: ReviewCategory;
-        }>;
-      };
+      allResults.push(
+        ...parsed.results.map((r) => ({
+          id: r.id,
+          sentimentScore: clampScore(r.sentiment_score),
+          keywords: r.keywords,
+          category: r.category as ReviewCategory,
+        }))
+      );
 
-      if (Array.isArray(parsed.results)) {
-        allResults.push(
-          ...parsed.results.map((r) => ({
-            id: r.id,
-            sentimentScore: clampScore(r.sentiment_score),
-            keywords: r.keywords ?? [],
-            category: (r.category as ReviewCategory) ?? "기타",
-          }))
-        );
-      }
-
-      if (Array.isArray(parsed.trends)) {
-        allTrends.push(
-          ...parsed.trends.map((t) => ({
-            pattern: t.pattern,
-            count: t.count,
-            category: (t.category as ReviewCategory) ?? "기타",
-          }))
-        );
-      }
+      allTrends.push(
+        ...parsed.trends.map((t) => ({
+          pattern: t.pattern,
+          count: t.count,
+          category: t.category as ReviewCategory,
+        }))
+      );
     } catch {
       // Skip malformed response and continue with next batch
       continue;
@@ -216,15 +186,8 @@ export async function getReviewInsights(
 감성 트렌드: ${sentimentTrend === "improving" ? "개선 중" : sentimentTrend === "declining" ? "악화 중" : "유지"}
 `;
 
-  const anthropic = createAnthropic();
-  const model = anthropic(CLAUDE_MODEL);
-
   const prompt = REVIEW_INSIGHTS_PROMPT.replace("{INSIGHTS_DATA}", insightsData);
-  const { text } = await generateText({
-    model,
-    prompt,
-    maxOutputTokens: 512,
-  });
+  const text = await callClaudeText("", prompt, 512);
 
   return {
     summary: text.trim(),

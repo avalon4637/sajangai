@@ -2,16 +2,14 @@
 // Generates AI replies for delivery reviews matching the owner's brand voice
 // Routes replies by rating: 4-5 = auto-publish, 3 = draft, 1-2 = urgent draft
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import type { BrandVoiceProfile, VoiceTraits } from "./brand-voice";
+import { callClaudeText } from "./claude-client";
 import {
   POSITIVE_REPLY_PROMPT,
   NEUTRAL_REPLY_PROMPT,
   NEGATIVE_REPLY_PROMPT,
 } from "./dapjangi-prompts";
 
-const CLAUDE_MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 256; // Keep replies concise (2-4 sentences)
 
 export type ReplyStatus = "auto_published" | "draft" | "pending";
@@ -102,14 +100,8 @@ export async function generateReply(
   const formattedVoice = formatVoiceProfile(voiceProfile.voiceTraits);
   const prompt = buildPrompt(config.template, review, formattedVoice);
 
-  const anthropic = createAnthropic();
-  const model = anthropic(CLAUDE_MODEL);
-
-  const { text } = await generateText({
-    model,
-    prompt,
-    maxOutputTokens: MAX_TOKENS,
-  });
+  // Reply prompts are self-contained (no separate system prompt)
+  const text = await callClaudeText("", prompt, MAX_TOKENS);
 
   // Clean up reply (remove quotes if Claude wraps in quotes)
   const reply = text.trim().replace(/^["']|["']$/g, "");

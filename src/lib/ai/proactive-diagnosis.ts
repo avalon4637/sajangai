@@ -2,12 +2,10 @@
 // Cross-agent data correlation to detect patterns invisible to individual agents
 // Correlates: review complaints + cost data, revenue trends + sentiment, menu changes + reviews
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { DIAGNOSIS_PROMPT } from "./jeongjang-prompts";
-
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+import { callClaudeObject } from "./claude-client";
+import { DiagnosisSchema } from "./schemas";
 
 export type DiagnosisSeverity = "info" | "warning" | "critical";
 
@@ -293,24 +291,11 @@ export async function diagnose(
       sentimentDirection
     );
 
-    const anthropic = createAnthropic();
-    const { text } = await generateText({
-      model: anthropic(CLAUDE_MODEL),
-      system: DIAGNOSIS_PROMPT,
-      prompt,
-    });
-
     try {
-      // Claude returns JSON - parse diagnoses array
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as {
-          diagnoses?: DiagnosisItem[];
-        };
-        diagnoses = parsed.diagnoses ?? [];
-      }
+      const result = await callClaudeObject(DIAGNOSIS_PROMPT, prompt, DiagnosisSchema);
+      diagnoses = result.diagnoses;
     } catch {
-      console.warn("[Diagnosis] Failed to parse Claude response as JSON");
+      console.warn("[Diagnosis] Failed to get structured response from Claude");
       diagnoses = [];
     }
   }

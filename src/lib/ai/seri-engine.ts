@@ -2,8 +2,6 @@
 // Runs all three analyses (profit, cashflow, cost) and synthesizes into a Korean report
 // Caches results in daily_reports table to avoid redundant Claude API calls
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { calculateRealProfit, type RealProfitResult } from "./profit-calculator";
 import { predictCashFlow, type CashFlowForecast } from "./cashflow-predictor";
@@ -15,9 +13,7 @@ import {
   buildCostAnomalyPrompt,
   buildSeriDailyBriefingPrompt,
 } from "./seri-prompts";
-
-const CLAUDE_MODEL = "claude-sonnet-4-6";
-const MAX_TOKENS = 1024;
+import { callClaudeText } from "./claude-client";
 
 // @MX:ANCHOR: Central Seri report generation - called by API route and future scheduler
 // @MX:REASON: Fan-in from API route (GET/POST) and potential cron job triggers
@@ -44,23 +40,6 @@ export interface SeriReport {
   summary: string;
   createdAt: string;
   fromCache: boolean;
-}
-
-/**
- * Call Claude API with a single prompt and return the text response.
- * Uses @ai-sdk/anthropic which is the SDK available in this project.
- */
-async function callClaude(userPrompt: string): Promise<string> {
-  const anthropic = createAnthropic();
-  const model = anthropic(CLAUDE_MODEL);
-
-  const { text } = await generateText({
-    model,
-    system: SERI_SYSTEM_PROMPT,
-    prompt: userPrompt,
-  });
-
-  return text;
 }
 
 /**
@@ -169,10 +148,10 @@ export async function generateSeriReport(
   // Call Claude for all four narratives concurrently
   const [profitNarrative, cashFlowNarrative, costNarrative, dailySummary] =
     await Promise.all([
-      callClaude(profitPrompt),
-      callClaude(cashFlowPrompt),
-      callClaude(costPrompt),
-      callClaude(dailyPrompt),
+      callClaudeText(SERI_SYSTEM_PROMPT, profitPrompt),
+      callClaudeText(SERI_SYSTEM_PROMPT, cashFlowPrompt),
+      callClaudeText(SERI_SYSTEM_PROMPT, costPrompt),
+      callClaudeText(SERI_SYSTEM_PROMPT, dailyPrompt),
     ]);
 
   const content: SeriReportContent = {

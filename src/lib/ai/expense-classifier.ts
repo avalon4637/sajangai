@@ -1,16 +1,15 @@
 // AI-powered expense classification for SPEC-SERI-002
 // Uses Claude API to classify transactions into 9 major categories
 
-import { generateText } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { createClient } from "@/lib/supabase/server";
 import type { ParsedTransaction, ClassifiedTransaction } from "@/types/bookkeeping";
 import { MAJOR_CATEGORIES } from "@/types/bookkeeping";
+import { callClaudeObject } from "./claude-client";
+import { ExpenseClassificationSchema } from "./schemas";
 
 // @MX:ANCHOR: Main classification entry point - called from API route and classification-preview
 // @MX:REASON: Multiple callers; AI API rate limiting requires batching logic
 
-const CLAUDE_MODEL = "claude-sonnet-4-6";
 const MAX_BATCH_SIZE = 50;
 
 interface MerchantMapping {
@@ -156,8 +155,6 @@ export async function classifyTransactions(
 async function classifyWithAI(
   transactions: ParsedTransaction[]
 ): Promise<AIClassificationResult[]> {
-  const anthropic = createAnthropic();
-
   const merchantList = transactions
     .map((tx, idx) => `${idx + 1}. "${tx.merchantName}"`)
     .join("\n");
@@ -178,26 +175,14 @@ Category descriptions:
 - 대표교육비: Owner's education, training, books
 - 수수료: Payment processing fees, platform fees, bank fees
 
-For each merchant name below, return JSON array with objects:
+For each merchant name below, return a JSON array with objects:
 { "merchantName": "...", "majorCategory": "...", "subCategory": "..." or null, "confidence": 0.0-1.0 }
 
 Merchant names to classify:
-${merchantList}
-
-Return ONLY a valid JSON array. No other text.`;
-
-  const { text } = await generateText({
-    model: anthropic(CLAUDE_MODEL),
-    prompt,
-  });
+${merchantList}`;
 
   try {
-    // Extract JSON from response
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return createDefaultResults(transactions);
-
-    const parsed = JSON.parse(jsonMatch[0]) as AIClassificationResult[];
-    return parsed;
+    return await callClaudeObject("", prompt, ExpenseClassificationSchema);
   } catch {
     return createDefaultResults(transactions);
   }
