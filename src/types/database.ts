@@ -426,6 +426,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      chat_messages: {
+        Row: {
+          id: string;
+          business_id: string;
+          session_id: string;
+          role: "user" | "assistant";
+          content: string;
+          token_count: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          session_id: string;
+          role: "user" | "assistant";
+          content: string;
+          token_count?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          session_id?: string;
+          role?: "user" | "assistant";
+          content?: string;
+          token_count?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      conversation_summaries: {
+        Row: {
+          id: string;
+          business_id: string;
+          session_id: string;
+          summary: string;
+          key_facts: string[];
+          follow_ups: string[];
+          message_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          session_id: string;
+          summary: string;
+          key_facts?: string[];
+          follow_ups?: string[];
+          message_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          session_id?: string;
+          summary?: string;
+          key_facts?: string[];
+          follow_ups?: string[];
+          message_count?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       agent_memory: {
         Row: {
           id: string;

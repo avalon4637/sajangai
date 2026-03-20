@@ -1,85 +1,42 @@
 // Streaming chat endpoint for 점장 Q&A
-// Supports questions about business data: revenues, reviews, reports
+// Supports Tool Use for real-time data queries + conversation memory
 // Returns Server-Sent Events stream via AI SDK streamText
 
 import { anthropic } from "@ai-sdk/anthropic";
-import { streamText } from "ai";
+import { streamText, stepCountIs } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
-import { CHAT_SYSTEM_PROMPT, buildChatContextPrompt } from "@/lib/ai/jeongjang-prompts";
+import { CHAT_SYSTEM_PROMPT } from "@/lib/ai/jeongjang-prompts";
+import { buildBusinessProfile } from "@/lib/ai/business-profile";
+import { createChatTools } from "@/lib/ai/chat-tools";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
+
+// @MX:ANCHOR: Chat streaming endpoint with Tool Use - core 점장 interaction
+// @MX:REASON: Fan-in from chat-client.tsx (POST) - central conversational AI entry point
 
 const ChatRequestSchema = z.object({
   message: z.string().min(1).max(1000),
   businessId: z.string().uuid().optional(),
+  sessionId: z.string().uuid().optional(),
 });
 
 /**
- * Fetch a lightweight business context snapshot for the chat session.
- * Avoids heavy computation - uses cached daily_reports when available.
+ * Save a single message to the chat_messages table.
+ * Non-blocking - failures are logged but do not halt the response.
  */
-async function fetchBusinessContext(businessId: string) {
-  const supabase = await createClient();
-  const today = new Date().toISOString().split("T")[0];
-  const thisMonth = today.substring(0, 7);
-
-  // Run all queries concurrently
-  const [businessResult, revenueResult, reviewResult, briefingResult] =
-    await Promise.all([
-      supabase
-        .from("businesses")
-        .select("name")
-        .eq("id", businessId)
-        .single(),
-
-      supabase
-        .from("revenues")
-        .select("amount")
-        .eq("business_id", businessId)
-        .gte("date", `${thisMonth}-01`)
-        .lt("date", `${thisMonth}-32`),
-
-      supabase
-        .from("delivery_reviews")
-        .select("rating, reply_status")
-        .eq("business_id", businessId)
-        .gte("review_date", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]),
-
-      supabase
-        .from("daily_reports")
-        .select("summary, content")
-        .eq("business_id", businessId)
-        .eq("report_date", today)
-        .eq("report_type", "jeongjang_briefing")
-        .maybeSingle(),
-    ]);
-
-  const businessName = businessResult.data?.name ?? "매장";
-  const revenues = revenueResult.data ?? [];
-  const reviews = reviewResult.data ?? [];
-  const briefing = briefingResult.data;
-
-  const totalRevenue = revenues.reduce((s, r) => s + r.amount, 0);
-  const reviewCount = reviews.length;
-  const avgRating =
-    reviewCount > 0
-      ? Math.round(
-          (reviews.reduce((s, r) => s + r.rating, 0) / reviewCount) * 10
-        ) / 10
-      : 0;
-  const pendingReviews = reviews.filter(
-    (r) => r.reply_status === "pending" || r.reply_status === "draft"
-  ).length;
-
-  return buildChatContextPrompt({
-    businessName,
-    recentRevenue: totalRevenue,
-    reviewCount,
-    avgRating,
-    pendingReviews,
-    lastBriefingDate: briefing ? today : undefined,
-    lastBriefingSummary: briefing?.summary ?? undefined,
+async function saveMessage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  businessId: string,
+  sessionId: string,
+  role: "user" | "assistant",
+  content: string
+): Promise<void> {
+  await supabase.from("chat_messages").insert({
+    business_id: businessId,
+    session_id: sessionId,
+    role,
+    content,
   });
 }
 
@@ -116,37 +73,106 @@ export async function POST(req: Request) {
     );
   }
 
-  const { message, businessId } = parsed.data;
+  const { message, businessId, sessionId: clientSessionId } = parsed.data;
 
-  // Build business context if businessId provided
-  let contextSection = "";
+  // Use provided sessionId or generate a new UUID
+  const sessionId =
+    clientSessionId ??
+    crypto.randomUUID();
+
+  // Verify user owns this business (if provided)
+  let verifiedBusinessId: string | undefined;
   if (businessId) {
-    try {
-      // Verify user owns this business
-      const { data: business } = await supabase
-        .from("businesses")
-        .select("id, user_id")
-        .eq("id", businessId)
-        .eq("user_id", user.id)
-        .single();
+    const { data: business } = await supabase
+      .from("businesses")
+      .select("id, user_id")
+      .eq("id", businessId)
+      .eq("user_id", user.id)
+      .single();
 
-      if (business) {
-        contextSection = await fetchBusinessContext(businessId);
-      }
-    } catch {
-      // Context fetch failure is non-fatal - proceed without context
+    if (business) {
+      verifiedBusinessId = business.id;
     }
   }
 
-  const systemWithContext = contextSection
-    ? `${CHAT_SYSTEM_PROMPT}\n\n${contextSection}`
+  // Build business profile for system context
+  let profile = "";
+  if (verifiedBusinessId) {
+    try {
+      profile = await buildBusinessProfile(verifiedBusinessId);
+    } catch {
+      // Profile build failure is non-fatal - proceed without it
+    }
+  }
+
+  // Load last 10 messages from this session for multi-turn context
+  let historyMessages: Array<{ role: "user" | "assistant"; content: string }> =
+    [];
+  if (verifiedBusinessId) {
+    const { data: history } = await supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true })
+      .limit(10);
+
+    historyMessages = (history ?? []).map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    }));
+  }
+
+  // Build messages array for multi-turn conversation
+  const messages: Array<{ role: "user" | "assistant"; content: string }> = [
+    ...historyMessages,
+    { role: "user" as const, content: message },
+  ];
+
+  // Save user message to DB (non-blocking)
+  if (verifiedBusinessId) {
+    saveMessage(supabase, verifiedBusinessId, sessionId, "user", message).catch(
+      (err) => console.error("[chat] Failed to save user message:", err)
+    );
+  }
+
+  const systemWithProfile = profile
+    ? `${CHAT_SYSTEM_PROMPT}\n\n${profile}`
     : CHAT_SYSTEM_PROMPT;
+
+  // Create tools scoped to this business
+  const tools = verifiedBusinessId
+    ? createChatTools(verifiedBusinessId)
+    : undefined;
 
   const result = streamText({
     model: anthropic("claude-sonnet-4-6"),
-    system: systemWithContext,
-    prompt: message,
+    system: systemWithProfile,
+    messages,
+    tools,
+    stopWhen: stepCountIs(3), // Allow up to 3 tool call steps per message
+    onFinish: async ({ text }) => {
+      // Save assistant response after stream completes
+      if (verifiedBusinessId && text) {
+        saveMessage(
+          supabase,
+          verifiedBusinessId,
+          sessionId,
+          "assistant",
+          text
+        ).catch((err) =>
+          console.error("[chat] Failed to save assistant message:", err)
+        );
+      }
+    },
   });
 
-  return result.toTextStreamResponse();
+  // Return plain text stream; session ID in header for client to persist
+  const response = result.toTextStreamResponse();
+  const headers = new Headers(response.headers);
+  headers.set("X-Session-Id", sessionId);
+
+  return new Response(response.body, {
+    status: response.status,
+    headers,
+  });
 }

@@ -18,6 +18,32 @@ import { callClaudeText } from "./claude-client";
 // @MX:ANCHOR: Central Seri report generation - called by API route and future scheduler
 // @MX:REASON: Fan-in from API route (GET/POST) and potential cron job triggers
 
+/**
+ * Save a cost anomaly insight to agent_memory.
+ * Importance: info=5, warning=7, critical=9 based on deviation severity.
+ */
+async function saveCostAnomalyToMemory(
+  businessId: string,
+  costAnomaly: CostAnomalyResult
+): Promise<void> {
+  const supabase = await createClient();
+
+  const absDeviation = Math.abs(costAnomaly.deviation);
+  // Severity based on deviation magnitude
+  const severity = absDeviation > 20 ? "critical" : absDeviation > 15 ? "warning" : "info";
+  const importance = severity === "critical" ? 9 : severity === "warning" ? 7 : 5;
+
+  const content = `[비용 이상 감지] ${costAnomaly.diagnosisLabel} - 현재 비용 비율 ${costAnomaly.currentRatio.toFixed(1)}% (평균 대비 ${costAnomaly.deviation > 0 ? "+" : ""}${costAnomaly.deviation.toFixed(1)}%p). 권고: ${costAnomaly.recommendations.slice(0, 2).join(", ")}`;
+
+  await supabase.from("agent_memory").insert({
+    business_id: businessId,
+    agent_type: "seri",
+    memory_type: "insight",
+    content,
+    importance,
+  });
+}
+
 export interface SeriReportContent {
   yearMonth: string;
   generatedAt: string;
@@ -170,6 +196,13 @@ export async function generateSeriReport(
 
   // Use dailySummary as the report summary (first 200 chars)
   const summary = dailySummary.substring(0, 200);
+
+  // Save cost anomalies to agent_memory if deviation > 10%
+  if (costAnomaly.isAnomaly && Math.abs(costAnomaly.deviation) > 10) {
+    await saveCostAnomalyToMemory(businessId, costAnomaly).catch((err) => {
+      console.error("[세리] agent_memory 저장 실패:", err);
+    });
+  }
 
   // Save to cache
   const reportId = await saveReport(businessId, reportDate, content, summary);

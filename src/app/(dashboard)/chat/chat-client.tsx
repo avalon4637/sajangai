@@ -19,6 +19,8 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  // Generate a stable session ID on mount for conversation memory
+  const [sessionId] = useState<string>(() => crypto.randomUUID());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +57,7 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, businessId }),
+        body: JSON.stringify({ message: trimmed, businessId, sessionId }),
       });
 
       if (!response.ok) {

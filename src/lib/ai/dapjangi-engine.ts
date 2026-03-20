@@ -10,6 +10,36 @@ import { analyzeReviewBatch } from "./sentiment-analyzer";
 // @MX:ANCHOR: Main Dapjangi orchestration entry point - called by API route /api/dapjangi/process
 // @MX:REASON: Fan-in from API route (POST) and future scheduler/webhook
 
+/**
+ * Save repeated complaint patterns to agent_memory.
+ * If a keyword appears 3+ times in a week, it qualifies as a pattern.
+ */
+async function saveComplaintPatternsToMemory(
+  businessId: string,
+  trends: Array<{ pattern: string; count: number; category: string }>
+): Promise<void> {
+  const supabase = await createClient();
+
+  // Only patterns with count >= 3 are worth recording
+  const significantTrends = trends.filter((t) => t.count >= 3);
+  if (significantTrends.length === 0) return;
+
+  const memoryItems = significantTrends.map((trend) => ({
+    business_id: businessId,
+    agent_type: "dapjangi" as const,
+    memory_type: "insight" as const,
+    content: `[반복 불만 패턴] ${trend.category} 카테고리 - "${trend.pattern}" 키워드 ${trend.count}회 반복 감지 (이번 주)`,
+    importance: 8,
+  }));
+
+  const { error: memErr } = await supabase
+    .from("agent_memory")
+    .insert(memoryItems);
+  if (memErr) {
+    console.error("[답장이] agent_memory 저장 실패:", memErr);
+  }
+}
+
 export interface DapjangiProcessSummary {
   processed: number;
   autoPublished: number;
@@ -140,6 +170,11 @@ export async function processNewReviews(
 
   // Step 6: Store daily report
   await saveDapjangiReport(businessId, summary, sentimentResults.trends);
+
+  // Step 7: Save repeated complaint patterns to agent_memory (importance=8)
+  await saveComplaintPatternsToMemory(businessId, sentimentResults.trends).catch(
+    (err) => console.error("[답장이] complaint patterns memory 저장 실패:", err)
+  );
 
   return summary;
 }

@@ -28,6 +28,94 @@ export interface MorningRoutineResult {
 }
 
 /**
+ * Save Seri and Dapjangi results to store_context table.
+ * Enables the supervisor (점장) to read all specialist contexts in one place.
+ */
+async function saveSubAgentContexts(
+  businessId: string,
+  seriReport: SeriReport,
+  dapjangiSummary: DapjangiProcessSummary
+): Promise<void> {
+  const supabase = await createClient();
+
+  const seriContext = {
+    yearMonth: seriReport.content.yearMonth,
+    generatedAt: seriReport.content.generatedAt,
+    grossRevenue: seriReport.content.profit.grossRevenue,
+    netProfit: seriReport.content.profit.netProfit,
+    profitMargin: seriReport.content.profit.profitMargin,
+    cashFlowRisk: seriReport.content.cashFlow.overallRisk,
+    dailySummary: seriReport.content.narratives.dailySummary,
+  };
+
+  const dapjangiContext = {
+    processed: dapjangiSummary.processed,
+    autoPublished: dapjangiSummary.autoPublished,
+    drafts: dapjangiSummary.drafts,
+    urgent: dapjangiSummary.urgent,
+    errors: dapjangiSummary.errors,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // Upsert both contexts concurrently
+  await Promise.all([
+    supabase.from("store_context").upsert(
+      {
+        business_id: businessId,
+        agent_type: "seri",
+        context_data: seriContext as unknown as Record<string, unknown>,
+        summary: seriReport.summary,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "business_id,agent_type" }
+    ),
+    supabase.from("store_context").upsert(
+      {
+        business_id: businessId,
+        agent_type: "dapjangi",
+        context_data: dapjangiContext as unknown as Record<string, unknown>,
+        summary: `리뷰 처리 완료: 총 ${dapjangiSummary.processed}건 (긴급 ${dapjangiSummary.urgent}건)`,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "business_id,agent_type" }
+    ),
+  ]).catch((err) => {
+    console.error("[점장] store_context 저장 실패:", err);
+  });
+}
+
+/**
+ * Save critical/warning diagnoses to agent_memory as insights.
+ * Importance: critical=9, warning=7, info=5.
+ */
+async function saveDiagnosisToMemory(
+  businessId: string,
+  diagnosis: DiagnosisResult
+): Promise<void> {
+  const supabase = await createClient();
+  const importantDiagnoses = diagnosis.diagnoses.filter(
+    (d) => d.severity === "critical" || d.severity === "warning"
+  );
+
+  if (importantDiagnoses.length === 0) return;
+
+  const memoryItems = importantDiagnoses.map((d) => ({
+    business_id: businessId,
+    agent_type: "manager" as const,
+    memory_type: "insight" as const,
+    content: `[${d.severity === "critical" ? "긴급" : "주의"}] ${d.title}: ${d.description} → ${d.recommendation}`,
+    importance: d.severity === "critical" ? 9 : 7,
+  }));
+
+  const { error: memErr } = await supabase
+    .from("agent_memory")
+    .insert(memoryItems);
+  if (memErr) {
+    console.error("[점장] agent_memory 저장 실패:", memErr);
+  }
+}
+
+/**
  * Check if there are urgent reviews requiring immediate notification.
  * Returns list of review IDs that need urgent alerts.
  */
@@ -135,15 +223,21 @@ export async function runMorningRoutine(
       : processNewReviews(businessId),
   ]);
 
-  // Step 3: Run proactive diagnosis
+  // Step 3: Save sub-agent results to store_context for supervisor access
+  await saveSubAgentContexts(businessId, seriReport, dapjangiSummary);
+
+  // Step 4: Run proactive diagnosis
   const diagnosis = await diagnose(businessId);
 
-  // Step 4: Generate briefing (uses cached sub-agent reports just written)
+  // Step 5: Generate briefing (uses cached sub-agent reports just written)
   const briefing = await generateDailyBriefing(
     businessId,
     reportDate,
     options.forceRefresh
   );
+
+  // Step 5b: Save important diagnoses to agent_memory
+  await saveDiagnosisToMemory(businessId, diagnosis);
 
   // Collect critical alerts from diagnosis
   const criticalAlerts = diagnosis.diagnoses
