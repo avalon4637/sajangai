@@ -21,7 +21,30 @@ interface VerifiedBusiness {
   businessNumber: string;
   isActive: boolean;
   validMsg: string;
+  // Data farm fields derived from NTS response
+  industryCode?: string;
+  regionCode?: string;
+  regionNameKo?: string;
+  nts_sector?: string;
+  nts_type?: string;
 }
+
+// Human-readable labels for industry codes
+const INDUSTRY_LABELS: Record<string, string> = {
+  korean_restaurant: "한식당",
+  cafe: "카페",
+  chicken: "치킨점",
+  bunsik: "분식점",
+  retail: "소매점",
+  chinese_restaurant: "중식당",
+  japanese_restaurant: "일식당",
+  pizza: "피자점",
+  bakery: "베이커리",
+  bar: "주점",
+  convenience: "편의점",
+  beauty: "미용실",
+  other: "기타",
+};
 
 export function OnboardingForm() {
   const router = useRouter();
@@ -35,7 +58,6 @@ export function OnboardingForm() {
   const {
     register,
     handleSubmit,
-    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<OnboardingFormData>({
@@ -92,6 +114,11 @@ export function OnboardingForm() {
       businessNumber: result.businessNumber ?? rawBusinessNumber,
       isActive: result.isActive,
       validMsg: result.validMsg ?? "계속사업자",
+      industryCode: result.industryCode,
+      regionCode: result.regionCode,
+      regionNameKo: result.regionNameKo,
+      nts_sector: result.bSector,
+      nts_type: result.bType,
     });
   };
 
@@ -106,6 +133,12 @@ export function OnboardingForm() {
       name: data.name,
       business_type: data.business_type || undefined,
       address: data.address || undefined,
+      // Pass data farm fields from NTS verification (all optional)
+      business_number: verified?.businessNumber,
+      industry_code: verified?.industryCode,
+      region_code: verified?.regionCode,
+      nts_sector: verified?.nts_sector,
+      nts_type: verified?.nts_type,
     });
 
     if (!result.success) {
@@ -163,11 +196,28 @@ export function OnboardingForm() {
               </p>
             )}
 
-            {/* Verification success */}
+            {/* Verification success with auto-detected info */}
             {verified && (
-              <div className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800 space-y-0.5">
+              <div className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800 space-y-1">
                 <p className="font-medium">인증 완료</p>
                 <p className="text-green-700">{verified.validMsg}</p>
+                {/* Show auto-detected industry if available */}
+                {verified.industryCode && verified.industryCode !== "other" && (
+                  <p className="text-green-700 text-xs">
+                    업종 자동 인식:{" "}
+                    <span className="font-medium">
+                      {INDUSTRY_LABELS[verified.industryCode] ?? verified.industryCode}
+                    </span>
+                    {" "}(변경 가능)
+                  </p>
+                )}
+                {/* Show auto-detected region if available */}
+                {verified.regionNameKo && (
+                  <p className="text-green-700 text-xs">
+                    지역 자동 인식:{" "}
+                    <span className="font-medium">{verified.regionNameKo}</span>
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -186,12 +236,16 @@ export function OnboardingForm() {
             )}
           </div>
 
-          {/* Business type */}
+          {/* Business type - shows auto-filled hint when industry was detected */}
           <div className="space-y-2">
             <Label htmlFor="business_type">업종</Label>
             <Input
               id="business_type"
-              placeholder="예: 음식점, 카페, 소매업"
+              placeholder={
+                verified?.industryCode && verified.industryCode !== "other"
+                  ? `자동 인식: ${INDUSTRY_LABELS[verified.industryCode] ?? verified.industryCode}`
+                  : "예: 음식점, 카페, 소매업"
+              }
               {...register("business_type")}
             />
           </div>

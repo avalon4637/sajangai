@@ -3,11 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createTrialSubscription } from "@/lib/billing/subscription";
+import { getRegionFromBusinessNumber, mapNtsSectorToIndustryCode } from "@/lib/data/tax-office-regions";
 
 interface RegisterBusinessData {
   name: string;
   business_type?: string;
   address?: string;
+  // Data farm fields - auto-populated from NTS verification
+  industry_code?: string;
+  region_code?: string;
+  business_number?: string;
+  nts_sector?: string;
+  nts_type?: string;
 }
 
 export async function registerBusiness(data: RegisterBusinessData) {
@@ -28,6 +35,12 @@ export async function registerBusiness(data: RegisterBusinessData) {
       name: data.name,
       business_type: data.business_type || null,
       address: data.address || null,
+      // Data farm columns (nullable - present only after NTS verification)
+      industry_code: data.industry_code || null,
+      region_code: data.region_code || null,
+      business_number: data.business_number || null,
+      nts_sector: data.nts_sector || null,
+      nts_type: data.nts_type || null,
     })
     .select("id")
     .single();
@@ -85,12 +98,19 @@ export interface VerifyBusinessResult {
   isActive?: boolean;
   businessNumber?: string;
   validMsg?: string;
+  // Data farm: NTS sector/type and derived codes
+  bSector?: string;
+  bType?: string;
+  industryCode?: string;
+  regionCode?: string;
+  regionNameKo?: string;
   error?: string;
 }
 
 /**
  * Verifies a Korean business registration number using the NTS (국세청) API.
  * Requires NTS_API_KEY environment variable set on the server.
+ * Also derives industry_code and region_code from the NTS response for data farm use.
  */
 export async function verifyBusinessNumber(
   businessNumber: string
@@ -137,11 +157,24 @@ export async function verifyBusinessNumber(
     // valid "01" means active (계속사업자), "02" means closed (휴폐업자)
     const isActive = item.valid === "01";
 
+    // Extract NTS sector/type from request_param (returned by NTS status check endpoint)
+    const bSector = item.request_param?.b_sector;
+    const bType = item.request_param?.b_type;
+
+    // Derive data farm codes from NTS data
+    const industryCode = mapNtsSectorToIndustryCode(bSector, bType);
+    const regionInfo = getRegionFromBusinessNumber(rawNumber);
+
     return {
       success: true,
       isActive,
       businessNumber: item.b_no,
       validMsg: item.valid_msg,
+      bSector,
+      bType,
+      industryCode,
+      regionCode: regionInfo?.code,
+      regionNameKo: regionInfo?.nameKo,
     };
   } catch (err) {
     console.error("verifyBusinessNumber error:", err);

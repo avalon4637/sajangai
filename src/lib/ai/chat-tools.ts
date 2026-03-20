@@ -1,5 +1,5 @@
 // Chat Tool Use definitions for 점장 conversational AI
-// 7 tools enabling real-time business data queries during chat sessions
+// 9 tools enabling real-time business data queries during chat sessions
 // Uses AI SDK v6 tool() with inputSchema (zodSchema wrapper) pattern
 
 import { z } from "zod";
@@ -517,6 +517,54 @@ export function createChatTools(businessId: string) {
           note: "미수금/미지급금 기능은 준비 중입니다. 현재 매출/비용 데이터로 확인 가능합니다",
           requestedType: input.type ?? "all",
         };
+      },
+    }),
+
+    /**
+     * Tool 8: Cost diagnosis against industry benchmarks (data farm)
+     */
+    getCostDiagnosis: tool({
+      description:
+        "내 비용이 동종 업계 대비 비싼 곳을 찾습니다. '돈 어디서 새?', '비용 줄일 데 없어?', '비용 많이 나가는지 봐줘'에 사용",
+      inputSchema: zodSchema(z.object({})),
+      execute: async () => {
+        const { diagnoseCosts } = await import("@/lib/ai/data-farm");
+        return diagnoseCosts(businessId);
+      },
+    }),
+
+    /**
+     * Tool 9: Rent benchmark comparison using public data
+     */
+    getRentBenchmark: tool({
+      description:
+        "임대료가 적정한지 공공 데이터 기반으로 비교. '임대료 비싸?', '월세 적당한지 봐줘'에 사용",
+      inputSchema: zodSchema(z.object({})),
+      execute: async () => {
+        const { getRentBenchmark: fetchRentBenchmark } = await import(
+          "@/lib/public-data/rent-benchmark"
+        );
+        // Use base select (only known columns) + cast to access new columns
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const supabaseAny = (await createClient()) as any;
+        const { data } = await supabaseAny
+          .from("businesses")
+          .select("address, area_sqm")
+          .eq("id", businessId)
+          .single();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const row = data as Record<string, any> | null;
+        if (!row?.address) {
+          return { message: "주소 정보가 없어 임대료 비교가 불가합니다." };
+        }
+        const result = await fetchRentBenchmark(
+          row.address as string,
+          (row.area_sqm as number | null) ?? 33
+        );
+        if (!result) {
+          return { message: "임대료 비교 데이터를 아직 준비 중입니다. 곧 서비스될 예정입니다." };
+        }
+        return result;
       },
     }),
   };
