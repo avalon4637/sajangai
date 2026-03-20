@@ -6,6 +6,7 @@ import { generateText, generateObject, streamText } from "ai";
 import type { z } from "zod/v4";
 
 export const CLAUDE_MODEL = "claude-sonnet-4-6";
+export const CLAUDE_HAIKU_MODEL = "claude-haiku-4-5-20251001";
 
 // @MX:ANCHOR: Shared Claude API entry point - used by all AI engine modules
 // @MX:REASON: Fan-in from seri-engine, briefing-generator, proactive-diagnosis, review-responder, sentiment-analyzer, brand-voice, expense-classifier
@@ -103,4 +104,31 @@ export function callClaudeStream(systemPrompt: string, userPrompt: string) {
       { role: "user", content: userPrompt },
     ],
   });
+}
+
+/**
+ * Call Claude Haiku for lightweight, cost-efficient tasks.
+ * Use for simple classifications, short text generation, and high-frequency calls
+ * where Sonnet-level reasoning is not required. ~70% cheaper than Sonnet.
+ *
+ * @param systemPrompt - Cached system prompt for the call
+ * @param userPrompt - User-level prompt with dynamic data
+ * @param maxTokens - Maximum tokens for the response (default 512)
+ */
+export async function callClaudeHaiku(
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens = 512
+): Promise<string> {
+  const anthropic = createAnthropic();
+  const model = anthropic(CLAUDE_HAIKU_MODEL);
+  const { text } = await generateText({
+    model,
+    messages: [
+      ...buildCachedSystem(systemPrompt),
+      { role: "user", content: userPrompt },
+    ],
+    maxOutputTokens: maxTokens,
+  });
+  return text;
 }

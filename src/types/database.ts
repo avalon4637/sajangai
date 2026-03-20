@@ -935,6 +935,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      ai_feedback: {
+        Row: {
+          id: string;
+          business_id: string | null;
+          source: "chat" | "briefing" | "review_reply" | "diagnosis" | "seri_report";
+          source_id: string | null;
+          rating: 1 | -1;
+          prompt_version: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id?: string | null;
+          source: "chat" | "briefing" | "review_reply" | "diagnosis" | "seri_report";
+          source_id?: string | null;
+          rating: 1 | -1;
+          prompt_version?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string | null;
+          source?: "chat" | "briefing" | "review_reply" | "diagnosis" | "seri_report";
+          source_id?: string | null;
+          rating?: 1 | -1;
+          prompt_version?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
