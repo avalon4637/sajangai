@@ -6,7 +6,7 @@
       "id": "ptcos",
       "x": 0,
       "y": 0,
-      "name": "sajang.ai Landing Page",
+      "name": "사장 AI Landing Page",
       "width": 1440,
       "fill": "#FFFFFF",
       "layout": "vertical",
@@ -30,7 +30,7 @@
               "id": "1awu0",
               "name": "Logo",
               "fill": "#2563EB",
-              "content": "sajang.ai",
+              "content": "사장 AI",
               "fontFamily": "Inter",
               "fontSize": 22,
               "fontWeight": "700"
@@ -279,7 +279,7 @@
                               "id": "XaZcU",
                               "name": "headerName",
                               "fill": "#18181B",
-                              "content": "sajang.ai",
+                              "content": "사장 AI",
                               "fontFamily": "Inter",
                               "fontSize": 14,
                               "fontWeight": "600"
@@ -341,7 +341,7 @@
                               "id": "EwKr1",
                               "name": "labelText",
                               "fill": "#71717A",
-                              "content": "sajang.ai 알림",
+                              "content": "사장 AI 알림",
                               "fontFamily": "Inter",
                               "fontSize": 12,
                               "fontWeight": "600"
@@ -1229,7 +1229,7 @@
               "id": "wUpds",
               "name": "footerLogo",
               "fill": "#71717A",
-              "content": "sajang.ai",
+              "content": "사장 AI",
               "fontFamily": "Inter",
               "fontSize": 16,
               "fontWeight": "600"
@@ -1239,7 +1239,7 @@
               "id": "pbhG2",
               "name": "footerCopy",
               "fill": "#52525B",
-              "content": "© 2026 sajang.ai. All rights reserved.",
+              "content": "© 2026 사장 AI. All rights reserved.",
               "fontFamily": "Inter",
               "fontSize": 13,
               "fontWeight": "normal"
@@ -1283,7 +1283,7 @@
               "id": "EqKsq",
               "name": "titleText",
               "fill": "#1A1A1A",
-              "content": "AI Team Characters - sajang.ai",
+              "content": "AI Team Characters - 사장 AI",
               "fontFamily": "Bricolage Grotesque",
               "fontSize": 28,
               "fontWeight": "700"
@@ -2344,7 +2344,7 @@
                   "id": "OO4cV",
                   "name": "sideIcon",
                   "fill": "#1A1A1A",
-                  "content": "sajang.ai",
+                  "content": "사장 AI",
                   "fontFamily": "Bricolage Grotesque",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -4368,7 +4368,7 @@
                   "id": "qwqav",
                   "name": "sideIcon",
                   "fill": "#1A1A1A",
-                  "content": "sajang.ai",
+                  "content": "사장 AI",
                   "fontFamily": "Bricolage Grotesque",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -5670,7 +5670,7 @@
                   "id": "JZOCG",
                   "name": "sideIcon",
                   "fill": "#1A1A1A",
-                  "content": "sajang.ai",
+                  "content": "사장 AI",
                   "fontFamily": "Bricolage Grotesque",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -7373,7 +7373,7 @@
                   "id": "BnfhY",
                   "name": "sideIcon",
                   "fill": "#1A1A1A",
-                  "content": "sajang.ai",
+                  "content": "사장 AI",
                   "fontFamily": "Bricolage Grotesque",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -8631,7 +8631,7 @@
                   "id": "qgJuD",
                   "name": "sideIcon",
                   "fill": "#1A1A1A",
-                  "content": "sajang.ai",
+                  "content": "사장 AI",
                   "fontFamily": "Bricolage Grotesque",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -10009,7 +10009,7 @@
                   "id": "YiofL",
                   "name": "sideIcon",
                   "fill": "#1A1A1A",
-                  "content": "sajang.ai",
+                  "content": "사장 AI",
                   "fontFamily": "Bricolage Grotesque",
                   "fontSize": 18,
                   "fontWeight": "700"
