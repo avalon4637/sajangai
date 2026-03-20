@@ -22,16 +22,19 @@ export function LandingNav() {
         className="px-6 md:px-[120px]"
       >
         {/* Logo */}
-        <span
-          style={{
-            color: "#2563EB",
-            fontFamily: "Inter, sans-serif",
-            fontSize: "22px",
-            fontWeight: 700,
-          }}
-        >
-          사장 AI
-        </span>
+        <Link href="/">
+          <span
+            style={{
+              color: "#2563EB",
+              fontFamily: "Inter, sans-serif",
+              fontSize: "22px",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            사장 AI
+          </span>
+        </Link>
 
         {/* CTA Button */}
         <Link href="/auth/login">

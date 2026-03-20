@@ -7,6 +7,10 @@ import crypto from "crypto";
 
 const SOLAPI_API_ENDPOINT = "https://api.solapi.com/messages/v4/send";
 
+function isTestMode(): boolean {
+  return process.env.SOLAPI_TEST_MODE === "true";
+}
+
 export interface AlimTalkButton {
   buttonType: "WL" | "AL" | "DS" | "BK" | "MD";
   buttonName: string;
@@ -77,6 +81,11 @@ export async function sendAlimTalk(
   variables?: Record<string, string>,
   buttons?: AlimTalkButton[]
 ): Promise<{ success: boolean; error?: string }> {
+  if (isTestMode()) {
+    console.log("[Solapi TEST] sendAlimTalk:", { phoneNumber, templateId, variables });
+    return { success: true };
+  }
+
   const apiKey = process.env.SOLAPI_API_KEY;
   const apiSecret = process.env.SOLAPI_API_SECRET;
   const pfId = process.env.SOLAPI_PFID;
@@ -137,6 +146,11 @@ export async function sendSMS(
   phoneNumber: string,
   text: string
 ): Promise<{ success: boolean; error?: string }> {
+  if (isTestMode()) {
+    console.log("[Solapi TEST] sendSMS:", { phoneNumber, text: text.slice(0, 50) });
+    return { success: true };
+  }
+
   const apiKey = process.env.SOLAPI_API_KEY;
   const apiSecret = process.env.SOLAPI_API_SECRET;
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Settings, LogOut, CreditCard } from "lucide-react";
+import { Menu, Settings, LogOut, CreditCard, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,6 +93,22 @@ export function MobileHeader({ userEmail }: MobileHeaderProps) {
               })}
             </ul>
           </nav>
+
+          {/* AI Chat */}
+          <div className="border-t px-3 py-3">
+            <Link
+              href="/chat"
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                pathname.startsWith("/chat")
+                  ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
+                  : "text-[#18181B] hover:bg-gray-50 font-medium"
+              }`}
+            >
+              <MessageSquare className="size-4 shrink-0" />
+              AI 채팅
+            </Link>
+          </div>
 
           <div className="border-t px-3 py-4 space-y-1">
             {/* Billing */}

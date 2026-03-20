@@ -4,7 +4,12 @@
 
 const PORTONE_API_BASE = "https://api.portone.io";
 
+function isTestMode(): boolean {
+  return process.env.PORTONE_TEST_MODE === "true";
+}
+
 function getApiSecret(): string {
+  if (isTestMode()) return "test_secret";
   const secret = process.env.PORTONE_API_SECRET;
   if (!secret) {
     throw new Error("PORTONE_API_SECRET environment variable is not configured");
@@ -13,6 +18,7 @@ function getApiSecret(): string {
 }
 
 function getStoreId(): string {
+  if (isTestMode()) return "test_store";
   const storeId = process.env.PORTONE_STORE_ID;
   if (!storeId) {
     throw new Error("PORTONE_STORE_ID environment variable is not configured");
@@ -95,6 +101,15 @@ export async function issueBillingKey(
     passwordTwoDigits: string;
   }
 ): Promise<BillingKeyInfo> {
+  if (isTestMode()) {
+    console.log("[PortOne TEST] issueBillingKey for", customerKey);
+    return {
+      billingKey: `test_billing_key_${customerKey}_${Date.now()}`,
+      customerId: customerKey,
+      issuedAt: new Date().toISOString(),
+    };
+  }
+
   const storeId = getStoreId();
 
   const result = await portoneRequest<{
@@ -142,6 +157,16 @@ export async function requestPayment(
   orderName: string,
   paymentId: string
 ): Promise<PaymentResult> {
+  if (isTestMode()) {
+    console.log("[PortOne TEST] requestPayment:", { paymentId, amount, orderName });
+    return {
+      paymentId: `test_pay_${paymentId}`,
+      status: "PAID",
+      amount,
+      paidAt: new Date().toISOString(),
+    };
+  }
+
   const storeId = getStoreId();
 
   const result = await portoneRequest<{
@@ -187,6 +212,15 @@ export async function cancelPayment(
   paymentId: string,
   reason: string
 ): Promise<CancelResult> {
+  if (isTestMode()) {
+    console.log("[PortOne TEST] cancelPayment:", { paymentId, reason });
+    return {
+      cancellationId: `test_cancel_${Date.now()}`,
+      cancelledAmount: 9900,
+      cancelledAt: new Date().toISOString(),
+    };
+  }
+
   const result = await portoneRequest<{
     cancellation: {
       id: string;

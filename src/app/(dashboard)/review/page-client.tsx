@@ -3,11 +3,13 @@
 // Review page client component
 // Displays real review data from delivery_reviews table with interactive controls
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star, MessageSquare, Clock, CheckCircle, Link } from "lucide-react";
+import { Star, MessageSquare, Clock, CheckCircle, Link, Sparkles, Loader2, Pencil, Send, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import type { DeliveryReview, ReviewStats } from "@/lib/queries/review";
 
 interface ReviewPageClientProps {
@@ -83,6 +85,63 @@ export function ReviewPageClient({
 }: ReviewPageClientProps) {
   const router = useRouter();
   const [year, month] = yearMonth.split("-");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  const handleGenerateReplies = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/dapjangi/process", { method: "POST" });
+      if (!res.ok) throw new Error("AI reply generation failed");
+      router.refresh();
+    } catch {
+      // Error handling - user sees button re-enabled
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleEditStart = (reviewId: string, currentReply: string) => {
+    setEditingId(reviewId);
+    setEditText(currentReply);
+  };
+
+  const handleEditSave = async (reviewId: string) => {
+    setSavingId(reviewId);
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/reply`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiReply: editText }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setEditingId(null);
+      router.refresh();
+    } catch {
+      // Error handling
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handlePublish = async (reviewId: string) => {
+    if (!confirm("이 답글을 발행하시겠습니까?")) return;
+    setPublishingId(reviewId);
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/publish`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Publish failed");
+      router.refresh();
+    } catch {
+      // Error handling
+    } finally {
+      setPublishingId(null);
+    }
+  };
 
   const pendingCount =
     stats.replyStatusBreakdown["pending"] ?? 0;
@@ -189,9 +248,23 @@ export function ReviewPageClient({
         </Card>
       </div>
 
-      {/* Filter buttons */}
+      {/* AI Generate + Filter buttons */}
       {reviews.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={handleGenerateReplies}
+            disabled={isGenerating}
+            size="sm"
+            className="gap-1.5"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            {isGenerating ? "생성 중..." : "AI 답글 생성"}
+          </Button>
+          <div className="h-6 w-px bg-border" />
           <div className="flex gap-1">
             {["all", "baemin", "coupangeats", "yogiyo"].map((platform) => (
               <Button
@@ -308,19 +381,28 @@ export function ReviewPageClient({
                           답장이 AI 답글
                         </span>
                         <div className="flex gap-1">
-                          {review.replyStatus === "draft" && (
+                          {review.replyStatus === "draft" && editingId !== review.id && (
                             <>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-xs h-6 px-2"
+                                className="text-xs h-6 px-2 gap-1"
+                                onClick={() => handleEditStart(review.id, review.aiReply!)}
                               >
+                                <Pencil className="h-3 w-3" />
                                 수정하기
                               </Button>
                               <Button
                                 size="sm"
-                                className="text-xs h-6 px-2"
+                                className="text-xs h-6 px-2 gap-1"
+                                disabled={publishingId === review.id}
+                                onClick={() => handlePublish(review.id)}
                               >
+                                {publishingId === review.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Send className="h-3 w-3" />
+                                )}
                                 발행하기
                               </Button>
                             </>
@@ -330,11 +412,50 @@ export function ReviewPageClient({
                               자동 발행됨
                             </Badge>
                           )}
+                          {review.replyStatus === "published" && (
+                            <Badge variant="default" className="text-xs">
+                              발행 완료
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                      <p className="text-sm text-foreground leading-relaxed">
-                        {review.aiReply}
-                      </p>
+                      {editingId === review.id ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            className="text-sm min-h-[80px]"
+                          />
+                          <div className="flex gap-1 justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-7 px-3 gap-1"
+                              onClick={() => setEditingId(null)}
+                            >
+                              <X className="h-3 w-3" />
+                              취소
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="text-xs h-7 px-3 gap-1"
+                              disabled={savingId === review.id}
+                              onClick={() => handleEditSave(review.id)}
+                            >
+                              {savingId === review.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-3 w-3" />
+                              )}
+                              저장
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-foreground leading-relaxed">
+                          {review.aiReply}
+                        </p>
+                      )}
                     </div>
                   )}
 

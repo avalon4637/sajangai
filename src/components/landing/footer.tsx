@@ -1,11 +1,11 @@
+import Link from "next/link";
+
 export function LandingFooter() {
   return (
     <footer
       style={{
         backgroundColor: "#18181B",
-        height: "80px",
-        display: "flex",
-        alignItems: "center",
+        padding: "32px 0",
       }}
     >
       <div
@@ -17,8 +17,10 @@ export function LandingFooter() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
         }}
-        className="px-6 md:px-[120px] flex items-center justify-between w-full"
+        className="px-6 md:px-[120px]"
       >
         {/* Logo */}
         <span
@@ -31,6 +33,52 @@ export function LandingFooter() {
         >
           사장 AI
         </span>
+
+        {/* Links */}
+        <nav
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "24px",
+          }}
+        >
+          <Link
+            href="/terms"
+            style={{
+              color: "#71717A",
+              fontFamily: "Inter, sans-serif",
+              fontSize: "13px",
+              textDecoration: "none",
+            }}
+            className="hover:text-[#A1A1AA] transition-colors"
+          >
+            이용약관
+          </Link>
+          <Link
+            href="/privacy"
+            style={{
+              color: "#71717A",
+              fontFamily: "Inter, sans-serif",
+              fontSize: "13px",
+              textDecoration: "none",
+            }}
+            className="hover:text-[#A1A1AA] transition-colors"
+          >
+            개인정보처리방침
+          </Link>
+          <a
+            href="mailto:support@sajang.ai"
+            style={{
+              color: "#71717A",
+              fontFamily: "Inter, sans-serif",
+              fontSize: "13px",
+              textDecoration: "none",
+            }}
+            className="hover:text-[#A1A1AA] transition-colors"
+          >
+            문의하기
+          </a>
+        </nav>
 
         {/* Copyright */}
         <p
