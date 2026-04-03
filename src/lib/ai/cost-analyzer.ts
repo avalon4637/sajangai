@@ -2,7 +2,6 @@
 // Compares current week cost ratio vs 4-week moving average and diagnoses causes
 
 import { createClient } from "@/lib/supabase/server";
-import { getLastDayOfMonth } from "@/lib/utils";
 
 // Alert threshold: +3 percentage points above 4-week average triggers anomaly
 const ANOMALY_THRESHOLD_PP = 3.0;

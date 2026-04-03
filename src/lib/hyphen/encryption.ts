@@ -1,11 +1,10 @@
 // Credential encryption utilities using AES-256-GCM
 // Used to safely store API credentials in the database
 
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // 96-bit IV recommended for GCM
-const AUTH_TAG_LENGTH = 16;
 const KEY_LENGTH = 32; // 256-bit key
 
 /**
@@ -34,7 +33,6 @@ function getEncryptionKey(): Buffer {
       process.env.NEXTAUTH_SECRET ??
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       "dev-fallback-key-sajang-ai-hyphen";
-    const { createHash } = require("crypto");
     return createHash("sha256").update(fallbackSecret).digest();
   }
 

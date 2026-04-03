@@ -1,19 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { LoginForm } from "./login-form";
 
-// Mock next/navigation
-const mockPush = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
-
 // Mock Supabase client
-const mockSignInWithPassword = vi.fn();
+const mockSignInWithOAuth = vi.fn().mockResolvedValue({ error: null });
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
-      signInWithPassword: mockSignInWithPassword,
+      signInWithOAuth: mockSignInWithOAuth,
     },
   }),
 }));
@@ -23,50 +18,55 @@ describe("LoginForm", () => {
     vi.clearAllMocks();
   });
 
-  it("should render login form", () => {
+  it("should render logo and tagline", () => {
     render(<LoginForm />);
 
-    expect(
-      screen.getByText("이메일과 비밀번호를 입력해주세요")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("example@email.com")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("8자 이상 입력해주세요")
-    ).toBeInTheDocument();
+    expect(screen.getByText("사장 AI")).toBeInTheDocument();
+    expect(screen.getByText("하루 330원, 점장 한 명")).toBeInTheDocument();
   });
 
-  it("should render signup link", () => {
+  it("should render Kakao login button", () => {
     render(<LoginForm />);
 
-    const signupLink = screen.getByText("회원가입");
-    expect(signupLink).toBeInTheDocument();
-    expect(signupLink.closest("a")).toHaveAttribute("href", "/auth/signup");
-  });
-
-  it("should render email and password input fields", () => {
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText("이메일");
-    const passwordInput = screen.getByLabelText("비밀번호");
-
-    expect(emailInput).toHaveAttribute("type", "email");
-    expect(passwordInput).toHaveAttribute("type", "password");
-  });
-
-  it("should render submit button", () => {
-    render(<LoginForm />);
-
-    const button = screen.getByRole("button", { name: "로그인" });
+    const button = screen.getByRole("button", { name: "카카오로 시작하기" });
     expect(button).toBeInTheDocument();
-    expect(button).toHaveAttribute("type", "submit");
   });
 
-  it("should have noValidate attribute on form", () => {
+  it("should call signInWithOAuth on Kakao button click", async () => {
+    const user = userEvent.setup();
     render(<LoginForm />);
 
-    const form = document.querySelector("form");
-    expect(form).toHaveAttribute("novalidate");
+    const button = screen.getByRole("button", { name: "카카오로 시작하기" });
+    await user.click(button);
+
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: "kakao",
+      options: {
+        redirectTo: expect.stringContaining("/auth/callback"),
+      },
+    });
+  });
+
+  it("should show error message on login failure", async () => {
+    mockSignInWithOAuth.mockResolvedValueOnce({
+      error: new Error("OAuth error"),
+    });
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    const button = screen.getByRole("button", { name: "카카오로 시작하기" });
+    await user.click(button);
+
+    expect(
+      screen.getByText("카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.")
+    ).toBeInTheDocument();
+  });
+
+  it("should render terms notice", () => {
+    render(<LoginForm />);
+
+    expect(
+      screen.getByText(/서비스 이용약관 및 개인정보처리방침/)
+    ).toBeInTheDocument();
   });
 });

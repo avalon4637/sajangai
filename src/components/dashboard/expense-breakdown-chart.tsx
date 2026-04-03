@@ -41,6 +41,16 @@ function renderLabel(props: any) {
 export function ExpenseBreakdownChart({ data }: ExpenseBreakdownChartProps) {
   const total = data.variable + data.fixed + data.labor;
 
+  const chartData = useMemo(
+    () =>
+      [
+        { name: "변동비", value: data.variable },
+        { name: "인건비", value: data.labor },
+        { name: "기타 고정비", value: data.fixed },
+      ].filter((item) => item.value > 0),
+    [data.variable, data.labor, data.fixed]
+  );
+
   if (total === 0) {
     return (
       <Card>
@@ -55,16 +65,6 @@ export function ExpenseBreakdownChart({ data }: ExpenseBreakdownChartProps) {
       </Card>
     );
   }
-
-  const chartData = useMemo(
-    () =>
-      [
-        { name: "변동비", value: data.variable },
-        { name: "인건비", value: data.labor },
-        { name: "기타 고정비", value: data.fixed },
-      ].filter((item) => item.value > 0),
-    [data.variable, data.labor, data.fixed]
-  );
 
   return (
     <Card>
