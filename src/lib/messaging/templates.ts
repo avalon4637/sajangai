@@ -10,7 +10,8 @@ export type TemplateId =
   | "URGENT_REVIEW"
   | "CASHFLOW_WARNING"
   | "WEEKLY_SUMMARY"
-  | "INSIGHT_ALERT";
+  | "INSIGHT_ALERT"
+  | "MONTHLY_ROI";
 
 export interface TemplateConfig {
   templateId: string;
@@ -83,6 +84,20 @@ export const TEMPLATES: Record<TemplateId, TemplateConfig> = {
         buttonName: "인사이트 확인하기",
         linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
         linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
+      },
+    ],
+  },
+
+  MONTHLY_ROI: {
+    templateId: process.env.KAKAO_TEMPLATE_MONTHLY_ROI ?? "KA01TP_ROI",
+    description: "월간 점장 성과 보고서 - 매월 1일 발송",
+    variables: ["business_name", "month", "saved_money", "earned_money", "saved_hours", "roi_multiple"],
+    buttons: [
+      {
+        buttonType: "WL",
+        buttonName: "성과 상세 보기",
+        linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/billing`,
+        linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/billing`,
       },
     ],
   },

@@ -9,6 +9,8 @@ import {
 } from "@/lib/billing/subscription";
 import { BillingPageClient } from "./page-client";
 import type { Payment } from "@/lib/billing/subscription";
+import { calculateMonthlyRoi } from "@/lib/roi/calculator";
+import { RoiDashboard } from "@/components/billing/roi-dashboard";
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -60,14 +62,28 @@ export default async function BillingPage() {
     ? { ...subscription, daysRemaining: getDaysRemaining(subscription) }
     : null;
 
+  // Calculate current month ROI
+  const now = new Date();
+  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  let roi = null;
+  if (business) {
+    try {
+      roi = await calculateMonthlyRoi(business.id, currentYearMonth);
+    } catch {
+      // Non-fatal
+    }
+  }
+
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="mb-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <div>
         <h1 className="text-2xl font-bold text-gray-900">요금제</h1>
         <p className="text-sm text-gray-500 mt-1">
           하루 330원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다
         </p>
       </div>
+
+      <RoiDashboard roi={roi} />
 
       <BillingPageClient
         subscription={subscriptionWithDays}
