@@ -9,7 +9,8 @@ export type TemplateId =
   | "DAILY_BRIEFING"
   | "URGENT_REVIEW"
   | "CASHFLOW_WARNING"
-  | "WEEKLY_SUMMARY";
+  | "WEEKLY_SUMMARY"
+  | "INSIGHT_ALERT";
 
 export interface TemplateConfig {
   templateId: string;
@@ -66,6 +67,20 @@ export const TEMPLATES: Record<TemplateId, TemplateConfig> = {
       {
         buttonType: "WL",
         buttonName: "자금 현황 보기",
+        linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
+        linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
+      },
+    ],
+  },
+
+  INSIGHT_ALERT: {
+    templateId: process.env.KAKAO_TEMPLATE_INSIGHT ?? "KA01TP_INSIGHT",
+    description: "AI 인사이트 알림 - 긴급/중요 인사이트 발견 시 발송",
+    variables: ["business_name", "severity", "insight_title", "recommendation"],
+    buttons: [
+      {
+        buttonType: "WL",
+        buttonName: "인사이트 확인하기",
         linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
         linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
       },

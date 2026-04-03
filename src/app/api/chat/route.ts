@@ -9,6 +9,8 @@ import { z } from "zod";
 import { CHAT_SYSTEM_PROMPT } from "@/lib/ai/jeongjang-prompts";
 import { buildBusinessProfile } from "@/lib/ai/business-profile";
 import { createChatTools } from "@/lib/ai/chat-tools";
+import { getUserProfile, buildProfilePromptModifier } from "@/lib/queries/user-profile";
+import { loadMemoryContext, extractSessionSummary } from "@/lib/ai/chat-memory";
 
 export const maxDuration = 60;
 
@@ -135,9 +137,33 @@ export async function POST(req: Request) {
     );
   }
 
-  const systemWithProfile = profile
-    ? `${CHAT_SYSTEM_PROMPT}\n\n${profile}`
-    : CHAT_SYSTEM_PROMPT;
+  // Load user preferences for personalization
+  let profileModifier = "";
+  if (verifiedBusinessId) {
+    try {
+      const userProfile = await getUserProfile(verifiedBusinessId);
+      profileModifier = buildProfilePromptModifier(userProfile);
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  // Load past conversation memory for cross-session context
+  let memoryContext = "";
+  if (verifiedBusinessId) {
+    try {
+      memoryContext = await loadMemoryContext(verifiedBusinessId);
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  const systemWithProfile = [
+    CHAT_SYSTEM_PROMPT,
+    profile,
+    profileModifier,
+    memoryContext,
+  ].filter(Boolean).join("\n\n");
 
   // Create tools scoped to this business
   const tools = verifiedBusinessId
@@ -151,18 +177,15 @@ export async function POST(req: Request) {
     tools,
     stopWhen: stepCountIs(3), // Allow up to 3 tool call steps per message
     onFinish: async ({ text }) => {
-      // Save assistant response after stream completes
-      if (verifiedBusinessId && text) {
-        saveMessage(
-          supabase,
-          verifiedBusinessId,
-          sessionId,
-          "assistant",
-          text
-        ).catch((err) =>
-          console.error("[chat] Failed to save assistant message:", err)
-        );
-      }
+      if (!verifiedBusinessId || !text) return;
+
+      // Save assistant response
+      saveMessage(supabase, verifiedBusinessId, sessionId, "assistant", text)
+        .catch((err) => console.error("[chat] Failed to save assistant message:", err));
+
+      // Extract session summary if enough messages accumulated (fire-and-forget)
+      extractSessionSummary(verifiedBusinessId, sessionId)
+        .catch((err) => console.error("[chat] Failed to extract summary:", err));
     },
   });
 

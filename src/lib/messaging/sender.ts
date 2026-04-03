@@ -244,3 +244,60 @@ export async function sendWeeklySummary(
     error: smsResult.error,
   };
 }
+
+/**
+ * Send insight alert notification via KakaoTalk with SMS fallback.
+ * Only sends for critical/warning severity insights during active hours.
+ */
+export async function sendInsightAlert(
+  businessId: string,
+  content: {
+    businessName: string;
+    severity: string;
+    insightTitle: string;
+    recommendation: string;
+  }
+): Promise<SendResult> {
+  const phone = await getBusinessPhone(businessId);
+  if (!phone) {
+    return { success: false, channel: "none", error: "No phone number found" };
+  }
+
+  const template = TEMPLATES.INSIGHT_ALERT;
+  const variables = buildVariables("INSIGHT_ALERT", {
+    business_name: content.businessName,
+    severity: content.severity === "critical" ? "긴급" : "주의",
+    insight_title: content.insightTitle,
+    recommendation: content.recommendation,
+  });
+
+  const alimResult = await sendAlimTalk(
+    phone,
+    template.templateId,
+    variables,
+    template.buttons
+  );
+
+  if (alimResult.success) {
+    await logMessageSend(businessId, "INSIGHT_ALERT", "alimtalk", true);
+    return { success: true, channel: "alimtalk" };
+  }
+
+  const label = content.severity === "critical" ? "긴급" : "주의";
+  const smsText = `[${content.businessName}] [${label}] ${content.insightTitle}\n${content.recommendation}`;
+  const smsResult = await sendSMS(phone, smsText.slice(0, 90));
+
+  await logMessageSend(
+    businessId,
+    "INSIGHT_ALERT",
+    smsResult.success ? "sms" : "none",
+    smsResult.success,
+    smsResult.error
+  );
+
+  return {
+    success: smsResult.success,
+    channel: smsResult.success ? "sms" : "none",
+    error: smsResult.error,
+  };
+}

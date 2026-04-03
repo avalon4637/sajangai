@@ -11,7 +11,8 @@ import {
 import { diagnose, type DiagnosisResult } from "./proactive-diagnosis";
 import { evaluateInsights, type EngineResult } from "@/lib/insights/engine";
 import { runViralAnalysis, type ViralAnalysis } from "./viral-engine";
-import { sendDailyBriefing, sendUrgentAlert } from "@/lib/messaging/sender";
+import { sendDailyBriefing, sendUrgentAlert, sendInsightAlert } from "@/lib/messaging/sender";
+import { getUserProfile } from "@/lib/queries/user-profile";
 import { createClient } from "@/lib/supabase/server";
 
 // @MX:ANCHOR: Morning routine entry point - called by scheduler and API route
@@ -307,6 +308,27 @@ export async function runMorningRoutine(
 
     messageSent = sendResult.success;
     messageChannel = sendResult.channel;
+
+    // Step 5c: Send critical insight alerts (non-blocking)
+    const criticalInsights = insights.generated.filter(
+      (i) => i.severity === "critical" || i.severity === "warning"
+    );
+    const userProfile = await getUserProfile(businessId).catch(() => null);
+    const currentHour = new Date().getHours();
+    const withinActiveHours =
+      currentHour >= (userProfile?.activeHoursStart ?? 7) &&
+      currentHour < (userProfile?.activeHoursEnd ?? 22);
+
+    if (criticalInsights.length > 0 && withinActiveHours) {
+      for (const insight of criticalInsights.slice(0, 2)) {
+        sendInsightAlert(businessId, {
+          businessName,
+          severity: insight.severity,
+          insightTitle: insight.detection.title,
+          recommendation: insight.solution.recommendation,
+        }).catch((err) => console.error("[점장] Insight alert failed:", err));
+      }
+    }
 
     // Step 6: Send urgent review alerts (non-blocking)
     const urgentReviews = await checkUrgentReviews(businessId);

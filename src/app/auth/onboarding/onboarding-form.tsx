@@ -148,7 +148,7 @@ export function OnboardingForm() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/auth/onboarding/preferences");
   };
 
   return (

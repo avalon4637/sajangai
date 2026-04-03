@@ -22,6 +22,7 @@ import { AiInsightWidget } from "@/components/dashboard/ai-insight-widget";
 import { JeongjangBriefingCard } from "@/components/dashboard/jeongjang-briefing-card";
 import { ManagementGrid } from "@/components/dashboard/management-grid";
 import { InsightFeedServer } from "./insight-feed-server";
+import { TrialBanner } from "@/components/billing/trial-banner";
 
 interface DashboardPageProps {
   searchParams: Promise<{ month?: string }>;
@@ -65,8 +66,8 @@ export default async function DashboardPage({
     .single();
   const businessType = business?.business_type ?? undefined;
 
-  // Fetch all dashboard data in parallel (including latest briefing)
-  const [currentKpi, previousKpi, trend, revenueByChannel, expenseBreakdown, latestBriefing] =
+  // Fetch all dashboard data in parallel (including latest briefing + subscription)
+  const [currentKpi, previousKpi, trend, revenueByChannel, expenseBreakdown, latestBriefing, subscription] =
     await Promise.all([
       getMonthlyKpi(businessId, currentMonth),
       getMonthlyKpi(businessId, previousMonth),
@@ -79,6 +80,15 @@ export default async function DashboardPage({
         .eq("business_id", businessId)
         .eq("report_type", "jeongjang_briefing")
         .order("report_date", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then((res) => res.data),
+      supabase
+        .from("subscriptions")
+        .select("plan, status, trial_ends_at")
+        .eq("business_id", businessId)
+        .in("status", ["trial", "active", "expired"])
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle()
         .then((res) => res.data),
@@ -100,6 +110,24 @@ export default async function DashboardPage({
           <MonthPicker basePath="/dashboard" />
         </Suspense>
       </div>
+
+      {/* Trial Banner */}
+      {subscription?.status === "trial" || subscription?.status === "expired" ? (
+        (() => {
+          const trialEnd = subscription.trial_ends_at
+            ? new Date(subscription.trial_ends_at)
+            : null;
+          const daysLeft = trialEnd
+            ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86_400_000))
+            : 0;
+          return (
+            <TrialBanner
+              daysLeft={daysLeft}
+              isExpired={subscription.status === "expired" || daysLeft === 0}
+            />
+          );
+        })()
+      ) : null}
 
       {/* Jeongjang Briefing Card - shown when available */}
       {latestBriefing && (

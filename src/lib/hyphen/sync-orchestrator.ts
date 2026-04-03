@@ -109,11 +109,71 @@ async function updateLastSyncAt(connectionId: string): Promise<void> {
  * @param businessId - Business ID to sync
  * @returns Aggregated sync results with per-operation details
  */
+/**
+ * Check if sync is allowed based on subscription plan.
+ * Trial: max 1 sync per week. Paid: unlimited.
+ */
+async function isSyncAllowed(businessId: string): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any;
+
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("business_id", businessId)
+    .in("status", ["trial", "active"])
+    .maybeSingle();
+
+  // No subscription = allow (graceful)
+  if (!sub) return true;
+
+  // Paid users: always allowed
+  if (sub.plan === "paid" && sub.status === "active") return true;
+
+  // Trial users: check last sync was 7+ days ago
+  const { data: lastSync } = await supabase
+    .from("sync_logs")
+    .select("created_at")
+    .eq("business_id", businessId)
+    .eq("status", "success")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!lastSync) return true; // First sync always allowed
+
+  const daysSinceSync = Math.floor(
+    (Date.now() - new Date(lastSync.created_at).getTime()) / 86_400_000
+  );
+
+  return daysSinceSync >= 7;
+}
+
 export async function runSync(
   businessId: string
 ): Promise<SyncOrchestratorResult> {
   const startedAt = new Date().toISOString();
   const operations: SyncOperationResult[] = [];
+
+  // Check sync rate limit based on subscription
+  const allowed = await isSyncAllowed(businessId);
+  if (!allowed) {
+    return {
+      businessId,
+      startedAt,
+      completedAt: new Date().toISOString(),
+      operations: [
+        {
+          type: "rate_limit",
+          success: false,
+          recordsCount: 0,
+          error: "Trial plan: sync limited to once per week",
+        },
+      ],
+      totalRecords: 0,
+      hasErrors: true,
+    };
+  }
 
   const supabase = await createClient();
 

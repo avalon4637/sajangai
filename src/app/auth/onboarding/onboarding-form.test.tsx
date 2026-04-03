@@ -79,7 +79,7 @@ describe("OnboardingForm", () => {
     await user.click(screen.getByRole("button", { name: "사업장 등록" }));
 
     await vi.waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/dashboard");
+      expect(mockPush).toHaveBeenCalledWith("/auth/onboarding/preferences");
     });
   });
 
