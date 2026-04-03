@@ -567,5 +567,44 @@ export function createChatTools(businessId: string) {
         return result;
       },
     }),
+
+    getLoanSummary: tool({
+      description:
+        "Get loan summary: total debt, monthly payments, and individual loan balances. " +
+        "Use when the user asks about 대출, 부채, 상환, 이자, or loan status.",
+      inputSchema: zodSchema(z.object({})),
+      execute: async () => {
+        const { getLoanSummary } = await import("@/lib/queries/loan");
+        return getLoanSummary(businessId);
+      },
+    }),
+
+    getBudgetComparison: tool({
+      description:
+        "Compare budget targets vs actual spending for a given month. " +
+        "Use when the user asks about 예산, 목표, 달성률, or budget performance.",
+      inputSchema: zodSchema(z.object({
+        year: z.number().describe("Year (e.g. 2026)"),
+        month: z.number().min(1).max(12).describe("Month (1-12)"),
+      })),
+      execute: async (input: { year: number; month: number }) => {
+        const { getBudgetComparison } = await import("@/lib/queries/budget");
+        return getBudgetComparison(businessId, input.year, input.month);
+      },
+    }),
+
+    getDailyCumulative: tool({
+      description:
+        "Get daily revenue with 7-day moving average and cumulative total. " +
+        "Use when the user asks about 일별 매출 추이, 이동평균, 누적매출.",
+      inputSchema: zodSchema(z.object({
+        year: z.number().describe("Year"),
+        month: z.number().min(1).max(12).describe("Month"),
+      })),
+      execute: async (input: { year: number; month: number }) => {
+        const { getDailyCumulative } = await import("@/lib/queries/daily-cumulative");
+        return getDailyCumulative(businessId, input.year, input.month);
+      },
+    }),
   };
 }

@@ -14,9 +14,9 @@ Phase App: 앱화 ← SPEC-APP-001
 
 | SPEC | Phase | Title | Status |
 |------|-------|-------|--------|
-| **SPEC-KICK-001** | Phase 1 | 인사이트 엔진 + 바이럴 에이전트 | **Active** |
-| SPEC-ENGAGE-001 | Phase 2 | 개인화 + 카톡 알림 + 7일 체험 | Draft |
-| SPEC-GROWTH-001 | Phase 3~4 | ROI + 25 시나리오 완성 | Draft |
+| SPEC-KICK-001 | Phase 1 | 인사이트 엔진 + 바이럴 에이전트 | **Done** |
+| SPEC-ENGAGE-001 | Phase 2 | 개인화 + 카톡 알림 + 7일 체험 | **Done** |
+| SPEC-GROWTH-001 | Phase 3~4 | ROI + 25 시나리오 완성 | **Done** |
 | SPEC-APP-001 | Phase App | Capacitor 앱화 | Draft |
 
 ## Dependency Graph
