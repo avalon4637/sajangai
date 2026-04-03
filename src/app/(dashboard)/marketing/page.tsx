@@ -137,6 +137,16 @@ export default async function MarketingPage() {
                       · 총 {risk.orderCount}일 활동
                     </p>
                   </div>
+                  <form action={`/api/marketing/send`} method="POST">
+                    <input type="hidden" name="businessId" value={businessId} />
+                    <input type="hidden" name="platform" value={risk.platform} />
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                    >
+                      문자 보내기
+                    </button>
+                  </form>
                 </div>
               ))}
             </div>

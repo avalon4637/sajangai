@@ -66,14 +66,25 @@ export async function evaluateInsights(
     return { businessId, generated, errors, durationMs: Date.now() - start };
   }
 
-  // Run all scenarios in parallel
+  // Filter scenarios based on available data to avoid unnecessary execution
+  const hasReviews = ctx.reviews.length > 0;
+  const hasFixedCosts = ctx.fixedCosts.length > 0;
+  const hasExpenses = ctx.expenses.length > 0;
+
+  const applicableScenarios = scenarios.filter((s) => {
+    if (s.category === "review" && !hasReviews) return false;
+    if (s.category === "cost" && !hasExpenses && !hasFixedCosts) return false;
+    return true;
+  });
+
+  // Run applicable scenarios in parallel
   const results = await Promise.allSettled(
-    scenarios.map((s) => runScenario(s, ctx))
+    applicableScenarios.map((s) => runScenario(s, ctx))
   );
 
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
-    const scenario = scenarios[i];
+    const scenario = applicableScenarios[i];
 
     if (result.status === "rejected") {
       errors.push({

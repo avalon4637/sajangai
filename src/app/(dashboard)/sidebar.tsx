@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, CreditCard, MessageSquare } from "lucide-react";
+import {
+  Settings, LogOut, CreditCard, MessageSquare,
+  PlusCircle, Receipt, Wallet,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
@@ -38,11 +41,20 @@ export const agentNavItems = [
   },
 ];
 
+/** Data entry quick links */
+const dataNavItems = [
+  { href: "/revenue", icon: PlusCircle, label: "매출 입력" },
+  { href: "/expense", icon: Receipt, label: "지출 입력" },
+  { href: "/fixed-costs", icon: Wallet, label: "고정비" },
+];
+
 interface SidebarProps {
   userEmail: string;
+  businessName?: string;
+  subscriptionStatus?: string;
 }
 
-export function Sidebar({ userEmail }: SidebarProps) {
+export function Sidebar({ userEmail, businessName, subscriptionStatus }: SidebarProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
 
@@ -97,6 +109,31 @@ export function Sidebar({ userEmail }: SidebarProps) {
         </ul>
       </nav>
 
+      {/* Data entry links */}
+      <div className="border-t px-3 py-3">
+        <p className="px-3 mb-2 text-xs font-medium text-[#71717A]">데이터 입력</p>
+        <ul className="space-y-0.5">
+          {dataNavItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    isActive
+                      ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
+                      : "text-[#71717A] hover:bg-gray-50 font-medium"
+                  }`}
+                >
+                  <item.icon className="size-4 shrink-0" />
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
       {/* AI Chat */}
       <div className="border-t px-3 py-3">
         <Link
@@ -143,11 +180,18 @@ export function Sidebar({ userEmail }: SidebarProps) {
         {/* User profile */}
         <div className="px-3 py-2.5 rounded-lg bg-gray-50">
           <p className="text-sm font-semibold text-[#18181B] truncate">
-            김사장님
+            {businessName ?? "사장님"}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-xs font-medium text-[#2563EB]">
-              점장 고용 중
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              subscriptionStatus === "active"
+                ? "bg-[#EFF6FF] text-[#2563EB]"
+                : subscriptionStatus === "trial"
+                  ? "bg-amber-50 text-amber-700"
+                  : "bg-gray-100 text-gray-500"
+            }`}>
+              {subscriptionStatus === "active" ? "점장 고용 중" :
+               subscriptionStatus === "trial" ? "무료 체험 중" : "미구독"}
             </span>
           </div>
           <p className="text-xs text-[#71717A] truncate mt-1">{userEmail}</p>

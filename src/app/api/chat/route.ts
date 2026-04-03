@@ -11,6 +11,7 @@ import { buildBusinessProfile } from "@/lib/ai/business-profile";
 import { createChatTools } from "@/lib/ai/chat-tools";
 import { getUserProfile, buildProfilePromptModifier } from "@/lib/queries/user-profile";
 import { loadMemoryContext, extractSessionSummary } from "@/lib/ai/chat-memory";
+import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 
 export const maxDuration = 60;
 
@@ -53,6 +54,16 @@ export async function POST(req: Request) {
       status: 401,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  // Rate limit: 10 requests per minute per user
+  const rlKey = getRateLimitKey(req, "chat");
+  const rl = checkRateLimit(rlKey, 10);
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
+      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {

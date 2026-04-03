@@ -16,15 +16,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
+  // Verify ownership: insight must belong to user's business
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { data: insight } = await db
+    .from("insight_events")
+    .select("id, business_id")
+    .eq("id", insightId)
+    .single();
+
+  if (!insight) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Verify business belongs to user
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", insight.business_id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!business) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     await updateInsightStatus(insightId, "acted");
     await createActionResult({
       insightEventId: insightId,
-      businessId: "", // filled by trigger or looked up
+      businessId: insight.business_id,
       actionType,
     });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error("[insights/act] Failed:", err);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }

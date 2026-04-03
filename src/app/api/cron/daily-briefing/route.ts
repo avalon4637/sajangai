@@ -16,10 +16,11 @@ export async function GET(request: Request) {
   try {
     const supabase = await createClient();
 
-    // Get all active businesses with subscriptions
+    // Only process businesses with active or trial subscriptions
     const { data: businesses } = await supabase
       .from("businesses")
-      .select("id");
+      .select("id, subscriptions!inner(status)")
+      .in("subscriptions.status", ["trial", "active"]);
 
     if (!businesses || businesses.length === 0) {
       return NextResponse.json({ message: "No businesses to process" });
