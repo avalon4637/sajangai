@@ -25,7 +25,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: SubscribeRequest;
   try {
     body = (await request.json()) as SubscribeRequest;
-  } catch {
+  } catch (err) {
+    console.error("[billing/subscribe]", err);
     return NextResponse.json(
       { error: "잘못된 요청 형식입니다." },
       { status: 400 }

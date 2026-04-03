@@ -43,7 +43,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let payload: PortOneWebhookBody;
   try {
     payload = JSON.parse(body) as PortOneWebhookBody;
-  } catch {
+  } catch (err) {
+    console.error("[billing/webhook]", err);
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 

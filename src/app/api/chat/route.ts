@@ -113,7 +113,8 @@ export async function POST(req: Request) {
   if (verifiedBusinessId) {
     try {
       profile = await buildBusinessProfile(verifiedBusinessId);
-    } catch {
+    } catch (err) {
+      console.error("[chat] profile build error:", err);
       // Profile build failure is non-fatal - proceed without it
     }
   }
@@ -154,7 +155,8 @@ export async function POST(req: Request) {
     try {
       const userProfile = await getUserProfile(verifiedBusinessId);
       profileModifier = buildProfilePromptModifier(userProfile);
-    } catch {
+    } catch (err) {
+      console.error("[chat] user profile error:", err);
       // Non-fatal
     }
   }
@@ -164,7 +166,8 @@ export async function POST(req: Request) {
   if (verifiedBusinessId) {
     try {
       memoryContext = await loadMemoryContext(verifiedBusinessId);
-    } catch {
+    } catch (err) {
+      console.error("[chat] memory context error:", err);
       // Non-fatal
     }
   }

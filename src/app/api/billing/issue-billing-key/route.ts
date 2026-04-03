@@ -29,7 +29,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: IssueBillingKeyRequest;
   try {
     body = (await request.json()) as IssueBillingKeyRequest;
-  } catch {
+  } catch (err) {
+    console.error("[billing/issue-key]", err);
     return NextResponse.json(
       { error: "잘못된 요청 형식입니다." },
       { status: 400 }

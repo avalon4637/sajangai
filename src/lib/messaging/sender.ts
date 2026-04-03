@@ -60,7 +60,8 @@ async function logMessageSend(
       summary: `${templateId} via ${channel}: ${success ? "성공" : "실패"}`,
       details: { templateId, channel, success, error } as unknown as Record<string, unknown>,
     });
-  } catch {
+  } catch (err) {
+    console.error("[messaging] log error:", err);
     // Swallow logging errors to avoid breaking the caller
   }
 }

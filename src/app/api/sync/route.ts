@@ -25,7 +25,8 @@ export async function POST(): Promise<NextResponse> {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (err) {
+    console.error("[sync]", err);
     return NextResponse.json(
       { error: "BusinessNotFound", message: "No business registered for this account" },
       { status: 404 }

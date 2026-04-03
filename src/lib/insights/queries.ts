@@ -53,10 +53,10 @@ export async function upsertInsight(
 ): Promise<void> {
   const supabase = await rawClient();
 
-  // Delete existing active insight for same scenario (dedup)
+  // Expire existing active insight for same scenario (safe dedup, no delete)
   await supabase
     .from("insight_events")
-    .delete()
+    .update({ status: "expired" })
     .eq("business_id", businessId)
     .eq("scenario_id", result.scenarioId)
     .in("status", ["new", "seen"]);

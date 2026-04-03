@@ -5,8 +5,11 @@
 ## 진행 현황 요약
 
 ```
-완료: Phase 0 (안정화), SPEC-KICK-001, SPEC-ENGAGE-001, SPEC-GROWTH-001, SPEC-FINANCE-001
+완료: Phase 0, SPEC-KICK-001, SPEC-ENGAGE-001, SPEC-GROWTH-001, SPEC-FINANCE-001, SPEC-HARDEN-001
 대기: SPEC-APP-001 (Capacitor 앱화)
+P0 보안 수정: ✅ 완료 (2026-04-03)
+P1 UI/액션/성능: ✅ 완료 (2026-04-03)
+남은 작업: P2 테스트 + 코드 품질, P3 고도화
 ```
 
 ---

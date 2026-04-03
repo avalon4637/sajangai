@@ -21,7 +21,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     let businessId: string;
     try {
       businessId = await getCurrentBusinessId();
-    } catch {
+    } catch (err) {
+      console.error("[classify]", err);
       return NextResponse.json(
         { error: "Business not found" },
         { status: 400 }
