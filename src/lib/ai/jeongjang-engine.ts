@@ -9,6 +9,8 @@ import {
   type DailyBriefing,
 } from "./briefing-generator";
 import { diagnose, type DiagnosisResult } from "./proactive-diagnosis";
+import { evaluateInsights, type EngineResult } from "@/lib/insights/engine";
+import { runViralAnalysis, type ViralAnalysis } from "./viral-engine";
 import { sendDailyBriefing, sendUrgentAlert } from "@/lib/messaging/sender";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,6 +22,8 @@ export interface MorningRoutineResult {
   seriReport: SeriReport;
   dapjangiSummary: DapjangiProcessSummary;
   diagnosis: DiagnosisResult;
+  insights: EngineResult;
+  viralAnalysis: ViralAnalysis;
   briefing: DailyBriefing;
   messageSent: boolean;
   messageChannel: "alimtalk" | "sms" | "none";
@@ -229,6 +233,44 @@ export async function runMorningRoutine(
   // Step 4: Run proactive diagnosis
   const diagnosis = await diagnose(businessId);
 
+  // Step 4b: Run insight engine (5 scenarios) + viral agent concurrently
+  const [insights, viralAnalysis] = await Promise.all([
+    evaluateInsights(businessId).catch((err): EngineResult => {
+      console.error("[점장] Insight engine error:", err);
+      return { businessId, generated: [], errors: [], durationMs: 0 };
+    }),
+    runViralAnalysis(businessId).catch((err): ViralAnalysis => {
+      console.error("[점장] Viral analysis error:", err);
+      return { churnRisks: [], totalAtRisk: 0, messages: [] };
+    }),
+  ]);
+
+  // Save viral context to store_context
+  if (viralAnalysis.churnRisks.length > 0) {
+    try {
+      const supabase = await createClient();
+      await supabase
+        .from("store_context")
+        .upsert(
+          {
+            business_id: businessId,
+            agent_type: "viral",
+            context_data: {
+              churnRisks: viralAnalysis.churnRisks,
+              totalAtRisk: viralAnalysis.totalAtRisk,
+              messagesGenerated: viralAnalysis.messages.length,
+              updatedAt: new Date().toISOString(),
+            } as unknown as Record<string, unknown>,
+            summary: `이탈 위험 고객 ${viralAnalysis.totalAtRisk}건 감지`,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "business_id,agent_type" }
+        );
+    } catch (err) {
+      console.error("[점장] viral store_context 저장 실패:", err);
+    }
+  }
+
   // Step 5: Generate briefing (uses cached sub-agent reports just written)
   const briefing = await generateDailyBriefing(
     businessId,
@@ -281,6 +323,8 @@ export async function runMorningRoutine(
     seriReport,
     dapjangiSummary,
     diagnosis,
+    insights,
+    viralAnalysis,
     briefing,
     messageSent,
     messageChannel,
