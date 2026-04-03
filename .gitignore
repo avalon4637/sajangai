@@ -3,10 +3,6 @@
 # ============================================
 # Version: 0.33.0
 # Updated: 2026-01-10
-
-# Capacitor native projects
-android/
-ios/
 # Purpose: Essential patterns for user projects
 # ============================================
 
@@ -210,6 +206,8 @@ dist-ssr/
 .firebase/
 
 # User Custom Patterns (preserved by moai update)
+android/
+ios/
 /node_modules
 /.pnp
 .pnp.*

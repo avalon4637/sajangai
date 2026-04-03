@@ -100,6 +100,32 @@ Tasks for the Explore subagent:
 - Go through related test files to understand expected behavior and edge cases
 - Report comprehensive results for Phase 1B context
 
+### Phase 0.4: UltraThink Auto-Activation (Conditional)
+
+Purpose: Automatically activate deep analysis mode for complex SPECs that benefit from structured reasoning.
+
+**Activation condition**: Evaluate task complexity from Phase 1A exploration results or user request:
+- Complexity score >= 7 (multi-domain, cross-cutting concerns)
+- Request involves architectural decisions (new module, system redesign, migration)
+- Request touches security-critical areas (auth, payment, data isolation)
+- User explicitly includes `ultrathink` keyword in request
+
+**UltraThink vs --deepthink distinction**:
+- `ultrathink`: Claude Code native deep analysis mode — activates extended reasoning within the current agent context. Triggered by keyword detection in user input.
+- `--deepthink`: Sequential Thinking MCP tool invocation — programmatic step-by-step analysis via `mcp__sequential-thinking__sequentialthinking`. Triggered by explicit flag.
+
+When UltraThink auto-activates:
+- Log: "UltraThink mode activated: [reason]"
+- Apply extended reasoning to Phase 0.5 research and Phase 1B SPEC creation
+- Produce deeper analysis in research.md with trade-off comparisons and risk assessments
+- Consider alternative approaches and document rejection rationale
+
+When --deepthink flag is present (can combine with UltraThink):
+- Invoke Sequential Thinking MCP for structured step-by-step analysis
+- Each thinking step documented in research.md
+
+**Skip condition**: Simple, well-scoped features (complexity < 5, single domain, clear requirements). Log: "UltraThink skipped: low complexity task."
+
 ### Phase 0.5: Deep Research (Recommended)
 
 Agent: Explore subagent (deep codebase analysis)
@@ -134,11 +160,47 @@ Output: `.moai/specs/SPEC-{ID}/research.md` containing:
 - Risks, constraints, and implicit contracts identified
 - Recommendations for the implementation approach
 
+### Phase 1.25: Design Direction (Conditional)
+
+Purpose: Establish design intent and direction for UI/UX-related SPECs before SPEC planning begins. Based on the Intent-First design philosophy from the interface-design methodology.
+
+When to run:
+- SPEC description contains 2+ UI/UX keywords: ui, frontend, interface, design, component, page, screen, layout, form, dashboard, button, modal, view, sidebar, navigation, widget, chart, table
+- User explicitly requests design direction
+
+When to skip:
+- No UI/UX keywords detected in SPEC description
+- User explicitly requests "skip design" or uses --prototype flag
+- Backend-only, infrastructure, or documentation SPECs
+
+Agent: expert-frontend subagent (with moai-design-craft skill)
+
+Tasks:
+1. Check if `.moai/design/system.md` exists and has content
+2. If system.md exists: Load as design context, skip Intent-First process
+3. If system.md is empty or missing: Execute Intent-First process:
+   - Answer: Who is this human? What must they accomplish? What should this feel like?
+   - Produce domain exploration: 5+ domain concepts, 5+ color world entries, 1 signature element
+   - Identify 3+ defaults to avoid (generic patterns to reject)
+4. Generate design direction artifact
+
+Output: `.moai/specs/SPEC-{ID}/design-direction.md` containing:
+- Intent statement (who, what, feel)
+- Domain concepts and vocabulary
+- Color world exploration
+- Signature element definition
+- Defaults to avoid
+- Reference to `.moai/design/system.md` if exists
+
+Design direction guard: [HARD] During Phase 1.25, the agent MUST NOT write implementation code. Focus exclusively on design exploration and direction definition.
+
+After Phase 1.25: Offer to persist design decisions to `.moai/design/system.md` if it was newly created or updated. Use AskUserQuestion: "Save design direction to project-level design memory (.moai/design/system.md)?"
+
 ### Phase 1B: SPEC Planning (Required)
 
 Agent: manager-spec subagent
 
-Input: User request plus Phase 1A results (if executed)
+Input: User request plus Phase 1A results (if executed), plus design-direction.md (if Phase 1.25 executed)
 
 Tasks for manager-spec:
 - Analyze project documents (product.md, structure.md, tech.md)
@@ -313,7 +375,7 @@ Skipped when: develop_direct workflow, no flags and user chooses "Use current br
 Prerequisite: SPEC files MUST be committed before worktree creation.
 - Stage SPEC files: git add .moai/specs/SPEC-{ID}/
 - Create commit: feat(spec): Add SPEC-{ID} - {title}
-- Create worktree via WorktreeManager with branch feature/SPEC-{ID}
+- Create worktree: `moai worktree new SPEC-{ID}`
 - Display worktree path and navigation instructions
 
 #### Branch Path (--branch flag or user choice)
@@ -329,19 +391,41 @@ Agent: manager-git subagent
 - No branch creation, no manager-git invocation
 - SPEC files remain on current branch
 
-### Phase 3.5: MX Tag Planning (Optional)
+### Phase 3.5: MX Tag Planning [MANDATORY]
 
-Purpose: Identify code locations that will need @MX annotations during implementation.
+Purpose: Identify code locations that will need @MX annotations during implementation. This information is passed to run workflow agents as context constraints.
 
-Execution conditions: SPEC involves modifying existing code OR creating new public APIs.
+Execution conditions: Always executed. Depth varies by scope:
+- **Full scan**: SPEC involves modifying existing code OR creating new public APIs
+- **Lightweight scan**: New feature with no existing code interaction (scan public API surface only)
 
 Tasks:
 - Scan target files for high fan_in functions (potential @MX:ANCHOR)
 - Identify dangerous patterns (goroutines, complexity) for @MX:WARN
 - List magic constants and business rules for @MX:NOTE
-- Document MX tag strategy in plan.md
+- Document MX tag strategy in `plan.md`
+- Output: `mx_plan` section in SPEC document with annotation targets and priorities
 
-Skip conditions: New feature with no existing code interaction.
+### Phase 3.6: SPEC Quality Gate
+
+Purpose: Verify SPEC document quality before proceeding to implementation. Catches incomplete or inconsistent specs early.
+
+Tasks:
+- Verify all EARS-format requirements have corresponding acceptance criteria
+- Check that affected files list is complete (cross-reference with codebase)
+- Validate that MX tag plan covers all high-risk areas (fan_in >= 3, goroutines)
+- Run lightweight security check on SPEC scope (flag if auth/crypto/input-validation areas are touched)
+
+Gate decision:
+- **PASS**: All checks satisfied. Proceed to Decision Point 2.
+- **WARNING**: Minor gaps found (e.g., missing acceptance criteria for edge cases). Present findings and offer fix or continue.
+- **FAIL**: Critical gaps (e.g., no acceptance criteria, security-sensitive scope without security considerations). Must fix before proceeding.
+
+Tool: AskUserQuestion (when WARNING or FAIL)
+Options:
+- Fix SPEC issues (Recommended): Return to SPEC editing with specific gaps highlighted
+- Continue with warnings: Proceed knowing gaps exist (WARNING only, not available for FAIL)
+- Abort: Exit plan workflow
 
 ### Decision Point 2: Development Environment Selection
 
@@ -391,7 +475,7 @@ AskUserQuestion with 3 options (descriptions adapt to active_mode):
 - CC: 추가 env 설정 불필요. worktree 생성 후 새 tmux 세션에서 claude 실행.
 - GLM: 새 tmux 세션에 injectTmuxSessionEnv()로 GLM env 주입 후 실행.
 - CG: 새 tmux 세션에 injectTmuxSessionEnv() 적용 + settings.local.json에서 GLM env 제거(Leader 격리).
-- 새 tmux 세션에서 worktree 디렉토리로 이동 후 `/moai run SPEC-{ID}` 실행.
+- 새 tmux 세션에서 worktree 디렉터리로 이동 후 `/moai run SPEC-{ID}` 실행.
 - 현재 세션 종료 (worktree 세션이 독립적으로 실행됨).
 
 **Step 5 — Gate 결과를 run 워크플로우에 전달:**
@@ -432,6 +516,35 @@ All of the following must be verified:
 
 ---
 
-Version: 2.7.0
-Updated: 2026-03-11
-Changes: Added Phase 2.5 GitHub Issue creation with bidirectional SPEC-Issue linking, --no-issue flag, issue_number SPEC frontmatter field.
+## Test Scenarios
+
+### Normal Flow
+**Prompt**: "/moai plan JWT authentication with refresh token rotation"
+**Expected Result**:
+- Phase 1A: Explore discovers existing auth files if any
+- Phase 1B: manager-spec designs EARS requirements for JWT auth
+- Annotation cycle: 1-3 iterations refining requirements
+- Phase 2: SPEC-AUTH-001 created with spec.md, plan.md, acceptance.md
+- Phase 2.5: GitHub Issue created and linked to SPEC
+- Phase 3: Feature branch feat/SPEC-AUTH-001-jwt-auth created (if --branch)
+
+### Existing Assets Flow
+**Prompt**: "/moai plan add payment gateway" (existing e-commerce codebase)
+**Expected Result**:
+- Explore discovers existing order, product, user models
+- SPEC references existing models as dependencies
+- plan.md identifies extension points in existing architecture
+- No duplicate functionality proposed
+
+### Error Flow
+**Prompt**: "/moai plan" (no description provided)
+**Expected Result**:
+- AskUserQuestion prompts user for feature description
+- After user provides description, normal flow continues
+- If user cancels, graceful exit with no files created
+
+---
+
+Version: 2.8.0
+Updated: 2026-03-30
+Changes: Added test scenarios, Phase 0.9 JIT Language Detection.

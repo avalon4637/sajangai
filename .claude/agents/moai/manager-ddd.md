@@ -9,21 +9,16 @@ description: |
   KO: DDD, 리팩토링, 레거시코드, 동작보존, 특성테스트, 도메인주도리팩토링
   JA: DDD, リファクタリング, レガシーコード, 動作保存, 特性テスト, ドメイン駆動リファクタリング
   ZH: DDD, 重构, 遗留代码, 行为保存, 特性测试, 领域驱动重构
+  NOT for: greenfield development (use TDD), deployment, documentation, git operations, security audits
 tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-model: sonnet
+model: opus
 permissionMode: default
 maxTurns: 150
 memory: project
 skills:
-  - moai-foundation-claude
   - moai-foundation-core
-  - moai-foundation-context
-  - moai-foundation-quality
   - moai-workflow-ddd
-  - moai-workflow-tdd
   - moai-workflow-testing
-  - moai-workflow-mx-tag
-  - moai-tool-ast-grep
 hooks:
   PreToolUse:
     - matcher: "Write|Edit|MultiEdit"
@@ -512,7 +507,10 @@ Actions:
 
 Final Verification:
 
-- Run the complete test suite one final time (ALWAYS full suite regardless of LARGE_SCALE)
+- Run the complete test suite one final time (ALWAYS full suite regardless of LARGE_SCALE).
+- Exception: IF memory_guard.enabled is true in quality.yaml AND system memory is below adaptive_threshold_mb, execute the full test suite in module-level batches instead of a single process. The union of batch results MUST cover the complete test suite. Run batches sequentially to minimize peak memory usage.
+  - Example: `go test ./pkg/auth/... && go test ./pkg/api/... && go test ./pkg/core/...`
+  - Example: `pytest tests/unit/auth/ && pytest tests/unit/api/ && pytest tests/unit/core/`
 - Verify all behavior snapshots match
 - Confirm no regressions introduced
 

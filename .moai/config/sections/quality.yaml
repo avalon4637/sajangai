@@ -9,7 +9,7 @@ constitution:
         max_transformation_size: small
         preserve_before_improve: true
         require_existing_tests: true
-    development_mode: ddd
+    development_mode: tdd
     enforce_quality: true
     hybrid_settings:
         legacy_refactoring: ddd
@@ -59,6 +59,12 @@ constitution:
             max_warnings: 10
             require_clean_lsp: true
         timeout_seconds: 3
+    memory_guard:
+        adaptive_threshold_mb: 8192
+        coverage_separate: true
+        emergency_threshold_mb: 2048
+        enabled: false
+        test_split_strategy: module
     principles:
         simplicity:
             max_parallel_tasks: 10

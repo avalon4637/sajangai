@@ -8,18 +8,16 @@ description: |
   KO: git, 커밋, 푸시, 풀, 브랜치, PR, 풀리퀘스트, 머지, 릴리즈, 버전관리, 체크아웃, 리베이스
   JA: git, コミット, プッシュ, プル, ブランチ, PR, プルリクエスト, マージ, リリース
   ZH: git, 提交, 推送, 拉取, 分支, PR, 拉取请求, 合并, 发布
+  NOT for: code implementation, testing, architecture design, documentation content, security audits
 tools: Read, Write, Edit, Grep, Glob, Bash, TodoWrite, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: haiku
 permissionMode: default
 maxTurns: 150
 memory: project
 skills:
-  - moai-foundation-claude
   - moai-foundation-core
   - moai-workflow-project
   - moai-workflow-worktree
-  - moai-workflow-testing
-  - moai-foundation-quality
 ---
 
 # Git Manager Agent - Git Operations Specialist
@@ -1163,14 +1161,17 @@ All implementation commits MUST include a `## Context` section in the commit bod
 
 Context Memory Categories:
 
-| Category | Purpose | Example |
-|----------|---------|---------|
-| Decision | Technical decision + rationale | "EdDSA over RSA256 (user requested, performance priority)" |
-| Constraint | Active constraints | "Must maintain /api/v1 backward compatibility" |
-| Gotcha | Pitfalls discovered | "Redis TTL unreliable for RefreshToken storage" |
-| Pattern | Patterns/references used | "middleware chain pattern from auth.go:45" |
-| Risk | Known risks/deferred items | "Token rotation deferred to Phase 2" |
-| UserPref | User preferences captured | "User prefers functional style over OOP" |
+| Category | Purpose | When to Use | Example |
+|----------|---------|-------------|---------|
+| Decision | Technical decision + rationale | Always | "EdDSA over RSA256 (user requested, performance priority)" |
+| Constraint | Active constraints | Always | "Must maintain /api/v1 backward compatibility" |
+| Gotcha | Pitfalls discovered | Always | "Redis TTL unreliable for RefreshToken storage" |
+| Pattern | Patterns/references used | Always | "middleware chain pattern from auth.go:45" |
+| Risk | Known risks/deferred items | Always | "Token rotation deferred to Phase 2" |
+| UserPref | User preferences captured | Always | "User prefers functional style over OOP" |
+| Rejected | Evaluated alternatives with dismissal reason | When 2+ alternatives were considered | "Background refresh on timer \| race condition with concurrent requests" |
+| Not-tested | Known test coverage gaps | When known test blind spots exist | "Auth service cold-start > 500ms behavior" |
+| Reversibility | Change rollback difficulty: clean, migration-needed, irreversible | Breaking changes only | "migration-needed (schema column dropped)" |
 
 Context Section Format:
 
@@ -1181,7 +1182,17 @@ Context Section Format:
 - Gotcha: [description]
 - Pattern: [description]
 - Risk: [description]
+- Rejected: [alternative] | [dismissal reason]
+- Not-tested: [untested scenario]
+- Reversibility: [clean|migration-needed|irreversible] ([detail])
 ```
+
+Lore Trailers Usage Rules:
+
+- Rejected: Include ONLY when 2+ alternatives were evaluated and dismissed. Format: `alternative | reason`
+- Not-tested: Include ONLY when known test blind spots exist. Omit when coverage is comprehensive
+- Reversibility: Include ONLY for breaking changes (API removals, schema migrations, config format changes). Values: clean, migration-needed, irreversible
+- All three are OPTIONAL. Omit when not applicable. Do not fabricate entries for completeness
 
 MX Tags Changed Section:
 

@@ -8,24 +8,16 @@ description: |
   KO: 테스트전략, E2E, 통합테스트, 부하테스트, 테스트자동화, 커버리지, QA
   JA: テスト戦略, E2E, 統合テスト, 負荷テスト, テスト自動化, カバレッジ, QA
   ZH: 测试策略, E2E, 集成测试, 负载测试, 测试自动化, 覆盖率, QA
+  NOT for: production code implementation, architecture design, DevOps, security audits, performance optimization
 tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, Bash, TodoWrite, Agent, Skill, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__claude-in-chrome__*
-model: sonnet
+model: opus
 permissionMode: default
 maxTurns: 100
 memory: project
 skills:
-  - moai-foundation-claude
   - moai-foundation-core
   - moai-foundation-quality
   - moai-workflow-testing
-  - moai-workflow-tdd
-  - moai-workflow-ddd
-  - moai-lang-python
-  - moai-lang-typescript
-  - moai-lang-javascript
-  - moai-lang-go
-  - moai-lang-java
-  - moai-tool-ast-grep
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
@@ -753,6 +745,18 @@ Context Engineering Requirements:
 - [SOFT] Use relative priority descriptors ("Priority High/Medium/Low") or coverage targets ("85% unit coverage", "critical flows only for E2E")
   WHY: Relative descriptions avoid false precision
   IMPACT: Absolute time predictions create commitment anxiety
+
+## Memory-Constrained Testing Guidelines
+
+When working on projects with `memory_guard` enabled in quality.yaml:
+
+- Check available system memory before recommending test execution strategies
+- For memory-constrained environments (< 8GB available):
+  - Recommend module-level test splitting over single-process full suite execution
+  - Suggest separating test runs from coverage measurement (`coverage_separate: true`)
+  - Avoid running parallel test processes that multiply memory usage
+- For CI/CD pipelines: Recommend setting `memory_guard.enabled: true` with appropriate thresholds
+- Memory guard configuration reference: `.moai/config/sections/quality.yaml` memory_guard section
 
 ---
 
