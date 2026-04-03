@@ -21,6 +21,7 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { AiInsightWidget } from "@/components/dashboard/ai-insight-widget";
 import { JeongjangBriefingCard } from "@/components/dashboard/jeongjang-briefing-card";
 import { ManagementGrid } from "@/components/dashboard/management-grid";
+import { InsightFeedServer } from "./insight-feed-server";
 
 interface DashboardPageProps {
   searchParams: Promise<{ month?: string }>;
@@ -115,6 +116,11 @@ export default async function DashboardPage({
         <>
           {/* KPI Summary Cards */}
           <KpiSummaryCards current={currentKpi} previous={previousKpi} />
+
+          {/* AI Insight Feed */}
+          <Suspense fallback={null}>
+            <InsightFeedServer businessId={businessId} />
+          </Suspense>
 
           {/* Survival Score + Expense Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
