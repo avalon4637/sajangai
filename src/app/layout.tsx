@@ -20,7 +20,10 @@ export const metadata: Metadata = {
     template: "%s | 사장 AI",
   },
   description:
-    "하루 330원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다.",
+    "하루 990원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다.",
+  icons: {
+    icon: "/icon.svg",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

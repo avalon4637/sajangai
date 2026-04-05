@@ -152,11 +152,14 @@ export function OnboardingForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>사업장 등록</CardTitle>
-        <CardDescription>
-          서비스를 이용하려면 사업장 정보를 등록해주세요.
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="text-center pb-2">
+        <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-[#EFF6FF] flex items-center justify-center">
+          <span className="text-2xl">🏪</span>
+        </div>
+        <CardTitle className="text-xl">사업장 등록</CardTitle>
+        <CardDescription className="break-keep">
+          사업장 정보를 입력하면 AI 점장이 맞춤 분석을 시작해요.
         </CardDescription>
       </CardHeader>
       <CardContent>

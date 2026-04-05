@@ -125,7 +125,7 @@ export async function verifyBusinessNumber(
   const apiKey = process.env.NTS_API_KEY;
   if (!apiKey) {
     console.error("NTS_API_KEY is not configured");
-    return { success: false, error: "서버 설정 오류입니다. 잠시 후 다시 시도해주세요." };
+    return { success: false, error: "사업자 인증 서비스 준비 중입니다. 인증 없이 사업장명만 입력하셔도 이용 가능해요." };
   }
 
   try {

@@ -22,5 +22,27 @@ export default async function OnboardingPage() {
     redirect("/dashboard");
   }
 
-  return <OnboardingForm />;
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#F0F9FF] to-white flex flex-col items-center justify-center px-4 py-12">
+      {/* Brand header */}
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-[#1E40AF] tracking-tight">
+          sajang.ai
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          소상공인을 위한 AI 경영 도우미
+        </p>
+      </div>
+
+      {/* Onboarding card */}
+      <div className="w-full max-w-md">
+        <OnboardingForm />
+      </div>
+
+      {/* Trust note */}
+      <p className="text-xs text-muted-foreground mt-6 text-center break-keep">
+        사업장 정보는 매출 분석에만 사용되며 외부에 공유되지 않습니다.
+      </p>
+    </div>
+  );
 }
