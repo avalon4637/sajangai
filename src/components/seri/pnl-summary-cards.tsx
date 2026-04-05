@@ -1,7 +1,7 @@
 "use client";
 
 // P&L Summary Cards for Seri analysis page
-// Displays 3 large cards: Total Revenue, Net Profit, Cash Flow
+// Displays 4 large cards: Total Revenue, Net Profit, Cash Flow, Daily Average
 
 import {
   TrendingUp,
@@ -10,6 +10,7 @@ import {
   Wallet,
   PiggyBank,
   ArrowRightLeft,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +98,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
   const cardRevenue = current.totalRevenue - deliveryRevenue;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {/* Total Revenue */}
       <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
         <CardContent className="p-5">
@@ -212,6 +213,39 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
                 +{formatAmount(cashFlow * 1.05)}원
               </span>
             </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Daily Average Revenue */}
+      <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-[#10B981]" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">
+                일평균 매출
+              </span>
+            </div>
+            {previous && (
+              <DeltaBadge
+                change={getChangePercent(
+                  current.avgDailyRevenue,
+                  previous.avgDailyRevenue
+                )}
+              />
+            )}
+          </div>
+          <div className="text-2xl font-bold tracking-tight">
+            {formatAmount(current.avgDailyRevenue)}
+            <span className="text-base font-normal text-muted-foreground ml-0.5">
+              원
+            </span>
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground">
+            영업일 {current.daysWithRevenue}일 기준
           </div>
         </CardContent>
       </Card>

@@ -62,7 +62,8 @@ interface AnalysisPageClientProps {
   totalExpense?: number;
 }
 
-type TabValue = "calendar" | "trend" | "pattern" | "bookkeeping";
+type TabValue = "trend" | "pattern" | "bookkeeping";
+type CalendarView = "monthly" | "weekly";
 
 export function AnalysisPageClient({
   businessId,
@@ -79,7 +80,8 @@ export function AnalysisPageClient({
   totalExpense: totalExpenseProp,
 }: AnalysisPageClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabValue>("calendar");
+  const [activeTab, setActiveTab] = useState<TabValue>("trend");
+  const [calendarView, setCalendarView] = useState<CalendarView>("monthly");
   const [selectedDayData, setSelectedDayData] = useState<{
     date: string;
     data: DailyRevenueSummary;
@@ -239,31 +241,74 @@ export function AnalysisPageClient({
         previous={previousSummary.totalRevenue > 0 ? previousSummary : null}
       />
 
-      {/* ===== MAIN CONTENT: 2 columns ===== */}
+      {/* ===== MAIN CONTENT: Calendar + Side Panel ===== */}
       {hasData && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
-          {/* LEFT COLUMN: Chart + Cost Breakdown */}
-          <div className="space-y-6">
-            {/* Revenue trend chart */}
-            <DailyTrendChart
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          {/* LEFT COLUMN: Calendar (Main Content) */}
+          <div className="space-y-4">
+            {/* Calendar view toggle: weekly/monthly + today button */}
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                <button
+                  onClick={() => setCalendarView("weekly")}
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-l-md border transition-colors ${
+                    calendarView === "weekly"
+                      ? "bg-[#4B6BF5] text-white border-[#4B6BF5]"
+                      : "bg-[#F8F9FA] text-muted-foreground border-border hover:bg-gray-100"
+                  }`}
+                >
+                  주간
+                </button>
+                <button
+                  onClick={() => setCalendarView("monthly")}
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-r-md border-y border-r transition-colors ${
+                    calendarView === "monthly"
+                      ? "bg-[#4B6BF5] text-white border-[#4B6BF5]"
+                      : "bg-[#F8F9FA] text-muted-foreground border-border hover:bg-gray-100"
+                  }`}
+                >
+                  월간
+                </button>
+              </div>
+              <div className="flex-1" />
+              <button
+                onClick={() => {
+                  const today = new Date();
+                  const ym = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+                  router.push(`/analysis?month=${ym}`);
+                }}
+                className="px-3 py-1.5 text-xs font-medium text-[#4B6BF5] border rounded-md hover:bg-[#EEF1FE] transition-colors"
+              >
+                오늘
+              </button>
+            </div>
+
+            {/* Calendar */}
+            <RevenueCalendar
               data={currentData}
-              previousData={previousData}
               yearMonth={yearMonth}
+              onDateSelect={handleDateSelect}
             />
 
-            {/* Cost breakdown cards */}
-            <CostBreakdown
-              categories={costCategories ?? []}
-              totalExpense={totalExpenseProp ?? 0}
-            />
+            {/* Daily detail panel when a date is selected */}
+            {selectedDayData && (
+              <DailyDetailPanel
+                date={selectedDayData.date}
+                data={selectedDayData.data}
+              />
+            )}
           </div>
 
-          {/* RIGHT COLUMN: AI Narrative + Cashflow Forecast */}
+          {/* RIGHT COLUMN: AI Narrative + Cost Breakdown + Cashflow */}
           <div className="space-y-4">
             <SeriAiNarrative
               seriReport={seriReport}
               summary={currentSummary}
               yearMonth={yearMonth}
+            />
+            <CostBreakdown
+              categories={costCategories ?? []}
+              totalExpense={totalExpenseProp ?? 0}
             />
             <CashflowForecast cashflow={cashflowData ?? null} />
           </div>
@@ -277,10 +322,6 @@ export function AnalysisPageClient({
           onValueChange={(v) => setActiveTab(v as TabValue)}
         >
           <TabsList>
-            <TabsTrigger value="calendar" className="gap-1.5">
-              <Calendar className="h-4 w-4" />
-              <span>달력</span>
-            </TabsTrigger>
             <TabsTrigger value="trend" className="gap-1.5">
               <TrendingUp className="h-4 w-4" />
               <span>추이</span>
@@ -322,43 +363,17 @@ export function AnalysisPageClient({
       )}
 
       {/* ===== Tab Content ===== */}
-      {hasData && activeTab === "calendar" && (
-        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-          <div className="space-y-4">
-            <RevenueCalendar
-              data={currentData}
-              yearMonth={yearMonth}
-              onDateSelect={handleDateSelect}
-            />
-            {selectedDayData && (
-              <DailyDetailPanel
-                date={selectedDayData.date}
-                data={selectedDayData.data}
-              />
-            )}
-          </div>
-          <div className="hidden lg:block">
-            <MonthlySummaryPanel
-              summary={currentSummary}
-              yearMonth={yearMonth}
-            />
-          </div>
-        </div>
-      )}
-
       {hasData && activeTab === "trend" && (
-        <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
           <DailyTrendChart
             data={currentData}
             previousData={previousData}
             yearMonth={yearMonth}
           />
-          <div className="lg:hidden">
-            <MonthlySummaryPanel
-              summary={currentSummary}
-              yearMonth={yearMonth}
-            />
-          </div>
+          <MonthlySummaryPanel
+            summary={currentSummary}
+            yearMonth={yearMonth}
+          />
         </div>
       )}
 
