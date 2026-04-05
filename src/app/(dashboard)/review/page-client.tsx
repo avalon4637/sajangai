@@ -1,16 +1,20 @@
 "use client";
 
-// Review page client component
-// Displays real review data from delivery_reviews table with interactive controls
+// Review page client component - Dapjangi review management
+// 2-column layout: review queue (left) + review detail (right)
+// Redesigned with amber theme for the Dapjangi agent
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Star, MessageSquare, Clock, CheckCircle, Link, Sparkles, Loader2, Pencil, Send, X } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sparkles, Loader2, Link } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import type { DeliveryReview, ReviewStats } from "@/lib/queries/review";
+import { ReviewStatsCards } from "@/components/dapjangi/review-stats-cards";
+import { ReviewQueue } from "@/components/dapjangi/review-queue";
+import { ReviewDetailPanel } from "@/components/dapjangi/review-detail-panel";
+import { SentimentChart } from "@/components/dapjangi/sentiment-chart";
 
 interface ReviewPageClientProps {
   reviews: DeliveryReview[];
@@ -20,60 +24,53 @@ interface ReviewPageClientProps {
   selectedStatus: string;
 }
 
-// Map platform codes to Korean display names
-const PLATFORM_LABELS: Record<string, string> = {
-  baemin: "배민",
-  coupangeats: "쿠팡이츠",
-  yogiyo: "요기요",
-};
+type FilterStatus = "all" | "pending" | "draft" | "ai_waiting" | "published";
 
-// Map reply status codes to Korean labels and badge variants
-type BadgeVariant = "default" | "secondary" | "outline" | "destructive";
+const FILTER_CHIPS: { key: FilterStatus; label: string }[] = [
+  { key: "all", label: "전체" },
+  { key: "pending", label: "미답변" },
+  { key: "ai_waiting", label: "AI대기" },
+  { key: "published", label: "발행완료" },
+];
 
-const STATUS_LABELS: Record<string, { label: string; variant: BadgeVariant }> = {
-  pending: { label: "미답변", variant: "destructive" },
-  draft: { label: "초안", variant: "outline" },
-  auto_published: { label: "자동 발행", variant: "secondary" },
-  published: { label: "발행 완료", variant: "default" },
-  skipped: { label: "건너뜀", variant: "secondary" },
-};
-
-// Render star rating as visual stars
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`h-3.5 w-3.5 ${
-            i < rating ? "fill-amber-400 text-amber-400" : "text-gray-200"
-          }`}
-        />
-      ))}
-    </div>
-  );
+function getFilterCount(
+  reviews: DeliveryReview[],
+  filter: FilterStatus
+): number {
+  switch (filter) {
+    case "all":
+      return reviews.length;
+    case "pending":
+      return reviews.filter((r) => r.replyStatus === "pending").length;
+    case "ai_waiting":
+      return reviews.filter((r) => r.replyStatus === "draft").length;
+    case "published":
+      return reviews.filter(
+        (r) =>
+          r.replyStatus === "published" || r.replyStatus === "auto_published"
+      ).length;
+    default:
+      return reviews.length;
+  }
 }
 
-// Determine sentiment badge color based on score
-function SentimentBadge({ score }: { score: number | null }) {
-  if (score === null) return null;
-  if (score >= 0.6)
-    return (
-      <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-        긍정
-      </Badge>
-    );
-  if (score <= 0.3)
-    return (
-      <Badge variant="outline" className="text-xs text-red-500 border-red-200">
-        부정
-      </Badge>
-    );
-  return (
-    <Badge variant="outline" className="text-xs text-amber-600 border-amber-200">
-      중립
-    </Badge>
-  );
+function filterReviews(
+  reviews: DeliveryReview[],
+  filter: FilterStatus
+): DeliveryReview[] {
+  switch (filter) {
+    case "pending":
+      return reviews.filter((r) => r.replyStatus === "pending");
+    case "ai_waiting":
+      return reviews.filter((r) => r.replyStatus === "draft");
+    case "published":
+      return reviews.filter(
+        (r) =>
+          r.replyStatus === "published" || r.replyStatus === "auto_published"
+      );
+    default:
+      return reviews;
+  }
 }
 
 export function ReviewPageClient({
@@ -84,12 +81,27 @@ export function ReviewPageClient({
   selectedStatus,
 }: ReviewPageClientProps) {
   const router = useRouter();
-  const [year, month] = yearMonth.split("-");
+  const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(
+    reviews.length > 0 ? reviews[0].id : null
+  );
   const [isGenerating, setIsGenerating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  // Compute filtered reviews
+  const filteredReviews = useMemo(
+    () => filterReviews(reviews, activeFilter),
+    [reviews, activeFilter]
+  );
+
+  // Find selected review
+  const selectedReview = useMemo(
+    () => reviews.find((r) => r.id === selectedReviewId) ?? null,
+    [reviews, selectedReviewId]
+  );
+
+  const handleSelect = useCallback((id: string) => {
+    setSelectedReviewId(id);
+  }, []);
 
   const handleGenerateReplies = async () => {
     setIsGenerating(true);
@@ -104,55 +116,16 @@ export function ReviewPageClient({
     }
   };
 
-  const handleEditStart = (reviewId: string, currentReply: string) => {
-    setEditingId(reviewId);
-    setEditText(currentReply);
-  };
+  // Calculate days in period for daily average
+  const [year, month] = yearMonth.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const today = new Date();
+  const totalDays =
+    today.getFullYear() === year && today.getMonth() + 1 === month
+      ? today.getDate()
+      : daysInMonth;
 
-  const handleEditSave = async (reviewId: string) => {
-    setSavingId(reviewId);
-    try {
-      const res = await fetch(`/api/reviews/${reviewId}/reply`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aiReply: editText }),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      setEditingId(null);
-      router.refresh();
-    } catch {
-      // Error handling
-    } finally {
-      setSavingId(null);
-    }
-  };
-
-  const handlePublish = async (reviewId: string) => {
-    if (!confirm("이 답글을 발행하시겠습니까?")) return;
-    setPublishingId(reviewId);
-    try {
-      const res = await fetch(`/api/reviews/${reviewId}/publish`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Publish failed");
-      router.refresh();
-    } catch {
-      // Error handling
-    } finally {
-      setPublishingId(null);
-    }
-  };
-
-  const pendingCount =
-    stats.replyStatusBreakdown["pending"] ?? 0;
-  const publishedCount =
-    (stats.replyStatusBreakdown["auto_published"] ?? 0) +
-    (stats.replyStatusBreakdown["published"] ?? 0);
-  const replyRate =
-    stats.totalCount > 0
-      ? Math.round((publishedCount / stats.totalCount) * 100)
-      : 0;
-
+  // Handle URL-based filter sync
   const handlePlatformFilter = (platform: string) => {
     const params = new URLSearchParams();
     params.set("month", yearMonth);
@@ -161,101 +134,64 @@ export function ReviewPageClient({
     router.push(`/review?${params.toString()}`);
   };
 
-  const handleStatusFilter = (status: string) => {
-    const params = new URLSearchParams();
-    params.set("month", yearMonth);
-    if (selectedPlatform !== "all") params.set("platform", selectedPlatform);
-    if (status !== "all") params.set("status", status);
-    router.push(`/review?${params.toString()}`);
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold flex items-center gap-2">
-          <span>⭐</span>
-          <span>답장이 · 리뷰 분석</span>
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {year}년 {month}월 · 리뷰를 수집하고 분석하여 최적의 답글을 작성해드려요
-        </p>
-      </div>
+    <div className="flex flex-col gap-4 h-full">
+      {/* TOP BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Title + Badge */}
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">답장이 · 리뷰 분석</h1>
+          <Badge className="bg-amber-500 text-white text-[10px] h-5">
+            활동중
+          </Badge>
+        </div>
 
-      {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <MessageSquare className="h-3.5 w-3.5" />
-              총 리뷰
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCount}건</div>
-            {stats.totalCount === 0 && (
-              <p className="text-xs text-muted-foreground mt-1">이달 리뷰 없음</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Center: Filter chips */}
+        <div className="flex items-center gap-1.5">
+          {FILTER_CHIPS.map((chip) => {
+            const count = getFilterCount(reviews, chip.key);
+            const isActive = activeFilter === chip.key;
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => {
+                  setActiveFilter(chip.key);
+                  // Reset selection to first filtered review
+                  const filtered = filterReviews(reviews, chip.key);
+                  if (filtered.length > 0) {
+                    setSelectedReviewId(filtered[0].id);
+                  } else {
+                    setSelectedReviewId(null);
+                  }
+                }}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-amber-500 text-white"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {chip.label}
+                <span
+                  className={`text-[10px] ${
+                    isActive ? "text-amber-100" : "text-muted-foreground"
+                  }`}
+                >
+                  ({count})
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <Star className="h-3.5 w-3.5" />
-              평균 평점
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalCount > 0 ? stats.avgRating.toFixed(1) : "-"}
-              {stats.totalCount > 0 && (
-                <span className="text-base font-normal text-muted-foreground">점</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              미답변 리뷰
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${pendingCount > 0 ? "text-red-600" : ""}`}>
-              {pendingCount}건
-            </div>
-            {pendingCount > 0 && (
-              <p className="text-xs text-red-500 mt-1">답변이 필요합니다</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <CheckCircle className="h-3.5 w-3.5" />
-              답변율
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalCount > 0 ? `${replyRate}%` : "-"}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Generate + Filter buttons */}
-      {reviews.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Right: AI generate button */}
+        {reviews.length > 0 && (
           <Button
             onClick={handleGenerateReplies}
             disabled={isGenerating}
             size="sm"
-            className="gap-1.5"
+            variant="outline"
+            className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50"
           >
             {isGenerating ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -264,44 +200,23 @@ export function ReviewPageClient({
             )}
             {isGenerating ? "생성 중..." : "AI 답글 생성"}
           </Button>
-          <div className="h-6 w-px bg-border" />
-          <div className="flex gap-1">
-            {["all", "baemin", "coupangeats", "yogiyo"].map((platform) => (
-              <Button
-                key={platform}
-                variant={selectedPlatform === platform ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePlatformFilter(platform)}
-                className="text-xs"
-              >
-                {platform === "all" ? "전체" : PLATFORM_LABELS[platform] ?? platform}
-              </Button>
-            ))}
-          </div>
-          <div className="flex gap-1">
-            {["all", "pending", "draft", "published"].map((status) => (
-              <Button
-                key={status}
-                variant={selectedStatus === status ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleStatusFilter(status)}
-                className="text-xs"
-              >
-                {status === "all" ? "전체 상태" : (STATUS_LABELS[status]?.label ?? status)}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* STATS ROW */}
+      <ReviewStatsCards stats={stats} totalDays={totalDays} />
 
       {/* Empty State */}
       {reviews.length === 0 && (
         <Card>
           <CardContent className="py-16 text-center">
-            <div className="text-4xl mb-4">⭐</div>
-            <h3 className="text-lg font-semibold mb-2">리뷰 데이터가 없습니다</h3>
+            <Sparkles className="h-10 w-10 text-amber-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              리뷰 데이터가 없습니다
+            </h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
-              설정에서 배달앱을 연결하면 답장이가 자동으로 리뷰를 수집하고 분석을 시작합니다.
+              설정에서 배달앱을 연결하면 답장이가 자동으로 리뷰를 수집하고 분석을
+              시작합니다.
             </p>
             <Button
               variant="outline"
@@ -315,162 +230,53 @@ export function ReviewPageClient({
         </Card>
       )}
 
-      {/* Review List */}
+      {/* MAIN CONTENT: 2-column layout */}
       {reviews.length > 0 && (
-        <div className="space-y-3">
-          {reviews.map((review) => {
-            const statusInfo = STATUS_LABELS[review.replyStatus] ?? {
-              label: review.replyStatus,
-              variant: "outline" as BadgeVariant,
-            };
-            return (
-              <Card key={review.id} className="overflow-hidden">
-                <CardContent className="p-4">
-                  {/* Review header */}
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="secondary" className="text-xs">
-                        {PLATFORM_LABELS[review.platform] ?? review.platform}
-                      </Badge>
-                      <StarRating rating={review.rating} />
-                      <SentimentBadge score={review.sentimentScore} />
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Badge variant={statusInfo.variant} className="text-xs">
-                        {statusInfo.label}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {review.reviewDate}
-                      </span>
-                    </div>
-                  </div>
+        <>
+          {/* Desktop: side by side */}
+          <div className="hidden md:grid md:grid-cols-[45%_55%] gap-0 border rounded-lg overflow-hidden bg-background min-h-[420px]">
+            {/* LEFT: Review Queue */}
+            <div className="border-r overflow-y-auto max-h-[500px]">
+              <ReviewQueue
+                reviews={filteredReviews}
+                selectedId={selectedReviewId}
+                onSelect={handleSelect}
+              />
+            </div>
 
-                  {/* Review content */}
-                  {review.content && (
-                    <p className="text-sm text-foreground mb-2 leading-relaxed">
-                      {review.content}
-                    </p>
-                  )}
+            {/* RIGHT: Review Detail + AI Reply */}
+            <div className="overflow-y-auto max-h-[500px]">
+              <ReviewDetailPanel review={selectedReview} />
+            </div>
+          </div>
 
-                  {/* Order summary */}
-                  {review.orderSummary && (
-                    <p className="text-xs text-muted-foreground mb-2">
-                      주문: {review.orderSummary}
-                    </p>
-                  )}
-
-                  {/* Keywords */}
-                  {review.keywords.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {review.keywords.map((kw) => (
-                        <span
-                          key={kw}
-                          className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5"
-                        >
-                          #{kw}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* AI Reply */}
-                  {review.aiReply && (
-                    <div className="mt-3 bg-muted/50 border rounded-md p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          답장이 AI 답글
-                        </span>
-                        <div className="flex gap-1">
-                          {review.replyStatus === "draft" && editingId !== review.id && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs h-6 px-2 gap-1"
-                                onClick={() => handleEditStart(review.id, review.aiReply!)}
-                              >
-                                <Pencil className="h-3 w-3" />
-                                수정하기
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="text-xs h-6 px-2 gap-1"
-                                disabled={publishingId === review.id}
-                                onClick={() => handlePublish(review.id)}
-                              >
-                                {publishingId === review.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <Send className="h-3 w-3" />
-                                )}
-                                발행하기
-                              </Button>
-                            </>
-                          )}
-                          {review.replyStatus === "auto_published" && (
-                            <Badge variant="secondary" className="text-xs">
-                              자동 발행됨
-                            </Badge>
-                          )}
-                          {review.replyStatus === "published" && (
-                            <Badge variant="default" className="text-xs">
-                              발행 완료
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      {editingId === review.id ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="text-sm min-h-[80px]"
-                          />
-                          <div className="flex gap-1 justify-end">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-xs h-7 px-3 gap-1"
-                              onClick={() => setEditingId(null)}
-                            >
-                              <X className="h-3 w-3" />
-                              취소
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="text-xs h-7 px-3 gap-1"
-                              disabled={savingId === review.id}
-                              onClick={() => handleEditSave(review.id)}
-                            >
-                              {savingId === review.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <CheckCircle className="h-3 w-3" />
-                              )}
-                              저장
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-foreground leading-relaxed">
-                          {review.aiReply}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Pending reply CTA */}
-                  {!review.aiReply && review.replyStatus === "pending" && (
-                    <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>답장이가 답글을 작성하고 있습니다...</span>
-                    </div>
-                  )}
+          {/* Mobile: stacked layout */}
+          <div className="md:hidden space-y-3">
+            <Card>
+              <CardContent className="p-0">
+                <div className="max-h-[300px] overflow-y-auto">
+                  <ReviewQueue
+                    reviews={filteredReviews}
+                    selectedId={selectedReviewId}
+                    onSelect={handleSelect}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            {selectedReview && (
+              <Card>
+                <CardContent className="p-0">
+                  <ReviewDetailPanel review={selectedReview} />
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* BOTTOM ROW: Sentiment + Keywords */}
+      {reviews.length > 0 && (
+        <SentimentChart reviews={reviews} avgSentiment={stats.avgSentiment} />
       )}
     </div>
   );

@@ -17,13 +17,15 @@ import { agentNavItems } from "./sidebar";
 
 interface MobileHeaderProps {
   userEmail: string;
+  businessName?: string;
+  subscriptionStatus?: string;
 }
 
 /**
  * Mobile header with hamburger menu that opens a Sheet drawer.
  * Only visible on viewports < 768px.
  */
-export function MobileHeader({ userEmail }: MobileHeaderProps) {
+export function MobileHeader({ userEmail, businessName, subscriptionStatus }: MobileHeaderProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const [open, setOpen] = useState(false);
@@ -142,11 +144,21 @@ export function MobileHeader({ userEmail }: MobileHeaderProps) {
             {/* User profile */}
             <div className="px-3 py-2.5 rounded-lg bg-gray-50">
               <p className="text-sm font-semibold text-[#18181B] truncate">
-                김사장님
+                {businessName ?? "사장"}님
               </p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-xs font-medium text-[#2563EB]">
-                  점장 고용 중
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                  subscriptionStatus === "active"
+                    ? "bg-[#EFF6FF] text-[#2563EB]"
+                    : subscriptionStatus === "trial"
+                      ? "bg-[#FFF7ED] text-[#EA580C]"
+                      : "bg-gray-100 text-gray-500"
+                }`}>
+                  {subscriptionStatus === "active"
+                    ? "점장 고용 중"
+                    : subscriptionStatus === "trial"
+                      ? "무료 체험 중"
+                      : "미구독"}
                 </span>
               </div>
               <p className="text-xs text-[#71717A] truncate mt-1">{userEmail}</p>

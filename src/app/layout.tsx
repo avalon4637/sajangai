@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import { CapacitorInit } from "@/components/capacitor-init";
 import "./globals.css";
 
@@ -51,6 +52,7 @@ export default function RootLayout({
       >
         <CapacitorInit />
         {children}
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

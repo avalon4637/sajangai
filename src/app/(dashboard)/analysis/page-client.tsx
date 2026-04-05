@@ -12,12 +12,15 @@ import {
   FileSpreadsheet,
   BookOpen,
   Upload,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RevenueKpiCards } from "@/components/analysis/revenue-kpi-cards";
+import { PnlSummaryCards } from "@/components/seri/pnl-summary-cards";
+import { SeriAiNarrative } from "@/components/seri/seri-ai-narrative";
+import { CostBreakdown } from "@/components/seri/cost-breakdown";
+import { CashflowForecast } from "@/components/seri/cashflow-forecast";
 import {
   RevenueCalendar,
   DailyDetailPanel,
@@ -74,7 +77,9 @@ export function AnalysisPageClient({
   // Trigger CSV download in the browser
   const downloadCsv = (csvContent: string, filename: string) => {
     const bom = "\uFEFF"; // UTF-8 BOM for Korean characters in Excel
-    const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([bom + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -143,94 +148,133 @@ export function AnalysisPageClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* ===== TOP BAR ===== */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        {/* Left: Title + Badge */}
+        <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <span>📊</span>
-            <span>세리 · 매출 분석</span>
+            <span className="text-[#10B981]">세리</span>
+            <span className="text-muted-foreground font-normal">·</span>
+            <span>매출 분석</span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            달력, 추이, 패턴으로 매출을 분석해드려요
-          </p>
+          {hasData && (
+            <Badge className="bg-[#ECFDF5] text-[#059669] border-[#10B981]/20 hover:bg-[#ECFDF5] gap-1">
+              <CheckCircle2 className="h-3 w-3" />
+              분석완료
+            </Badge>
+          )}
         </div>
 
-        {/* Month Navigation */}
+        {/* Center: Month selector */}
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
+            className="h-8 w-8"
             onClick={() => navigateMonth(-1)}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="text-lg font-semibold min-w-[120px] text-center">
+          <div className="text-base font-semibold min-w-[120px] text-center">
             {year}년 {month}월
           </div>
           <Button
             variant="outline"
             size="icon"
+            className="h-8 w-8"
             onClick={() => navigateMonth(1)}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+
+        {/* Right: Download buttons */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            onClick={handleSummaryDownload}
+            disabled={isDownloading || !hasData}
+          >
+            <Download className="h-3.5 w-3.5" />
+            요약
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            onClick={handleDetailDownload}
+            disabled={isDownloading || !hasData}
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            상세 Excel
+          </Button>
+        </div>
       </div>
 
-      {/* KPI Cards */}
-      <RevenueKpiCards
+      {/* ===== P&L SUMMARY ROW ===== */}
+      <PnlSummaryCards
         current={currentSummary}
         previous={previousSummary.totalRevenue > 0 ? previousSummary : null}
       />
 
-      {/* Seri AI Insight Card */}
-      {seriReport && (
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <span>📊</span>
-                <span>세리의 매출 분석</span>
-              </CardTitle>
-              <Badge variant="outline" className="text-xs text-blue-600 border-blue-200 bg-blue-50">
-                {seriReport.report_date} 기준
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-              {seriReport.summary ?? "세리가 이달의 매출 분석을 완료했습니다."}
-            </p>
-          </CardContent>
-        </Card>
+      {/* ===== MAIN CONTENT: 2 columns ===== */}
+      {hasData && (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+          {/* LEFT COLUMN: Chart + Cost Breakdown */}
+          <div className="space-y-6">
+            {/* Revenue trend chart */}
+            <DailyTrendChart
+              data={currentData}
+              previousData={previousData}
+              yearMonth={yearMonth}
+            />
+
+            {/* Cost breakdown cards */}
+            <CostBreakdown summary={currentSummary} />
+          </div>
+
+          {/* RIGHT COLUMN: AI Narrative + Cashflow Forecast */}
+          <div className="space-y-4">
+            <SeriAiNarrative
+              seriReport={seriReport}
+              summary={currentSummary}
+              yearMonth={yearMonth}
+            />
+            <CashflowForecast summary={currentSummary} />
+          </div>
+        </div>
       )}
 
-      {/* Tab Navigation */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => setActiveTab(v as TabValue)}
-      >
-        <TabsList>
-          <TabsTrigger value="calendar" className="gap-1.5">
-            <Calendar className="h-4 w-4" />
-            <span>달력</span>
-          </TabsTrigger>
-          <TabsTrigger value="trend" className="gap-1.5">
-            <TrendingUp className="h-4 w-4" />
-            <span>추이</span>
-          </TabsTrigger>
-          <TabsTrigger value="pattern" className="gap-1.5">
-            <BarChart3 className="h-4 w-4" />
-            <span>패턴</span>
-          </TabsTrigger>
-          <TabsTrigger value="bookkeeping" className="gap-1.5">
-            <BookOpen className="h-4 w-4" />
-            <span>가계부</span>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* ===== TABS for detailed analysis ===== */}
+      <div className="border-t pt-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as TabValue)}
+        >
+          <TabsList>
+            <TabsTrigger value="calendar" className="gap-1.5">
+              <Calendar className="h-4 w-4" />
+              <span>달력</span>
+            </TabsTrigger>
+            <TabsTrigger value="trend" className="gap-1.5">
+              <TrendingUp className="h-4 w-4" />
+              <span>추이</span>
+            </TabsTrigger>
+            <TabsTrigger value="pattern" className="gap-1.5">
+              <BarChart3 className="h-4 w-4" />
+              <span>패턴</span>
+            </TabsTrigger>
+            <TabsTrigger value="bookkeeping" className="gap-1.5">
+              <BookOpen className="h-4 w-4" />
+              <span>가계부</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
-      {/* Empty State */}
+      {/* ===== Empty State ===== */}
       {!hasData && (
         <div className="border rounded-lg p-12 text-center">
           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -254,7 +298,7 @@ export function AnalysisPageClient({
         </div>
       )}
 
-      {/* Tab Content */}
+      {/* ===== Tab Content ===== */}
       {hasData && activeTab === "calendar" && (
         <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
           <div className="space-y-4">
@@ -269,29 +313,6 @@ export function AnalysisPageClient({
                 data={selectedDayData.data}
               />
             )}
-            {/* Download buttons below calendar */}
-            <div className="flex gap-2 pt-1">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 text-xs"
-                onClick={handleSummaryDownload}
-                disabled={isDownloading}
-              >
-                <Download className="h-3.5 w-3.5" />
-                요약 다운로드
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 text-xs"
-                onClick={handleDetailDownload}
-                disabled={isDownloading}
-              >
-                <FileSpreadsheet className="h-3.5 w-3.5" />
-                상세 Excel
-              </Button>
-            </div>
           </div>
           <div className="hidden lg:block">
             <MonthlySummaryPanel
@@ -309,7 +330,6 @@ export function AnalysisPageClient({
             previousData={previousData}
             yearMonth={yearMonth}
           />
-          {/* Mobile: show summary below chart */}
           <div className="lg:hidden">
             <MonthlySummaryPanel
               summary={currentSummary}
@@ -344,13 +364,13 @@ export function AnalysisPageClient({
             </Button>
           </div>
 
-          {/* 9대 분류 스택 바 차트 */}
+          {/* 9-category stacked bar chart */}
           <ExpenseCategoryChart data={[]} />
 
-          {/* 인건비 관리 카드 */}
+          {/* Labor cost management card */}
           <LaborCostForm />
 
-          {/* 미수금/미지급금 카드 */}
+          {/* Receivables/Payables card */}
           <InvoiceTracker />
         </div>
       )}

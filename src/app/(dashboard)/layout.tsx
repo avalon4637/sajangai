@@ -44,7 +44,11 @@ export default async function DashboardLayout({
         businessName={business?.name}
         subscriptionStatus={subscriptionStatus}
       />
-      <MobileHeader userEmail={user.email ?? ""} />
+      <MobileHeader
+        userEmail={user.email ?? ""}
+        businessName={business?.name}
+        subscriptionStatus={subscriptionStatus}
+      />
       <main className="flex-1 p-4 md:p-6">{children}</main>
     </div>
   );
