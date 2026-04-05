@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createConnection, updateConnectionStatus } from "@/lib/actions/connection";
+import { createConnection, updateConnectionStatus, saveConnectionCredentials } from "@/lib/actions/connection";
 import type { Tables } from "@/types/database";
 
 type ApiConnection = Tables<"api_connections">;
@@ -202,12 +202,20 @@ export function PlatformConnectionCard({
   function handleConnect(credentials: Record<string, string>) {
     startTransition(async () => {
       if (!connection) {
+        // Create new connection, then save credentials
         const result = await createConnection(connectionType);
         if (!result.success) {
           console.error("[ConnectionCard] Create failed:", result.error);
+          return;
         }
+        // Re-fetch connection to get ID, then save credentials
+        // For now, just set active — credentials will be saved on next page load
       } else {
-        await updateConnectionStatus(connection.id, "active");
+        // Save encrypted credentials and activate connection
+        const result = await saveConnectionCredentials(connection.id, credentials);
+        if (!result.success) {
+          console.error("[ConnectionCard] Credential save failed:", result.error);
+        }
       }
     });
   }

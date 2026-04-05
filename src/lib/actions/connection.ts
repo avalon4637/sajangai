@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusinessId } from "@/lib/queries/business";
+import { encryptCredentials } from "@/lib/hyphen/encryption";
 
 interface ActionResult {
   success: boolean;
@@ -41,6 +42,44 @@ export async function createConnection(
 
     if (error) {
       return { success: false, error: `연결 생성 실패: ${error.message}` };
+    }
+
+    revalidatePath("/settings");
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error:
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.",
+    };
+  }
+}
+
+/**
+ * Save encrypted credentials for an API connection and activate it.
+ */
+export async function saveConnectionCredentials(
+  connectionId: string,
+  credentials: Record<string, string>
+): Promise<ActionResult> {
+  try {
+    const businessId = await getCurrentBusinessId();
+    const supabase = await createClient();
+
+    const encrypted = encryptCredentials(credentials);
+
+    const { error } = await supabase
+      .from("api_connections")
+      .update({
+        encrypted_credentials: encrypted,
+        status: "active",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", connectionId)
+      .eq("business_id", businessId);
+
+    if (error) {
+      return { success: false, error: `자격증명 저장 실패: ${error.message}` };
     }
 
     revalidatePath("/settings");

@@ -4,6 +4,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { generateSeriReport } from "@/lib/ai/seri-engine";
+import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 import { z } from "zod";
 
 export const maxDuration = 60; // Allow up to 60s for Claude API calls
@@ -19,6 +20,16 @@ const QuerySchema = z.object({
  *   - date: optional YYYY-MM-DD to fetch a specific date's report
  */
 export async function GET(req: Request) {
+  // Rate limiting: 10 requests per minute
+  const rlKey = getRateLimitKey(req, "seri-report");
+  const rl = checkRateLimit(rlKey, 10);
+  if (!rl.allowed) {
+    return Response.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -95,6 +106,16 @@ export async function GET(req: Request) {
  *   - date: YYYY-MM-DD for a specific date
  */
 export async function POST(req: Request) {
+  // Rate limiting: 3 requests per minute (report generation is expensive)
+  const rlKeyPost = getRateLimitKey(req, "seri-report-gen");
+  const rlPost = checkRateLimit(rlKeyPost, 3);
+  if (!rlPost.allowed) {
+    return Response.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

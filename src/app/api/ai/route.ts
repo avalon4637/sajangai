@@ -1,6 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 import { z } from "zod";
 
 const AiRequestSchema = z.object({
@@ -18,6 +19,16 @@ const AiRequestSchema = z.object({
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  // Rate limiting: 10 requests per minute
+  const rlKey = getRateLimitKey(req, "ai");
+  const rl = checkRateLimit(rlKey, 10);
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
+      { status: 429, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   // Authentication check
   const supabase = await createClient();
   const {

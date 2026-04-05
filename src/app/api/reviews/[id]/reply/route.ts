@@ -28,6 +28,28 @@ export async function PATCH(
     return Response.json({ error: "답글 내용이 필요합니다." }, { status: 400 });
   }
 
+  // Verify business ownership before allowing update
+  const { data: review } = await supabase
+    .from("delivery_reviews")
+    .select("business_id")
+    .eq("id", id)
+    .single();
+
+  if (!review) {
+    return Response.json({ error: "리뷰를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", review.business_id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!business) {
+    return Response.json({ error: "접근 권한이 없습니다." }, { status: 403 });
+  }
+
   const { error } = await supabase
     .from("delivery_reviews")
     .update({

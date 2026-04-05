@@ -17,14 +17,30 @@ export async function POST(
 
   const { id } = await params;
 
-  // Verify review has an AI reply before publishing
+  // Verify review exists and has an AI reply
   const { data: review } = await supabase
     .from("delivery_reviews")
-    .select("ai_reply, reply_status")
+    .select("ai_reply, reply_status, business_id")
     .eq("id", id)
     .single();
 
-  if (!review?.ai_reply) {
+  if (!review) {
+    return Response.json({ error: "리뷰를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  // Verify business ownership before allowing publish
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", review.business_id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!business) {
+    return Response.json({ error: "접근 권한이 없습니다." }, { status: 403 });
+  }
+
+  if (!review.ai_reply) {
     return Response.json({ error: "발행할 AI 답글이 없습니다." }, { status: 400 });
   }
 
