@@ -45,20 +45,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import type { Vendor } from "@/lib/queries/vendor";
+import { toast } from "sonner";
 import { addVendor, editVendor, removeVendor } from "@/lib/actions/vendor-actions";
+import { formatAmount } from "@/lib/utils/format-currency";
 
-// Format amount in Korean currency units
-function formatAmount(amount: number): string {
-  if (amount >= 100_000_000) {
-    const eok = Math.floor(amount / 100_000_000);
-    const man = Math.floor((amount % 100_000_000) / 10_000);
-    return man > 0 ? `${eok}억 ${man}만원` : `${eok}억원`;
-  }
-  if (amount >= 10_000) {
-    return `${Math.floor(amount / 10_000)}만원`;
-  }
-  return `${amount.toLocaleString()}원`;
-}
 
 interface VendorsPageClientProps {
   vendors: Vendor[];
@@ -114,7 +104,7 @@ export function VendorsPageClient({
         setDialogOpen(false);
         form.reset();
       } else {
-        alert(result.error ?? "등록 실패");
+        toast.error(result.error ?? "등록 실패");
       }
     });
   }
@@ -143,7 +133,7 @@ export function VendorsPageClient({
         setEditSheetOpen(false);
         setEditingVendor(null);
       } else {
-        alert(result.error ?? "수정 실패");
+        toast.error(result.error ?? "수정 실패");
       }
     });
   }
@@ -158,7 +148,7 @@ export function VendorsPageClient({
         setDeleteDialogOpen(false);
         setDeletingVendor(null);
       } else {
-        alert(result.error ?? "삭제 실패");
+        toast.error(result.error ?? "삭제 실패");
       }
     });
   }

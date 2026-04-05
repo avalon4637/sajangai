@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { formatKRW, formatCompact } from "@/lib/utils/format-currency";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -66,25 +67,6 @@ interface BudgetManagerProps {
 }
 
 // --- Utility functions ---
-
-function formatKRW(n: number): string {
-  if (n === 0) return "0원";
-  if (Math.abs(n) >= 100_000_000) {
-    return `${(n / 100_000_000).toFixed(1)}억원`;
-  }
-  if (Math.abs(n) >= 10_000) {
-    return `${Math.round(n / 10_000).toLocaleString()}만원`;
-  }
-  return `${n.toLocaleString()}원`;
-}
-
-function formatCompact(n: number): string {
-  if (n === 0) return "0";
-  if (Math.abs(n) >= 10_000) {
-    return `${Math.round(n / 10_000)}만`;
-  }
-  return n.toLocaleString();
-}
 
 function getStatusInfo(
   item: BudgetVsActual,

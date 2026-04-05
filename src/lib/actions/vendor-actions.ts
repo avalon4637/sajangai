@@ -56,7 +56,18 @@ export async function editVendor(
   input: UpdateVendorInput
 ): Promise<VendorActionResult> {
   try {
-    await getCurrentBusinessId();
+    const businessId = await getCurrentBusinessId();
+
+    // Verify vendor belongs to current business before updating
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data: owned } = await supabase
+      .from("vendors")
+      .select("id")
+      .eq("id", input.id)
+      .eq("business_id", businessId)
+      .single();
+    if (!owned) return { success: false, error: "거래처를 찾을 수 없습니다." };
 
     await updateVendor(input.id, {
       name: input.name,
@@ -82,7 +93,19 @@ export async function removeVendor(
   vendorId: string
 ): Promise<VendorActionResult> {
   try {
-    await getCurrentBusinessId();
+    const businessId = await getCurrentBusinessId();
+
+    // Verify vendor belongs to current business before deleting
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data: owned } = await supabase
+      .from("vendors")
+      .select("id")
+      .eq("id", vendorId)
+      .eq("business_id", businessId)
+      .single();
+    if (!owned) return { success: false, error: "거래처를 찾을 수 없습니다." };
+
     await deleteVendor(vendorId);
 
     revalidatePath("/vendors");

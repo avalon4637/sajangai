@@ -29,20 +29,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Invoice, OutstandingBalance } from "@/lib/queries/invoice";
+import { toast } from "sonner";
 import { markInvoiceAsPaid, addInvoice } from "@/lib/actions/invoice-actions";
+import { formatAmount } from "@/lib/utils/format-currency";
 
-// Format amount in Korean currency units
-function formatAmount(amount: number): string {
-  if (amount >= 100_000_000) {
-    const eok = Math.floor(amount / 100_000_000);
-    const man = Math.floor((amount % 100_000_000) / 10_000);
-    return man > 0 ? `${eok}억 ${man}만원` : `${eok}억원`;
-  }
-  if (amount >= 10_000) {
-    return `${Math.floor(amount / 10_000)}만원`;
-  }
-  return `${amount.toLocaleString()}원`;
-}
 
 // Format date as MM/DD
 function formatDate(dateStr: string): string {
@@ -84,7 +74,7 @@ export function InvoicesPageClient({
     startTransition(async () => {
       const result = await markInvoiceAsPaid(invoiceId);
       if (!result.success) {
-        alert(result.error ?? "처리 실패");
+        toast.error(result.error ?? "처리 실패");
       }
     });
   }
@@ -111,7 +101,7 @@ export function InvoicesPageClient({
         setDialogOpen(false);
         form.reset();
       } else {
-        alert(result.error ?? "등록 실패");
+        toast.error(result.error ?? "등록 실패");
       }
     });
   }
@@ -229,8 +219,8 @@ export function InvoicesPageClient({
                           {inv.counterparty}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        공급가 {formatAmount(supplyEstimate)} / 세액{" "}
+                      <div className="text-xs text-muted-foreground" title="실제 공급가는 세금계산서를 확인하세요">
+                        공급가(추정) {formatAmount(supplyEstimate)} / 세액(추정){" "}
                         {formatAmount(taxEstimate)}
                       </div>
                       <div className="text-sm font-medium mt-1">

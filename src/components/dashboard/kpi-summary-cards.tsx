@@ -9,6 +9,7 @@ import {
   Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSurvivalScoreColor } from "@/lib/utils/score-thresholds";
 import type { MonthlySummary } from "@/types/data-entry";
 
 interface KpiSummaryCardsProps {
@@ -130,11 +131,12 @@ export function KpiSummaryCards({ current, previous }: KpiSummaryCardsProps) {
         )}
         icon={<Shield className="h-4 w-4" />}
         valueColor={
-          current.survival_score >= 61
-            ? "text-green-600"
-            : current.survival_score >= 31
-              ? "text-yellow-600"
-              : "text-red-600"
+          (() => {
+            const c = getSurvivalScoreColor(current.survival_score);
+            if (c === "green") return "text-green-600";
+            if (c === "amber") return "text-yellow-600";
+            return "text-red-600";
+          })()
         }
       />
     </div>

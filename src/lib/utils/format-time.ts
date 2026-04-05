@@ -1,11 +1,10 @@
 // Relative time formatting utility for KST timezone
-// No external dependencies — uses native Date API
-
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // UTC+9
+// No external dependencies — uses native Intl API
 
 function toKST(date: Date): Date {
-  const utc = date.getTime() + date.getTimezoneOffset() * 60 * 1000;
-  return new Date(utc + KST_OFFSET_MS);
+  // Use Intl to reliably convert to KST regardless of server timezone
+  const kstString = date.toLocaleString("en-US", { timeZone: "Asia/Seoul" });
+  return new Date(kstString);
 }
 
 /**

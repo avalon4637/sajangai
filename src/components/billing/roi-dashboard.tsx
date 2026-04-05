@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatKRW } from "@/lib/utils/format-currency";
 import type { RoiBreakdown } from "@/lib/roi/calculator";
 
 interface RoiDashboardProps {
@@ -98,8 +99,3 @@ export function RoiDashboard({ roi }: RoiDashboardProps) {
   );
 }
 
-function formatKRW(n: number): string {
-  if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}천원`;
-  return `${n}원`;
-}

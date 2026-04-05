@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatKRW } from "@/lib/utils/format-currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { DismissibleAlert } from "@/components/ui/dismissible-alert";
 import type { LoanBalance } from "@/lib/queries/loan";
 
 interface LoanListProps {
@@ -81,9 +82,12 @@ export function LoanList({ loans, businessId }: LoanListProps) {
       </div>
 
       {/* Fixed cost tip */}
-      <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-        <Lightbulb className="size-4 text-blue-600 dark:text-blue-400" />
-        <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
+      <DismissibleAlert
+        storageKey="dismiss-loan-fixed-cost-tip"
+        className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950"
+        icon={<Lightbulb className="size-4 text-blue-600 dark:text-blue-400" />}
+      >
+        <span className="text-sm text-blue-800 dark:text-blue-200">
           대출 상환금은 고정비로 등록하면 매월 자동으로 지출에 반영됩니다.{" "}
           <Link
             href="/fixed-costs"
@@ -91,8 +95,8 @@ export function LoanList({ loans, businessId }: LoanListProps) {
           >
             고정비 관리로 이동
           </Link>
-        </AlertDescription>
-      </Alert>
+        </span>
+      </DismissibleAlert>
 
       {/* Loan list */}
       {loans.length > 0 ? (
@@ -175,8 +179,3 @@ export function LoanList({ loans, businessId }: LoanListProps) {
   );
 }
 
-function formatKRW(n: number): string {
-  if (n >= 100000000) return `${(n / 100000000).toFixed(1)}억원`;
-  if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-  return `${n.toLocaleString()}원`;
-}

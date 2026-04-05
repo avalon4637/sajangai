@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import {
   useReactTable,
   getCoreRowModel,
@@ -100,7 +101,7 @@ export function RevenueTable({ data, onEdit }: RevenueTableProps) {
     startTransition(async () => {
       const result = await deleteRevenue(deleteTarget.id);
       if (!result.success) {
-        alert(result.error);
+        toast.error(result.error);
       }
       setDeleteTarget(null);
     });

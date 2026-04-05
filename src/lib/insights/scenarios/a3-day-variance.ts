@@ -2,6 +2,7 @@
 // Trigger: a specific day consistently below 50% of daily average for 3+ weeks
 
 import type { InsightResult, InsightScenario, ScenarioContext } from "../types";
+import { formatKRW } from "@/lib/utils/format-currency";
 
 const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -95,7 +96,3 @@ export const a3DayVariance: InsightScenario = {
   },
 };
 
-function formatKRW(n: number): string {
-  if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-  return `${Math.round(n / 1000)}천원`;
-}

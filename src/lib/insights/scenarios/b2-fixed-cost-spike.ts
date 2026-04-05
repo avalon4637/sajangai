@@ -2,6 +2,7 @@
 // Trigger: any fixed cost category +10% month-over-month
 
 import type { InsightResult, InsightScenario, ScenarioContext } from "../types";
+import { formatKRW } from "@/lib/utils/format-currency";
 
 export const b2FixedCostSpike: InsightScenario = {
   id: "B2",
@@ -108,7 +109,3 @@ function getCategoryAdvice(category: string): string {
   return "해당 항목의 증가 원인을 파악하고 절감 방안을 검토하세요";
 }
 
-function formatKRW(n: number): string {
-  if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-  return `${Math.round(n / 1000)}천원`;
-}

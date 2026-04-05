@@ -2,6 +2,7 @@
 // Trigger: one channel -20%+, others within ±5%
 
 import type { InsightResult, InsightScenario, ScenarioContext } from "../types";
+import { formatKRW } from "@/lib/utils/format-currency";
 
 export const a2ChannelDrop: InsightScenario = {
   id: "A2",
@@ -93,7 +94,3 @@ export const a2ChannelDrop: InsightScenario = {
   },
 };
 
-function formatKRW(n: number): string {
-  if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-  return `${Math.round(n / 1000)}천원`;
-}

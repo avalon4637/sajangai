@@ -15,6 +15,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SURVIVAL_SCORE } from "@/lib/utils/score-thresholds";
 import type {
   SurvivalScoreResult,
   SurvivalFactorDetail,
@@ -225,10 +226,10 @@ function ScoreContext({ total }: { total: number }) {
   let text: string;
   let colorClass: string;
 
-  if (rounded >= 80) {
+  if (rounded >= SURVIVAL_SCORE.GOOD) {
     text = "안정적인 상태입니다";
     colorClass = "text-green-600";
-  } else if (rounded >= 50) {
+  } else if (rounded >= SURVIVAL_SCORE.WARNING) {
     text = "개선이 필요합니다";
     colorClass = "text-amber-600";
   } else {

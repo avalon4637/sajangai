@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { parseCsv, type ParsedRow } from "@/lib/csv/parser";
@@ -63,12 +64,12 @@ export function CsvUploadZone() {
 
   const processFile = useCallback((file: File) => {
     if (!file.name.endsWith(".csv")) {
-      alert("CSV 파일만 업로드할 수 있습니다.");
+      toast.error("CSV 파일만 업로드할 수 있습니다.");
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      alert("파일 크기는 10MB 이하여야 합니다.");
+      toast.error("파일 크기는 10MB 이하여야 합니다.");
       return;
     }
 

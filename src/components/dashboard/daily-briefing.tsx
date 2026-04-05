@@ -5,6 +5,7 @@
 // Shown at the top of the dashboard for users with existing data
 
 import { Card, CardContent } from "@/components/ui/card";
+import { formatKRW } from "@/lib/utils/format-currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,16 +46,6 @@ function getFormattedDate(): string {
   return `${month}월 ${day}일 (${weekday})`;
 }
 
-// Format currency in Korean style
-function formatKRW(amount: number): string {
-  if (amount >= 100000000) {
-    return `${(amount / 100000000).toFixed(1)}억원`;
-  }
-  if (amount >= 10000) {
-    return `${Math.round(amount / 10000)}만원`;
-  }
-  return `${amount.toLocaleString()}원`;
-}
 
 // Calculate percentage change safely
 function calcDelta(current: number, previous: number): number | null {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { toast } from "sonner";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon } from "lucide-react";
@@ -94,7 +95,7 @@ export function ExpenseForm({
         }
         onSuccess?.();
       } else {
-        alert(result.error);
+        toast.error(result.error);
       }
     });
   }

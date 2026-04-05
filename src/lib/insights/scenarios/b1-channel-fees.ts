@@ -2,6 +2,7 @@
 // Trigger: effective commission rate differs by 3%+ across channels
 
 import type { InsightResult, InsightScenario, ScenarioContext } from "../types";
+import { formatKRW } from "@/lib/utils/format-currency";
 
 // Default platform fee rates (approximate)
 const DEFAULT_FEE_RATES: Record<string, number> = {
@@ -128,7 +129,3 @@ function formatChannelName(ch: string): string {
   return ch;
 }
 
-function formatKRW(n: number): string {
-  if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-  return `${Math.round(n / 1000)}천원`;
-}

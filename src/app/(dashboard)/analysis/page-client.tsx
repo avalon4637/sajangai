@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -109,7 +110,7 @@ export function AnalysisPageClient({
       const csv = await exportRevenueSummary(businessId, yearMonth);
       downloadCsv(csv, `매출요약_${yearMonth}.csv`);
     } catch {
-      alert("다운로드 중 오류가 발생했습니다.");
+      toast.error("다운로드 중 오류가 발생했습니다.");
     } finally {
       setIsDownloading(false);
     }
@@ -122,7 +123,7 @@ export function AnalysisPageClient({
       const csv = await exportRevenueDetail(businessId, yearMonth);
       downloadCsv(csv, `매출상세_${yearMonth}.csv`);
     } catch {
-      alert("다운로드 중 오류가 발생했습니다.");
+      toast.error("다운로드 중 오류가 발생했습니다.");
     } finally {
       setIsDownloading(false);
     }
