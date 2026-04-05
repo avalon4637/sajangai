@@ -19,8 +19,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { PnlSummaryCards } from "@/components/seri/pnl-summary-cards";
 import { SeriAiNarrative } from "@/components/seri/seri-ai-narrative";
-import { CostBreakdown } from "@/components/seri/cost-breakdown";
-import { CashflowForecast } from "@/components/seri/cashflow-forecast";
+import { CostBreakdown, type CostCategoryData } from "@/components/seri/cost-breakdown";
+import { CashflowForecast, type CashflowData } from "@/components/seri/cashflow-forecast";
+import { SurvivalGauge } from "@/components/seri/survival-gauge";
+import type { SurvivalScoreResult } from "@/lib/kpi/survival-score";
 import {
   RevenueCalendar,
   DailyDetailPanel,
@@ -53,6 +55,11 @@ interface AnalysisPageClientProps {
   currentSummary: MonthlyAnalysisSummary;
   previousSummary: MonthlyAnalysisSummary;
   seriReport?: SeriReportData | null;
+  survivalScore?: SurvivalScoreResult | null;
+  previousSurvivalScore?: number | null;
+  cashflowData?: CashflowData | null;
+  costCategories?: CostCategoryData[];
+  totalExpense?: number;
 }
 
 type TabValue = "calendar" | "trend" | "pattern" | "bookkeeping";
@@ -65,6 +72,11 @@ export function AnalysisPageClient({
   currentSummary,
   previousSummary,
   seriReport,
+  survivalScore,
+  previousSurvivalScore,
+  cashflowData,
+  costCategories,
+  totalExpense: totalExpenseProp,
 }: AnalysisPageClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabValue>("calendar");
@@ -213,6 +225,14 @@ export function AnalysisPageClient({
         </div>
       </div>
 
+      {/* ===== SURVIVAL SCORE ===== */}
+      {hasData && survivalScore && (
+        <SurvivalGauge
+          score={survivalScore}
+          previousScore={previousSurvivalScore}
+        />
+      )}
+
       {/* ===== P&L SUMMARY ROW ===== */}
       <PnlSummaryCards
         current={currentSummary}
@@ -232,7 +252,10 @@ export function AnalysisPageClient({
             />
 
             {/* Cost breakdown cards */}
-            <CostBreakdown summary={currentSummary} />
+            <CostBreakdown
+              categories={costCategories ?? []}
+              totalExpense={totalExpenseProp ?? 0}
+            />
           </div>
 
           {/* RIGHT COLUMN: AI Narrative + Cashflow Forecast */}
@@ -242,7 +265,7 @@ export function AnalysisPageClient({
               summary={currentSummary}
               yearMonth={yearMonth}
             />
-            <CashflowForecast summary={currentSummary} />
+            <CashflowForecast cashflow={cashflowData ?? null} />
           </div>
         </div>
       )}

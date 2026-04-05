@@ -1,14 +1,31 @@
 "use client";
 
-// Cost Breakdown Cards for Seri analysis page
-// Displays 4 cost category cards with progress bars
+// Cost Breakdown with drilldown for Seri analysis page
+// Displays major expense categories with expandable sub-categories
 
-import { Users, ShoppingCart, Truck, Building2 } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import type { MonthlyAnalysisSummary } from "@/lib/queries/daily-revenue";
+import { Badge } from "@/components/ui/badge";
 
-interface CostBreakdownProps {
-  summary: MonthlyAnalysisSummary;
+export interface CostSubCategory {
+  name: string;
+  amount: number;
+  percentage: number;
+  delta: number | null; // vs previous month %
+}
+
+export interface CostCategoryData {
+  majorCategory: string;
+  totalAmount: number;
+  percentage: number;
+  delta: number | null; // vs previous month %
+  subCategories: CostSubCategory[];
+}
+
+export interface CostBreakdownProps {
+  categories: CostCategoryData[];
+  totalExpense: number;
 }
 
 // Format Korean currency with man/eok units
@@ -22,97 +39,164 @@ function formatAmount(amount: number): string {
   return amount.toLocaleString();
 }
 
-interface CostCategory {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  // Estimated percentage of total revenue
-  ratio: number;
-  iconClass: string;
-  color: string;
+function DeltaBadge({ delta }: { delta: number | null }) {
+  if (delta === null || delta === 0) return null;
+
+  const isIncrease = delta > 0;
+  return (
+    <Badge
+      variant="outline"
+      className={`text-[10px] px-1.5 py-0 gap-0.5 ${
+        isIncrease
+          ? "bg-red-50 text-red-600 border-red-200"
+          : "bg-green-50 text-[#059669] border-green-200"
+      }`}
+    >
+      {isIncrease ? (
+        <TrendingUp className="h-2.5 w-2.5" />
+      ) : (
+        <TrendingDown className="h-2.5 w-2.5" />
+      )}
+      {isIncrease ? "+" : ""}
+      {Math.round(delta)}%
+    </Badge>
+  );
 }
 
-const COST_CATEGORIES: CostCategory[] = [
-  {
-    label: "인건비",
-    icon: Users,
-    ratio: 0.3,
-    iconClass: "text-[#10B981]",
-    color: "#10B981",
-  },
-  {
-    label: "재료비",
-    icon: ShoppingCart,
-    ratio: 0.25,
-    iconClass: "text-[#059669]",
-    color: "#059669",
-  },
-  {
-    label: "배달수수료",
-    icon: Truck,
-    ratio: 0.12,
-    iconClass: "text-[#34D399]",
-    color: "#34D399",
-  },
-  {
-    label: "임대료",
-    icon: Building2,
-    ratio: 0.05,
-    iconClass: "text-[#6EE7B7]",
-    color: "#6EE7B7",
-  },
-];
+function CategoryItem({
+  category,
+  totalExpense,
+}: {
+  category: CostCategoryData;
+  totalExpense: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const barWidth = totalExpense > 0 ? (category.totalAmount / totalExpense) * 100 : 0;
 
-export function CostBreakdown({ summary }: CostBreakdownProps) {
-  const totalRevenue = summary.totalRevenue;
-  const totalCostRatio = COST_CATEGORIES.reduce((s, c) => s + c.ratio, 0);
+  return (
+    <div className="border border-gray-100 rounded-lg overflow-hidden">
+      {/* Major category header */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50/50 transition-colors text-left"
+      >
+        {category.subCategories.length > 0 ? (
+          expanded ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          )
+        ) : (
+          <div className="w-4 shrink-0" />
+        )}
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium truncate">
+              {category.majorCategory}
+            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              <DeltaBadge delta={category.delta} />
+              <span className="text-sm font-bold tabular-nums">
+                {formatAmount(category.totalAmount)}원
+              </span>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="mt-1.5 flex items-center gap-2">
+            <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#10B981] transition-all duration-500"
+                style={{ width: `${Math.min(barWidth, 100)}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground tabular-nums w-8 text-right">
+              {Math.round(category.percentage)}%
+            </span>
+          </div>
+        </div>
+      </button>
+
+      {/* Sub-categories */}
+      {expanded && category.subCategories.length > 0 && (
+        <div className="border-t border-gray-50 bg-gray-50/30">
+          {category.subCategories.map((sub) => {
+            const subBarWidth =
+              totalExpense > 0 ? (sub.amount / totalExpense) * 100 : 0;
+            return (
+              <div
+                key={sub.name}
+                className="flex items-center gap-3 px-3 py-2 pl-11 border-b border-gray-50 last:border-0"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground truncate">
+                      {sub.name}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <DeltaBadge delta={sub.delta} />
+                      <span className="text-xs font-medium tabular-nums">
+                        {formatAmount(sub.amount)}원
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#6EE7B7] transition-all duration-500"
+                        style={{ width: `${Math.min(subBarWidth, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground tabular-nums w-8 text-right">
+                      {Math.round(sub.percentage)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CostBreakdown({ categories, totalExpense }: CostBreakdownProps) {
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          비용 구성
+        </h3>
+        <Card className="border-gray-100">
+          <CardContent className="p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              비용 데이터가 없습니다
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-muted-foreground">
-        비용 구성
-      </h3>
-      <div className="grid grid-cols-2 gap-3">
-        {COST_CATEGORIES.map((cat) => {
-          const amount = totalRevenue * cat.ratio;
-          const percent = Math.round(cat.ratio * 100);
-          const barWidth = Math.round((cat.ratio / totalCostRatio) * 100);
-          const Icon = cat.icon;
-
-          return (
-            <Card key={cat.label} className="border-gray-100">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-7 w-7 rounded-md flex items-center justify-center bg-[#ECFDF5]">
-                    <Icon className={`h-3.5 w-3.5 ${cat.iconClass}`} />
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {cat.label}
-                  </span>
-                </div>
-                <div className="text-sm font-bold">
-                  {formatAmount(amount)}
-                  <span className="text-xs font-normal text-muted-foreground ml-0.5">
-                    원
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${barWidth}%`,
-                        backgroundColor: cat.color,
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs text-muted-foreground mt-1 block">
-                    매출 대비 {percent}%
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          비용 구성
+        </h3>
+        <span className="text-xs text-muted-foreground">
+          총 {formatAmount(totalExpense)}원
+        </span>
+      </div>
+      <div className="space-y-2">
+        {categories.map((cat) => (
+          <CategoryItem
+            key={cat.majorCategory}
+            category={cat}
+            totalExpense={totalExpense}
+          />
+        ))}
       </div>
     </div>
   );
