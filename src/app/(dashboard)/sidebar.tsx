@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Settings, LogOut, CreditCard, MessageSquare,
-  PlusCircle, Receipt, Wallet,
+  PlusCircle, Receipt, Wallet, FileText, Building2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -41,11 +41,13 @@ export const agentNavItems = [
   },
 ];
 
-/** Data entry quick links */
+/** Data management quick links */
 const dataNavItems = [
   { href: "/revenue", icon: PlusCircle, label: "매출 입력" },
   { href: "/expense", icon: Receipt, label: "지출 입력" },
   { href: "/fixed-costs", icon: Wallet, label: "고정비" },
+  { href: "/invoices", icon: FileText, label: "계산서" },
+  { href: "/vendors", icon: Building2, label: "거래처" },
 ];
 
 interface SidebarProps {
@@ -111,7 +113,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus }: Sidebar
 
       {/* Data entry links */}
       <div className="border-t px-3 py-3">
-        <p className="px-3 mb-2 text-xs font-medium text-[#71717A]">데이터 입력</p>
+        <p className="px-3 mb-2 text-xs font-medium text-[#71717A]">데이터 관리</p>
         <ul className="space-y-0.5">
           {dataNavItems.map((item) => {
             const isActive = pathname === item.href;
