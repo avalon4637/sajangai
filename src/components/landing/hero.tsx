@@ -1,265 +1,57 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { KakaoMockup } from "@/components/landing/kakao-mockup";
 
 export function HeroSection() {
   return (
     <section
       id="hero"
-      style={{
-        background: "linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%)",
-        padding: "80px 120px",
-      }}
-      className="py-[80px] px-6 md:px-[120px]"
+      className="bg-gradient-to-br from-blue-50 to-white px-4 py-16 md:px-8 md:py-24 lg:px-16"
     >
-      <div
-        style={{
-          maxWidth: "1440px",
-          margin: "0 auto",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: "60px",
-        }}
-        className="flex flex-col md:flex-row items-center gap-[60px]"
-      >
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-12 md:flex-row md:items-center md:gap-16">
         {/* Left: Hero Copy */}
-        <div
-          style={{ maxWidth: "800px", flex: "1" }}
-          className="w-full"
-        >
+        <div className="flex-1 text-center md:text-left">
           {/* Headline */}
-          <h1
-            style={{
-              color: "#18181B",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "48px",
-              fontWeight: 700,
-              lineHeight: 1.3,
-              marginBottom: "20px",
-              whiteSpace: "pre-line",
-            }}
-            className="text-3xl md:text-[48px]"
-          >
-            {`하루 330원, 점장 한 명\n매장 운영을 알아서 챙겨드립니다`}
+          <h1 className="break-keep text-4xl font-bold leading-tight tracking-tight text-[#1E293B] md:text-5xl lg:text-6xl">
+            하루 990원,
+            <br />
+            점장 한 명.
           </h1>
 
-          {/* Subheadline */}
-          <p
-            style={{
-              color: "#71717A",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "18px",
-              lineHeight: 1.6,
-              marginBottom: "32px",
-              whiteSpace: "pre-line",
-            }}
-            className="text-base md:text-[18px]"
-          >
-            {`리뷰·매출·마케팅, 4명의 AI 팀이 매장을 함께 운영합니다.\n점장, 답장이, 세리, 바이럴이 사장님을 대신해요.`}
+          {/* Sub */}
+          <p className="mt-5 break-keep text-lg leading-relaxed text-[#64748B] md:text-xl">
+            AI 점장이 매출·리뷰·비용을
+            <br className="hidden sm:block" />
+            매일 아침 카톡으로 챙겨드려요.
           </p>
 
-          {/* CTA Button */}
-          <Link href="/auth/login">
-            <button
-              style={{
-                backgroundColor: "#2563EB",
-                color: "#FFFFFF",
-                fontFamily: "Inter, sans-serif",
-                fontSize: "18px",
-                fontWeight: 600,
-                borderRadius: "12px",
-                padding: "16px 32px",
-                border: "none",
-                cursor: "pointer",
-                display: "inline-block",
-                marginBottom: "12px",
-              }}
+          {/* CTA */}
+          <div className="mt-8 flex flex-col items-center gap-3 md:items-start">
+            <Button
+              asChild
+              className="h-14 w-full rounded-xl bg-[#1E40AF] px-8 text-base font-semibold text-white hover:bg-[#1d3a9e] md:w-auto"
             >
-              7일 무료 체험 시작하기 →
-            </button>
-          </Link>
-
-          {/* Note */}
-          <p
-            style={{
-              color: "#A1A1AA",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "14px",
-            }}
-          >
-            7일 무료 · 카드 등록 없음 · 월 9,900원
-          </p>
+              <Link href="/auth/signup">7일 무료 체험 시작하기 →</Link>
+            </Button>
+            <p className="text-sm text-[#64748B]">카드 등록 없이 바로 시작</p>
+          </div>
         </div>
 
-        {/* Right: Phone Frame */}
-        <div className="flex justify-center md:justify-end flex-shrink-0">
-          <PhoneFrame />
+        {/* Right: KakaoTalk morning report mockup */}
+        <div className="w-full max-w-sm flex-shrink-0 md:w-80">
+          <KakaoMockup
+            profileName="점장"
+            profileEmoji="🧑‍💼"
+            type="report"
+            time="오전 8:07"
+            message={`☀️ [사장님 매장] 아침 리포트\n\n📊 어제 매출: 487,000원 (+12%)\n⭐ 신규 리뷰 2건 (부정 1건)\n💡 배달 느림 리뷰 3건째 쌓이고 있어요`}
+            buttons={[
+              { label: "상세 보기" },
+              { label: "답글 확인하기" },
+            ]}
+          />
         </div>
       </div>
     </section>
-  );
-}
-
-function PhoneFrame() {
-  return (
-    <div
-      style={{
-        width: "320px",
-        backgroundColor: "#F4F4F5",
-        borderRadius: "32px",
-        padding: "12px",
-        border: "2px solid #E4E4E7",
-      }}
-    >
-      {/* Status Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "4px 12px 8px",
-          fontSize: "12px",
-          color: "#18181B",
-          fontFamily: "Inter, sans-serif",
-          fontWeight: 600,
-        }}
-      >
-        <span>9:41</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          {/* Battery icon */}
-          <div
-            style={{
-              width: "22px",
-              height: "11px",
-              border: "1.5px solid #18181B",
-              borderRadius: "2px",
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              padding: "1px",
-            }}
-          >
-            <div
-              style={{
-                width: "75%",
-                height: "100%",
-                backgroundColor: "#18181B",
-                borderRadius: "1px",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                right: "-4px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                width: "2px",
-                height: "6px",
-                backgroundColor: "#18181B",
-                borderRadius: "0 1px 1px 0",
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Chat content */}
-      <div
-        style={{
-          backgroundColor: "#F0EBFF",
-          borderRadius: "20px",
-          padding: "16px",
-        }}
-      >
-        {/* Avatar and name */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "#2563EB",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px",
-            }}
-          >
-            👨‍💼
-          </div>
-          <div>
-            <p
-              style={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "#18181B",
-                margin: 0,
-              }}
-            >
-              사장 AI 점장
-            </p>
-            <p
-              style={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "11px",
-                color: "#71717A",
-                margin: 0,
-              }}
-            >
-              오후 2:30
-            </p>
-          </div>
-        </div>
-
-        {/* White chat card */}
-        <div
-          style={{
-            backgroundColor: "#FFFFFF",
-            borderRadius: "12px",
-            padding: "14px",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#18181B",
-              marginBottom: "8px",
-            }}
-          >
-            사장님, 오늘의 매장 리포트입니다
-          </p>
-          <p
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: "12px",
-              color: "#71717A",
-              lineHeight: 1.5,
-              marginBottom: "12px",
-            }}
-          >
-            매출 +8%, 리뷰 3건 답변 완료, 단골 알림 1건
-          </p>
-          <button
-            style={{
-              width: "100%",
-              backgroundColor: "#2563EB",
-              color: "#FFFFFF",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "13px",
-              fontWeight: 600,
-              borderRadius: "8px",
-              padding: "8px 12px",
-              border: "none",
-              cursor: "pointer",
-              textAlign: "center",
-            }}
-          >
-            리포트 자세히 보기 →
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }

@@ -2,40 +2,68 @@ import type { Metadata } from "next";
 import { LandingNav } from "@/components/landing/nav";
 import { HeroSection } from "@/components/landing/hero";
 import { ProblemSection } from "@/components/landing/problem";
-import { SolutionSection } from "@/components/landing/solution";
-import { ComparisonSection } from "@/components/landing/comparison";
+import { KickSection } from "@/components/landing/kick-section";
+import { FeaturesSection } from "@/components/landing/features";
+import { InsightShowcaseSection } from "@/components/landing/insight-showcase";
+import { ROISection } from "@/components/landing/roi-section";
+import { AgentTeamSection } from "@/components/landing/agent-team-section";
+import { PricingSection } from "@/components/landing/pricing-section";
+import { TrialTimeline } from "@/components/landing/trial-timeline";
+import { FAQSection } from "@/components/landing/faq-section";
 import { FinalCTASection } from "@/components/landing/final-cta";
 import { LandingFooter } from "@/components/landing/footer";
+import { FloatingCTA } from "@/components/landing/floating-cta";
 
 export const metadata: Metadata = {
-  title: "사장 AI - AI 매장 운영 파트너",
+  title: "sajang.ai - 하루 990원, AI 점장이 매출 리뷰 비용을 챙겨드려요",
   description:
-    "리뷰·매출·마케팅, 4명의 AI 팀이 매장을 함께 운영합니다. 하루 330원으로 AI 점장을 고용하세요.",
+    "배민/쿠팡/요기요 매출 리뷰를 자동 분석하고, 문제가 생기면 먼저 알려주는 AI 경영 비서. 7일 무료 체험.",
   openGraph: {
-    title: "사장 AI - AI 매장 운영 파트너",
+    title: "sajang.ai - 하루 990원, AI 점장이 매출 리뷰 비용을 챙겨드려요",
     description:
-      "리뷰·매출·마케팅, 4명의 AI 팀이 매장을 함께 운영합니다. 하루 330원으로 AI 점장을 고용하세요.",
+      "배민/쿠팡/요기요 매출 리뷰를 자동 분석하고, 문제가 생기면 먼저 알려주는 AI 경영 비서. 7일 무료 체험.",
     type: "website",
   },
+  keywords: [
+    "소상공인 AI",
+    "배달앱 매출 분석",
+    "리뷰 자동 답글",
+    "AI 점장",
+    "매장 관리 AI",
+    "소상공인 경영 분석",
+  ],
 };
 
 export default function LandingPage() {
   return (
-    <div
-      style={{
-        fontFamily: "Inter, sans-serif",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="min-h-screen font-sans">
       <LandingNav />
       <main>
+        {/* M1: Hero + Problem + Kick (S1~S3) */}
         <HeroSection />
         <ProblemSection />
-        <SolutionSection />
-        <ComparisonSection />
+        <KickSection />
+
+        {/* M2: Features + Insight Showcase (S4~S5) */}
+        <FeaturesSection />
+        <InsightShowcaseSection />
+
+        {/* M3: ROI + Agent Team + Pricing (S6~S8) */}
+        <ROISection />
+        <AgentTeamSection />
+        <PricingSection />
+
+        {/* M4: Trial + FAQ + Final CTA (S9~S11) */}
+        <TrialTimeline />
+        <FAQSection />
         <FinalCTASection />
       </main>
+
+      {/* S12: Footer */}
       <LandingFooter />
+
+      {/* Mobile Floating CTA */}
+      <FloatingCTA />
     </div>
   );
 }

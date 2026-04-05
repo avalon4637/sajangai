@@ -1,88 +1,52 @@
+// S2 Problem — "사장님, 혹시 이런 거 겪고 계시죠?"
+
 const problems = [
   {
-    icon: "😤",
-    text: "리뷰 플랫폼 3개를 매일 확인하느라 시간이 너무 많이 든다",
+    emoji: "😰",
+    text: "배민 열어서 매출 확인하고 엑셀에 옮기고...",
   },
   {
-    icon: "📊",
-    text: "매출이 왜 떨어지는지 원인을 파악하기가 어렵다",
+    emoji: "😫",
+    text: "리뷰 답글 하나하나 쓸 시간이 없어...",
   },
   {
-    icon: "📣",
-    text: "단골 고객 관리나 마케팅은 엄두도 못 내고 있다",
+    emoji: "😤",
+    text: "매출이 왜 떨어졌는지 모르겠어...",
+  },
+  {
+    emoji: "🤔",
+    text: "비용이 어디서 새는지 모르겠어...",
   },
 ];
 
 export function ProblemSection() {
   return (
-    <section
-      id="problem"
-      style={{
-        backgroundColor: "#FFFFFF",
-        padding: "80px 120px",
-      }}
-      className="py-[80px] px-6 md:px-[120px]"
-    >
-      <div style={{ maxWidth: "1440px", margin: "0 auto" }}>
+    <section id="problem" className="bg-white px-4 py-16 md:px-8 md:py-24">
+      <div className="mx-auto max-w-4xl">
         {/* Title */}
-        <h2
-          style={{
-            color: "#18181B",
-            fontFamily: "Inter, sans-serif",
-            fontSize: "32px",
-            fontWeight: 700,
-            textAlign: "center",
-            marginBottom: "48px",
-          }}
-          className="text-2xl md:text-[32px]"
-        >
-          이런 경험, 있으시죠?
+        <h2 className="break-keep text-center text-2xl font-bold text-[#1E293B] md:text-3xl">
+          사장님, 혹시 이런 거 겪고 계시죠?
         </h2>
 
-        {/* Cards */}
-        <div
-          style={{
-            display: "flex",
-            gap: "24px",
-            justifyContent: "center",
-          }}
-          className="flex flex-col md:flex-row gap-6"
-        >
+        {/* 2x2 grid */}
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {problems.map((item, i) => (
             <div
               key={i}
-              style={{
-                flex: 1,
-                maxWidth: "360px",
-                border: "1px solid #F4F4F5",
-                borderRadius: "16px",
-                padding: "32px 24px",
-                textAlign: "center",
-                backgroundColor: "#FAFAFA",
-              }}
-              className="w-full"
+              className="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 text-center"
             >
-              <div
-                style={{
-                  fontSize: "40px",
-                  marginBottom: "16px",
-                }}
-              >
-                {item.icon}
-              </div>
-              <p
-                style={{
-                  color: "#18181B",
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "15px",
-                  lineHeight: 1.6,
-                }}
-              >
+              <div className="mb-3 text-4xl">{item.emoji}</div>
+              <p className="break-keep text-sm leading-relaxed text-[#1E293B] md:text-base">
                 {item.text}
               </p>
             </div>
           ))}
         </div>
+
+        {/* Bottom quote */}
+        <p className="mt-10 break-keep text-center text-base font-medium text-[#64748B] md:text-lg">
+          바쁜 사장님 대신, 알아서 챙기는 AI 점장이 필요해요.
+        </p>
       </div>
     </section>
   );

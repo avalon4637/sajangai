@@ -4,61 +4,30 @@ export function FinalCTASection() {
   return (
     <section
       id="cta-final"
+      className="py-20 sm:py-28"
       style={{
-        background: "linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%)",
-        padding: "80px 120px",
-        textAlign: "center",
+        background:
+          "linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)",
       }}
-      className="py-[80px] px-6 md:px-[120px]"
     >
-      <div style={{ maxWidth: "1440px", margin: "0 auto" }}>
-        {/* Title */}
-        <h2
-          style={{
-            color: "#FFFFFF",
-            fontFamily: "Inter, sans-serif",
-            fontSize: "36px",
-            fontWeight: 700,
-            lineHeight: 1.3,
-            marginBottom: "16px",
-            whiteSpace: "pre-line",
-          }}
-          className="text-2xl md:text-[36px]"
-        >
-          {`매장 운영, 오늘부터\nAI 점장에게 맡기세요`}
+      <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
+        <h2 className="text-2xl font-bold leading-snug text-white [word-break:keep-all] sm:text-3xl">
+          바쁜 사장님 대신
+          <br />
+          알아서 챙기는 AI 점장,
+          <br />
+          지금 만나보세요.
         </h2>
 
-        {/* Subtitle */}
-        <p
-          style={{
-            color: "#BFDBFE",
-            fontFamily: "Inter, sans-serif",
-            fontSize: "16px",
-            marginBottom: "32px",
-          }}
-        >
-          7일 무료 체험 · 카드 등록 없음 · 월 9,900원
-        </p>
-
-        {/* CTA Button */}
-        <Link href="/auth/login">
-          <button
-            style={{
-              backgroundColor: "#FFFFFF",
-              color: "#2563EB",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "18px",
-              fontWeight: 700,
-              borderRadius: "12px",
-              padding: "16px 40px",
-              border: "none",
-              cursor: "pointer",
-              display: "inline-block",
-            }}
-          >
+        <Link href="/auth/signup" className="mt-8 block">
+          <button className="mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-[#1E40AF] shadow-lg transition-opacity hover:opacity-90">
             7일 무료 체험 시작하기 →
           </button>
         </Link>
+
+        <p className="mt-3 text-sm text-blue-200">
+          하루 990원 · 카드 등록 없음
+        </p>
       </div>
     </section>
   );

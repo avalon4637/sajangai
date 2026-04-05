@@ -2,58 +2,34 @@ import Link from "next/link";
 
 export function LandingNav() {
   return (
-    <header
-      style={{
-        height: "64px",
-        backgroundColor: "#FFFFFF",
-        borderBottom: "1px solid #F4F4F5",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1440px",
-          margin: "0 auto",
-          padding: "0 120px",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-        className="px-6 md:px-[120px]"
-      >
+    <header className="sticky top-0 z-40 border-b border-[#F1F5F9] bg-white/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <Link href="/">
-          <span
-            style={{
-              color: "#2563EB",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "22px",
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            사장 AI
-          </span>
+        <Link
+          href="/"
+          className="text-xl font-bold text-[#1E40AF]"
+          aria-label="sajang.ai 홈으로"
+        >
+          sajang.ai
         </Link>
 
-        {/* CTA Button */}
-        <Link href="/auth/login">
-          <button
-            style={{
-              backgroundColor: "#2563EB",
-              color: "#FFFFFF",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "14px",
-              fontWeight: 600,
-              borderRadius: "8px",
-              padding: "10px 24px",
-              border: "none",
-              cursor: "pointer",
-            }}
+        {/* Right side actions */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/auth/login"
+            className="text-sm font-medium text-[#64748B] hover:text-[#1E293B] transition-colors"
           >
-            7일 무료 체험
-          </button>
-        </Link>
+            로그인
+          </Link>
+          <Link href="/auth/signup">
+            <button
+              className="h-9 rounded-lg px-4 text-sm font-bold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#1E40AF" }}
+            >
+              무료 체험
+            </button>
+          </Link>
+        </div>
       </div>
     </header>
   );

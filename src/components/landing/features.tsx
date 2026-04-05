@@ -1,95 +1,83 @@
-import {
-  MessageSquareText,
-  BarChart3,
-  Megaphone,
-  Sparkles,
-  BellRing,
-  TrendingUp,
-} from "lucide-react";
+// S4 Features — "점장이 매일 하는 일"
+// 3 feature cards with KakaoTalk-style mockups
 
-const features = [
+import { KakaoMockup } from "@/components/landing/kakao-mockup";
+
+const featureItems = [
   {
-    icon: MessageSquareText,
-    title: "답장이 · 리뷰 자동 답변",
-    desc: "미응답 리뷰를 감지하고 AI가 매장 톤에 맞는 답변 초안을 생성합니다",
-    comingSoon: false,
+    emoji: "☀️",
+    number: "1",
+    title: "매일 아침, 카톡으로 보고",
+    desc: "배민·쿠팡·요기요·카드 매출을 자동으로 모아서 매일 아침 카톡으로 보내드려요.",
+    mockupMessage: "☀️ [사장님 매장] 아침 리포트\n\n📊 어제 매출: 487,000원 (+12%)\n🛵 배민 245,000 / 쿠팡 182,000\n💳 카드 60,000",
+    mockupButtons: [{ label: "상세 보기" }],
+    mockupTime: "오전 8:00",
   },
   {
-    icon: BellRing,
-    title: "답장이 · 카톡 알림",
-    desc: "따로 앱을 열 필요 없이 카톡으로 바로 알려드려요",
-    comingSoon: false,
+    emoji: "🔍",
+    number: "2",
+    title: "문제가 생기면 먼저 알려줘요",
+    desc: "매출 하락, 리뷰 악화, 비용 급증... 원인까지 분석해서 알려드려요. 사장님이 발견하기 전에 점장이 먼저.",
+    mockupMessage: "🚨 매출 하락 감지\n\n매출이 32% 줄었어요.\n리뷰 미답변 3건이 원인이에요.\nAI 답글 3건 준비했어요.",
+    mockupButtons: [{ label: "답글 등록하기" }],
+    mockupTime: "오후 2:15",
   },
   {
-    icon: BarChart3,
-    title: "세리 · 매출 트렌드 분석",
-    desc: "네이버, 카카오맵, 구글 매출을 한눈에 비교하고 이상 징후를 감지합니다",
-    comingSoon: false,
-  },
-  {
-    icon: TrendingUp,
-    title: "세리 · 동네 매출 랭킹",
-    desc: "우리 매장이 동네에서 몇 등인지, 경쟁 매장 대비 어떤지 확인하세요",
-    comingSoon: false,
-  },
-  {
-    icon: Megaphone,
-    title: "바이럴 · 마케팅 인사이트",
-    desc: "리뷰 데이터 기반 마케팅 전략과 SNS 콘텐츠 아이디어를 제안합니다",
-    comingSoon: true,
-  },
-  {
-    icon: Sparkles,
-    title: "바이럴 · 경쟁 분석",
-    desc: "주변 경쟁 매장 동향을 분석하고 차별화 포인트를 알려드려요",
-    comingSoon: true,
+    emoji: "👆",
+    number: "3",
+    title: "버튼 하나면 해결",
+    desc: "리뷰 답글 등록, 재방문 문자 발송, 프로모션 제작까지. 사장님은 확인만 하면 돼요.",
+    mockupMessage: "💌 단골 고객 재방문 문자\n\n\"안녕하세요, 사장님이에요!\n이번 주 방문 고객 할인 이벤트,\n놓치지 마세요 🎉\"",
+    mockupButtons: [{ label: "문자 발송하기" }],
+    mockupTime: "오후 4:30",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-          AI 팀이 해드리는 일
+    <section id="features" className="bg-white px-4 py-16 md:px-8 md:py-24">
+      <div className="mx-auto max-w-5xl">
+        {/* Title */}
+        <h2 className="break-keep text-center text-2xl font-bold text-[#1E293B] md:text-3xl">
+          점장이 매일 하는 일
         </h2>
-        <p className="mt-3 text-center text-muted-foreground">
-          답장이, 세리, 바이럴이 각자 맡은 영역에서 일합니다
-        </p>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feat, i) => {
-            const Icon = feat.icon;
-            return (
-              <div
-                key={i}
-                className="relative flex gap-4 rounded-2xl border border-gray-100 p-6 transition-all hover:border-gray-200 hover:shadow-md"
-              >
-                {feat.comingSoon && (
-                  <span className="absolute right-3 top-3 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
-                    Coming Soon
+        {/* Feature cards */}
+        <div className="mt-10 flex flex-col gap-8 md:gap-12">
+          {featureItems.map((item, i) => (
+            <div
+              key={i}
+              className={`flex flex-col items-center gap-6 rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 md:flex-row md:gap-10 md:p-8 ${
+                i % 2 === 1 ? "md:flex-row-reverse" : ""
+              }`}
+            >
+              {/* Text side */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-3xl">{item.emoji}</span>
+                  <span className="text-xs font-semibold text-[#64748B]">
+                    기능 {item.number}
                   </span>
-                )}
-                <div
-                  className="flex size-11 shrink-0 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: "oklch(0.95 0.02 250)" }}
-                >
-                  <Icon
-                    className="size-5"
-                    style={{ color: "var(--landing-primary)" }}
-                  />
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground sm:text-base">
-                    {feat.title}
-                  </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {feat.desc}
-                  </p>
-                </div>
+                <h3 className="break-keep text-xl font-bold text-[#1E293B]">
+                  {item.title}
+                </h3>
+                <p className="mt-3 break-keep text-sm leading-relaxed text-[#64748B] md:text-base">
+                  {item.desc}
+                </p>
               </div>
-            );
-          })}
+
+              {/* Mockup side */}
+              <div className="w-full max-w-xs flex-shrink-0">
+                <KakaoMockup
+                  message={item.mockupMessage}
+                  buttons={item.mockupButtons}
+                  type="report"
+                  time={item.mockupTime}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
