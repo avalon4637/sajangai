@@ -203,8 +203,30 @@ export async function completeSyncLog(
   errorMessage?: string
 ): Promise<ActionResult> {
   try {
-    await getCurrentBusinessId(); // Verify authorization
+    const businessId = await getCurrentBusinessId();
     const supabase = await createClient();
+
+    // Verify the sync log belongs to user's business via api_connections
+    const { data: log } = await supabase
+      .from("sync_logs")
+      .select("id, connection_id")
+      .eq("id", logId)
+      .single();
+
+    if (!log) {
+      return { success: false, error: "동기화 로그를 찾을 수 없습니다." };
+    }
+
+    const { data: conn } = await supabase
+      .from("api_connections")
+      .select("id")
+      .eq("id", log.connection_id)
+      .eq("business_id", businessId)
+      .single();
+
+    if (!conn) {
+      return { success: false, error: "권한이 없습니다." };
+    }
 
     const { error } = await supabase
       .from("sync_logs")

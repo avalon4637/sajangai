@@ -56,8 +56,8 @@ export async function POST(req: Request) {
     });
   }
 
-  // Rate limit: 10 requests per minute per user
-  const rlKey = getRateLimitKey(req, "chat");
+  // Rate limit: 10 requests per minute per user (keyed by user.id to prevent IP spoofing)
+  const rlKey = getRateLimitKey(req, "chat", user.id);
   const rl = checkRateLimit(rlKey, 10);
   if (!rl.allowed) {
     return new Response(

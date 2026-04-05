@@ -20,16 +20,6 @@ const QuerySchema = z.object({
  *   - date: optional YYYY-MM-DD to fetch a specific date's report
  */
 export async function GET(req: Request) {
-  // Rate limiting: 10 requests per minute
-  const rlKey = getRateLimitKey(req, "seri-report");
-  const rl = checkRateLimit(rlKey, 10);
-  if (!rl.allowed) {
-    return Response.json(
-      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
-      { status: 429 }
-    );
-  }
-
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -37,6 +27,16 @@ export async function GET(req: Request) {
     return Response.json(
       { error: "인증이 필요합니다." },
       { status: 401 }
+    );
+  }
+
+  // Rate limiting: 10 requests per minute (keyed by user.id to prevent IP spoofing)
+  const rlKey = getRateLimitKey(req, "seri-report", user.id);
+  const rl = checkRateLimit(rlKey, 10);
+  if (!rl.allowed) {
+    return Response.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
     );
   }
 
@@ -106,16 +106,6 @@ export async function GET(req: Request) {
  *   - date: YYYY-MM-DD for a specific date
  */
 export async function POST(req: Request) {
-  // Rate limiting: 3 requests per minute (report generation is expensive)
-  const rlKeyPost = getRateLimitKey(req, "seri-report-gen");
-  const rlPost = checkRateLimit(rlKeyPost, 3);
-  if (!rlPost.allowed) {
-    return Response.json(
-      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
-      { status: 429 }
-    );
-  }
-
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -123,6 +113,16 @@ export async function POST(req: Request) {
     return Response.json(
       { error: "인증이 필요합니다." },
       { status: 401 }
+    );
+  }
+
+  // Rate limiting: 3 requests per minute (keyed by user.id to prevent IP spoofing)
+  const rlKeyPost = getRateLimitKey(req, "seri-report-gen", user.id);
+  const rlPost = checkRateLimit(rlKeyPost, 3);
+  if (!rlPost.allowed) {
+    return Response.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
     );
   }
 

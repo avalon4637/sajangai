@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "./sidebar";
 import { MobileHeader } from "./mobile-header";
+import { DemoDataBanner } from "@/components/demo-data-banner";
 
 export default async function DashboardLayout({
   children,
@@ -24,6 +25,10 @@ export default async function DashboardLayout({
     .eq("user_id", user.id)
     .maybeSingle();
 
+  if (!business) {
+    redirect("/auth/onboarding");
+  }
+
   let subscriptionStatus = "none";
   if (business) {
     const { data: sub } = await supabase
@@ -37,8 +42,17 @@ export default async function DashboardLayout({
     subscriptionStatus = sub?.status ?? "none";
   }
 
+  // Check if business has any active data connections
+  const { count: activeConnectionCount } = await supabase
+    .from("api_connections")
+    .select("*", { count: "exact", head: true })
+    .eq("business_id", business.id)
+    .eq("status", "active");
+
+  const hasActiveConnections = (activeConnectionCount ?? 0) > 0;
+
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex h-screen flex-col md:flex-row overflow-hidden">
       <Sidebar
         userEmail={user.email ?? ""}
         businessName={business?.name}
@@ -49,7 +63,10 @@ export default async function DashboardLayout({
         businessName={business?.name}
         subscriptionStatus={subscriptionStatus}
       />
-      <main className="flex-1 p-4 md:p-6">{children}</main>
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <DemoDataBanner hasActiveConnections={hasActiveConnections} />
+        {children}
+      </main>
     </div>
   );
 }

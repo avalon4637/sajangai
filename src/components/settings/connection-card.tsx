@@ -99,10 +99,9 @@ export function ConnectionCard({
           <div className="flex items-start gap-2 rounded-md bg-muted p-3">
             <AlertCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <div className="text-sm text-muted-foreground">
-              <p className="font-medium">API 키를 설정해주세요</p>
+              <p className="font-medium">데이터 연동을 시작해보세요</p>
               <p className="mt-1">
-                하이픈 API 키가 환경변수에 설정되어 있지 않습니다.
-                관리자에게 문의하여 HYPHEN_API_KEY를 설정해주세요.
+                카드매출 자동 연동을 준비 중입니다. 설정 &gt; 데이터 연결에서 연동을 시작할 수 있어요.
               </p>
             </div>
           </div>

@@ -3,7 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusinessId } from "@/lib/queries/business";
 import { getMonthlyKpi } from "@/lib/queries/monthly-summary";
 import { getActiveInsights } from "@/lib/insights/queries";
+import { getDailyBriefingData } from "@/lib/queries/briefing";
 import { JeongjangChatHub } from "@/components/jeongjang/jeongjang-chat-hub";
+import { DailyBriefing } from "@/components/dashboard/daily-briefing";
+import { OnboardingBriefing } from "@/components/dashboard/onboarding-briefing";
 import type { ChatMessageData } from "@/components/jeongjang/chat-message";
 
 export default async function DashboardPage() {
@@ -26,8 +29,9 @@ export default async function DashboardPage() {
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-  // Fetch data in parallel
-  const [kpi, business, latestBriefing, recentInsights] = await Promise.all([
+  // Fetch all data in parallel
+  const [briefingData, kpi, business, latestBriefing, recentInsights] = await Promise.all([
+    getDailyBriefingData(businessId),
     getMonthlyKpi(businessId, currentMonth),
     supabase
       .from("businesses")
@@ -141,12 +145,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100vh-0px)] md:h-screen flex-col">
-      <JeongjangChatHub
-        businessId={businessId}
-        businessName={businessName}
-        initialMessages={initialMessages}
-        roiData={roiData}
-      />
+      {/* Daily Briefing Card */}
+      <div className="shrink-0 p-4 md:p-6 pb-0">
+        {briefingData.hasAnyData ? (
+          <DailyBriefing data={briefingData} businessName={businessName} />
+        ) : (
+          <OnboardingBriefing businessName={businessName} />
+        )}
+      </div>
+
+      {/* Chat Hub - takes remaining space */}
+      <div className="flex-1 min-h-0">
+        <JeongjangChatHub
+          businessId={businessId}
+          businessName={businessName}
+          initialMessages={initialMessages}
+          roiData={roiData}
+        />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Public routes that don't require authentication
+const PUBLIC_PATHS = ["/", "/auth/", "/privacy", "/terms", "/refund-policy"];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -22,26 +29,45 @@ export async function updateSession(request: NextRequest) {
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // Extend cookie lifetime to 30 days for persistent login
+              maxAge: options?.maxAge ?? 60 * 60 * 24 * 30,
+              sameSite: options?.sameSite ?? "lax",
+              secure: options?.secure ?? true,
+            })
           );
         },
       },
     }
   );
 
+  // IMPORTANT: Do NOT use supabase.auth.getSession() here.
+  // getUser() sends a request to Supabase Auth server every time,
+  // which guarantees the token is validated AND refreshed if expired.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 인증되지 않은 사용자를 로그인 페이지로 리다이렉트
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/auth/") &&
-    request.nextUrl.pathname !== "/"
-  ) {
+  // Redirect unauthenticated users to login (except public paths)
+  if (!user && !isPublicPath(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+
+    // CRITICAL: Copy refreshed cookies to the redirect response
+    // Without this, token refresh is lost on redirect
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+        sameSite: "lax",
+        secure: true,
+        httpOnly: true,
+      });
+    });
+
+    return redirectResponse;
   }
 
   return supabaseResponse;

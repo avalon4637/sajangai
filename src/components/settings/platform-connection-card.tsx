@@ -124,7 +124,7 @@ function ConnectDialog({
               onChange={(e) => setApiKey(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              비워두면 환경변수의 HYPHEN_API_KEY를 사용합니다.
+              비워두면 기본 연동 설정을 사용합니다.
             </p>
           </div>
           {connectionType === "card_sales" && (

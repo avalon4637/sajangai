@@ -23,11 +23,11 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F0F9FF] to-white flex flex-col items-center justify-center px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
       {/* Brand header */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-[#1E40AF] tracking-tight">
-          sajang.ai
+        <h1 className="text-2xl font-bold tracking-tight">
+          사장.ai
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           소상공인을 위한 AI 경영 도우미

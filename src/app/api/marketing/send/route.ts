@@ -1,17 +1,19 @@
-import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const formData = await request.formData();
   const businessId = formData.get("businessId") as string;
   const platform = formData.get("platform") as string;
 
   if (!businessId || !platform) {
-    redirect("/marketing");
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
   // Verify ownership
@@ -22,7 +24,9 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
     .single();
 
-  if (!biz) redirect("/marketing");
+  if (!biz) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   // Generate and send re-engagement message
   try {
@@ -38,9 +42,10 @@ export async function POST(request: Request) {
         recommendation: analysis.messages[0].message,
       });
     }
+
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[marketing/send] Failed:", err);
+    return NextResponse.json({ error: "Failed to send" }, { status: 500 });
   }
-
-  redirect("/marketing");
 }

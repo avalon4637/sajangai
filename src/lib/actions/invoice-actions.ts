@@ -21,11 +21,28 @@ export interface AddInvoiceInput {
 
 /**
  * Mark an invoice as paid with today's date.
+ * Verifies the invoice belongs to the current user's business.
  */
 export async function markInvoiceAsPaid(
   invoiceId: string
 ): Promise<InvoiceActionResult> {
   try {
+    const businessId = await getCurrentBusinessId();
+
+    // Verify invoice belongs to user's business before updating
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data: invoice } = await supabase
+      .from("invoices")
+      .select("id")
+      .eq("id", invoiceId)
+      .eq("business_id", businessId)
+      .single();
+
+    if (!invoice) {
+      return { success: false, error: "청구서를 찾을 수 없습니다." };
+    }
+
     const today = new Date().toISOString().split("T")[0];
     await markAsPaid(invoiceId, today);
     revalidatePath("/invoices");

@@ -19,17 +19,7 @@ const AiRequestSchema = z.object({
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  // Rate limiting: 10 requests per minute
-  const rlKey = getRateLimitKey(req, "ai");
-  const rl = checkRateLimit(rlKey, 10);
-  if (!rl.allowed) {
-    return new Response(
-      JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
-      { status: 429, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  // Authentication check
+  // Authentication check (must come before rate limit to use user.id as key)
   const supabase = await createClient();
   const {
     data: { user },
@@ -39,6 +29,16 @@ export async function POST(req: Request) {
     return new Response(
       JSON.stringify({ error: "인증이 필요합니다." }),
       { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // Rate limiting: 10 requests per minute (keyed by user.id to prevent IP spoofing)
+  const rlKey = getRateLimitKey(req, "ai", user.id);
+  const rl = checkRateLimit(rlKey, 10);
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
+      { status: 429, headers: { "Content-Type": "application/json" } }
     );
   }
 

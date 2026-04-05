@@ -81,10 +81,9 @@ export default async function ConnectionsPage() {
       {/* Hyphen API status notice */}
       {!hyphenConfigured && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <p className="font-medium">하이픈 API 키가 설정되지 않았습니다</p>
+          <p className="font-medium">실제 데이터 연동을 시작해보세요</p>
           <p className="mt-1 text-amber-700">
-            현재 샘플 데이터로 동작합니다. 실제 매출 데이터 연동을 위해 HYPHEN_API_KEY
-            환경변수를 설정해주세요.
+            현재 데모 데이터로 체험 중입니다. 아래에서 플랫폼을 연결하면 실제 매출 데이터를 자동으로 가져올 수 있어요.
           </p>
         </div>
       )}

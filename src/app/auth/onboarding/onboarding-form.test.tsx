@@ -9,10 +9,12 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-// Mock registerBusiness server action
+// Mock server actions
 const mockRegisterBusiness = vi.fn();
+const mockVerifyBusinessNumber = vi.fn();
 vi.mock("@/lib/actions/business", () => ({
   registerBusiness: (...args: unknown[]) => mockRegisterBusiness(...args),
+  verifyBusinessNumber: (...args: unknown[]) => mockVerifyBusinessNumber(...args),
 }));
 
 describe("OnboardingForm", () => {
@@ -25,7 +27,7 @@ describe("OnboardingForm", () => {
     render(<OnboardingForm />);
 
     expect(
-      screen.getByText("서비스를 이용하려면 사업장 정보를 등록해주세요.")
+      screen.getByText("사업장 정보를 입력하면 AI 점장이 맞춤 분석을 시작해요.")
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/사업장명/)).toBeInTheDocument();
     expect(screen.getByLabelText("업종")).toBeInTheDocument();

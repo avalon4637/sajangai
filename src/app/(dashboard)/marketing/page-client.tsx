@@ -112,17 +112,19 @@ export function MarketingPageClient({
     useState<CustomerRisk | null>(null);
 
   const customers = generateCustomers(churnRisks);
-  const criticalCount = churnRisks.filter(
-    (r) => r.riskLevel === "critical"
+
+  // Derive card counts from the same customer list that the table uses
+  const criticalCount = customers.filter(
+    (c) => c.riskLevel === "critical"
   ).length;
-  const warningCount = churnRisks.filter(
-    (r) => r.riskLevel === "warning"
+  const warningCount = customers.filter(
+    (c) => c.riskLevel === "warning"
   ).length;
 
-  // Mock revisit count (demo)
+  // Mock revisit count (demo) based on total customers
   const recentRevisits = Math.max(
     1,
-    Math.floor(churnRisks.length * 0.3)
+    Math.floor(customers.length * 0.3)
   );
 
   return (

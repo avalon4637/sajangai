@@ -1,5 +1,6 @@
 // Simple in-memory rate limiter for API routes
-// Uses a sliding window counter per IP + route
+// Note: In-memory store resets on serverless cold starts.
+// For production, consider Upstash Redis (@upstash/ratelimit).
 
 const store = new Map<string, { count: number; resetAt: number }>();
 
@@ -46,9 +47,15 @@ export function checkRateLimit(
 }
 
 /**
- * Build a rate limit key from request headers.
+ * Build a rate limit key from authenticated user ID.
+ * Falls back to IP only for unauthenticated routes.
+ * Using user.id prevents IP spoofing via X-Forwarded-For.
  */
-export function getRateLimitKey(request: Request, route: string): string {
+export function getRateLimitKey(request: Request, route: string, userId?: string): string {
+  if (userId) {
+    return `${userId}:${route}`;
+  }
+  // Fallback for unauthenticated routes only
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
   return `${ip}:${route}`;

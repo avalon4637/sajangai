@@ -14,16 +14,6 @@ export const maxDuration = 120; // Allow up to 2 min for batch processing
  * Idempotent: safe to call multiple times (skips already-processed reviews).
  */
 export async function POST(req: Request) {
-  // Rate limiting: 5 requests per minute (batch processing is expensive)
-  const rlKey = getRateLimitKey(req, "dapjangi-process");
-  const rl = checkRateLimit(rlKey, 5);
-  if (!rl.allowed) {
-    return Response.json(
-      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
-      { status: 429 }
-    );
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,6 +21,16 @@ export async function POST(req: Request) {
 
   if (!user) {
     return Response.json({ error: "인증이 필요합니다." }, { status: 401 });
+  }
+
+  // Rate limiting: 5 requests per minute (keyed by user.id to prevent IP spoofing)
+  const rlKey = getRateLimitKey(req, "dapjangi-process", user.id);
+  const rl = checkRateLimit(rlKey, 5);
+  if (!rl.allowed) {
+    return Response.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {

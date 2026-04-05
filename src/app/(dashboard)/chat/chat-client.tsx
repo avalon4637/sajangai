@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChatMessageRenderer } from "@/components/chat/chat-message-renderer";
 
 interface Message {
   id: string;
@@ -32,74 +33,81 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed || isStreaming) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isStreaming) return;
 
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: trimmed,
-    };
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: trimmed,
+      };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsStreaming(true);
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsStreaming(true);
 
-    const assistantId = `assistant-${Date.now()}`;
-    setMessages((prev) => [
-      ...prev,
-      { id: assistantId, role: "assistant", content: "" },
-    ]);
+      const assistantId = `assistant-${Date.now()}`;
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantId, role: "assistant", content: "" },
+      ]);
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, businessId, sessionId }),
-      });
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: trimmed, businessId, sessionId }),
+        });
 
-      if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw new Error(
-          (errorBody as { error?: string }).error ?? `HTTP ${response.status}`
-        );
-      }
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          throw new Error(
+            (errorBody as { error?: string }).error ?? `HTTP ${response.status}`
+          );
+        }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No response stream");
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No response stream");
 
-      const decoder = new TextDecoder();
-      let accumulated = "";
+        const decoder = new TextDecoder();
+        let accumulated = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        accumulated += chunk;
+          const chunk = decoder.decode(value, { stream: true });
+          accumulated += chunk;
 
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantId ? { ...msg, content: accumulated } : msg
+            )
+          );
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "응답 중 오류가 발생했습니다.";
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === assistantId ? { ...msg, content: accumulated } : msg
+            msg.id === assistantId
+              ? { ...msg, content: `오류: ${errorMessage}` }
+              : msg
           )
         );
+      } finally {
+        setIsStreaming(false);
+        inputRef.current?.focus();
       }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "응답 중 오류가 발생했습니다.";
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantId
-            ? { ...msg, content: `오류: ${errorMessage}` }
-            : msg
-        )
-      );
-    } finally {
-      setIsStreaming(false);
-      inputRef.current?.focus();
-    }
+    },
+    [isStreaming, businessId, sessionId]
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
   };
 
   return (
@@ -143,10 +151,7 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
                 <button
                   key={suggestion}
                   type="button"
-                  onClick={() => {
-                    setInput(suggestion);
-                    inputRef.current?.focus();
-                  }}
+                  onClick={() => sendMessage(suggestion)}
                   className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] hover:bg-[#F9FAFB] transition-colors"
                 >
                   {suggestion}
@@ -169,13 +174,13 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
               </div>
             )}
             <div
-              className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-[#2563EB] text-white rounded-br-sm"
+                  ? "bg-[#2563EB] text-white rounded-br-sm whitespace-pre-wrap"
                   : "bg-white border border-[#E5E7EB] text-[#1A1A1A] rounded-bl-sm"
               }`}
             >
-              {msg.content}
+              <ChatMessageRenderer content={msg.content} role={msg.role} />
               {msg.role === "assistant" && !msg.content && isStreaming && (
                 <span className="inline-flex items-center gap-1 text-[#9CA3AF]">
                   <Loader2 className="size-3 animate-spin" />

@@ -165,8 +165,8 @@ export function AnalysisPageClient({
       {/* ===== TOP BAR ===== */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Left: Title + Badge */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold flex items-center gap-2">
+        <div className="flex items-center gap-3 shrink-0">
+          <h1 className="text-xl font-semibold flex items-center gap-2 whitespace-nowrap">
             <span className="text-[#10B981]">세리</span>
             <span className="text-muted-foreground font-normal">·</span>
             <span>매출 분석</span>

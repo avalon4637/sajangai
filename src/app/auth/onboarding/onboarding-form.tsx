@@ -152,9 +152,9 @@ export function OnboardingForm() {
   };
 
   return (
-    <Card className="border-0 shadow-lg">
+    <Card className="shadow-lg">
       <CardHeader className="text-center pb-2">
-        <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-[#EFF6FF] flex items-center justify-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <span className="text-2xl">🏪</span>
         </div>
         <CardTitle className="text-xl">사업장 등록</CardTitle>

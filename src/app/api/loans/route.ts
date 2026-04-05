@@ -1,17 +1,26 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
+const LoanSchema = z.object({
+  businessId: z.string().uuid(),
+  loanName: z.string().min(1).max(100),
+  institution: z.string().max(100).optional(),
+  principal: z.number().positive().max(100_000_000_000),
+  interestRate: z.number().min(0).max(100).optional(),
+  monthlyPayment: z.number().min(0).max(10_000_000_000).optional(),
+});
 
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json();
-  const { businessId, loanName, institution, principal, interestRate, monthlyPayment } = body;
-
-  if (!businessId || !loanName || !principal) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  const parsed = LoanSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
+  const { businessId, loanName, institution, principal, interestRate, monthlyPayment } = parsed.data;
 
   // Verify ownership
   const { data: biz } = await supabase

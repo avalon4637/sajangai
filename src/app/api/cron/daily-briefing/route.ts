@@ -7,9 +7,10 @@ import { runMorningRoutine } from "@/lib/ai/jeongjang-engine";
  * Schedule: 0 23 * * * (UTC) = 08:00 KST
  */
 export async function GET(request: Request) {
-  // Verify cron secret
+  // Verify cron secret (guard against undefined CRON_SECRET)
+  const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
