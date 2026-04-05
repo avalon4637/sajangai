@@ -1,7 +1,7 @@
 ---
 id: SPEC-UI-002
 version: "1.0.0"
-status: planned
+status: done
 created: "2026-04-05"
 updated: "2026-04-05"
 author: avalon4637

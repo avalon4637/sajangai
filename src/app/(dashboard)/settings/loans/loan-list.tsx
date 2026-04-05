@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { LoanBalance } from "@/lib/queries/loan";
 
 interface LoanListProps {
@@ -76,6 +79,20 @@ export function LoanList({ loans, businessId }: LoanListProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Fixed cost tip */}
+      <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+        <Lightbulb className="size-4 text-blue-600 dark:text-blue-400" />
+        <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
+          대출 상환금은 고정비로 등록하면 매월 자동으로 지출에 반영됩니다.{" "}
+          <Link
+            href="/fixed-costs"
+            className="font-medium underline underline-offset-2 hover:text-blue-600"
+          >
+            고정비 관리로 이동
+          </Link>
+        </AlertDescription>
+      </Alert>
 
       {/* Loan list */}
       {loans.length > 0 ? (

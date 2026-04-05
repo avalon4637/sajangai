@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useMemo, useTransition } from "react";
-import { Search, Building2, Plus, Phone } from "lucide-react";
+import {
+  Search,
+  Building2,
+  Plus,
+  Phone,
+  MoreVertical,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,8 +22,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import type { Vendor } from "@/lib/queries/vendor";
-import { addVendor } from "@/lib/actions/vendor-actions";
+import { addVendor, editVendor, removeVendor } from "@/lib/actions/vendor-actions";
 
 // Format amount in Korean currency units
 function formatAmount(amount: number): string {
@@ -43,7 +73,15 @@ export function VendorsPageClient({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  // Client-side search filter with debounce effect via useMemo
+  // Edit sheet state
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+
+  // Delete dialog state
+  const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Client-side search filter
   const filteredVendors = useMemo(() => {
     if (!searchQuery.trim()) return vendors;
     const q = searchQuery.toLowerCase();
@@ -77,6 +115,50 @@ export function VendorsPageClient({
         form.reset();
       } else {
         alert(result.error ?? "등록 실패");
+      }
+    });
+  }
+
+  // Edit vendor handler
+  async function handleEditVendor(e: React.FormEvent<HTMLFormElement>): Promise<void> {
+    e.preventDefault();
+    if (!editingVendor) return;
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const input = {
+      id: editingVendor.id,
+      name: formData.get("name") as string,
+      category: (formData.get("category") as string) || undefined,
+      contactName: (formData.get("contactName") as string) || undefined,
+      phone: (formData.get("phone") as string) || undefined,
+      businessNumber: (formData.get("businessNumber") as string) || undefined,
+      memo: (formData.get("memo") as string) || undefined,
+    };
+
+    startTransition(async () => {
+      const result = await editVendor(input);
+      if (result.success) {
+        setEditSheetOpen(false);
+        setEditingVendor(null);
+      } else {
+        alert(result.error ?? "수정 실패");
+      }
+    });
+  }
+
+  // Delete vendor handler
+  function handleDeleteVendor(): void {
+    if (!deletingVendor) return;
+
+    startTransition(async () => {
+      const result = await removeVendor(deletingVendor.id);
+      if (result.success) {
+        setDeleteDialogOpen(false);
+        setDeletingVendor(null);
+      } else {
+        alert(result.error ?? "삭제 실패");
       }
     });
   }
@@ -138,11 +220,46 @@ export function VendorsPageClient({
                         </p>
                       )}
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-muted-foreground">이번 달 거래</p>
-                      <p className="text-sm font-medium">
-                        {monthlyTotal > 0 ? formatAmount(monthlyTotal) : "-"}
-                      </p>
+                    <div className="flex items-start gap-2 shrink-0">
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">이번 달 거래</p>
+                        <p className="text-sm font-medium">
+                          {monthlyTotal > 0 ? formatAmount(monthlyTotal) : "-"}
+                        </p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-muted-foreground"
+                          >
+                            <MoreVertical className="size-4" />
+                            <span className="sr-only">메뉴 열기</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingVendor(vendor);
+                              setEditSheetOpen(true);
+                            }}
+                          >
+                            <Pencil className="size-4 mr-2" />
+                            수정
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              setDeletingVendor(vendor);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="size-4 mr-2" />
+                            삭제
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </CardContent>
@@ -222,6 +339,104 @@ export function VendorsPageClient({
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Edit vendor sheet */}
+      <Sheet open={editSheetOpen} onOpenChange={(open) => {
+        setEditSheetOpen(open);
+        if (!open) setEditingVendor(null);
+      }}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>거래처 수정</SheetTitle>
+          </SheetHeader>
+          {editingVendor && (
+            <form onSubmit={handleEditVendor} className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">거래처명</Label>
+                <Input
+                  id="edit-name"
+                  name="name"
+                  defaultValue={editingVendor.name}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">카테고리</Label>
+                <Input
+                  id="edit-category"
+                  name="category"
+                  defaultValue={editingVendor.category ?? ""}
+                  placeholder="식자재, 소모품, 임대 등"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-contact">담당자명</Label>
+                <Input
+                  id="edit-contact"
+                  name="contactName"
+                  defaultValue={editingVendor.contact_name ?? ""}
+                  placeholder="담당자"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">연락처</Label>
+                <Input
+                  id="edit-phone"
+                  name="phone"
+                  defaultValue={editingVendor.phone ?? ""}
+                  placeholder="010-0000-0000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-biznum">사업자번호</Label>
+                <Input
+                  id="edit-biznum"
+                  name="businessNumber"
+                  defaultValue={editingVendor.business_number ?? ""}
+                  placeholder="000-00-00000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-memo">메모</Label>
+                <Input
+                  id="edit-memo"
+                  name="memo"
+                  defaultValue={editingVendor.memo ?? ""}
+                  placeholder="메모 (선택)"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? "저장 중..." : "저장"}
+              </Button>
+            </form>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+        setDeleteDialogOpen(open);
+        if (!open) setDeletingVendor(null);
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>거래처 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{deletingVendor?.name}</strong> 거래처를 삭제하시겠습니까?
+              이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteVendor}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? "삭제 중..." : "삭제"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

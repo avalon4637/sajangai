@@ -54,6 +54,7 @@ function KpiCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
+          <span className="block text-[10px] font-normal text-muted-foreground/70 mt-0.5">이번 달</span>
         </CardTitle>
         <div className="text-muted-foreground">{icon}</div>
       </CardHeader>

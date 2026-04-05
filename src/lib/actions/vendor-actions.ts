@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentBusinessId } from "@/lib/queries/business";
-import { createVendor } from "@/lib/queries/vendor";
+import { createVendor, updateVendor, deleteVendor } from "@/lib/queries/vendor";
 
 export interface VendorActionResult {
   success: boolean;
@@ -16,6 +16,10 @@ export interface AddVendorInput {
   phone?: string;
   businessNumber?: string;
   memo?: string;
+}
+
+export interface UpdateVendorInput extends AddVendorInput {
+  id: string;
 }
 
 /**
@@ -36,6 +40,50 @@ export async function addVendor(
       business_number: input.businessNumber || null,
       memo: input.memo || null,
     });
+
+    revalidatePath("/vendors");
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "알 수 없는 오류";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Update an existing vendor.
+ */
+export async function editVendor(
+  input: UpdateVendorInput
+): Promise<VendorActionResult> {
+  try {
+    await getCurrentBusinessId();
+
+    await updateVendor(input.id, {
+      name: input.name,
+      category: input.category || null,
+      contact_name: input.contactName || null,
+      phone: input.phone || null,
+      business_number: input.businessNumber || null,
+      memo: input.memo || null,
+    });
+
+    revalidatePath("/vendors");
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "알 수 없는 오류";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Delete a vendor by id.
+ */
+export async function removeVendor(
+  vendorId: string
+): Promise<VendorActionResult> {
+  try {
+    await getCurrentBusinessId();
+    await deleteVendor(vendorId);
 
     revalidatePath("/vendors");
     return { success: true };

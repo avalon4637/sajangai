@@ -189,11 +189,24 @@ export function InvoicesPageClient({
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="size-10 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground">
+            <p className="font-medium text-sm mb-1">
               {activeType === "receivable"
-                ? "매출 세금계산서가 없습니다."
-                : "매입 세금계산서가 없습니다."}
+                ? "아직 매출 세금계산서가 없습니다"
+                : "아직 매입 세금계산서가 없습니다"}
             </p>
+            <p className="text-muted-foreground text-xs mb-4">
+              {activeType === "receivable"
+                ? "거래처에 발행한 세금계산서를 등록하세요"
+                : "거래처로부터 받은 세금계산서를 등록하세요"}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(true)}
+            >
+              <Plus className="size-4 mr-1" />
+              세금계산서 등록
+            </Button>
           </CardContent>
         </Card>
       ) : (
