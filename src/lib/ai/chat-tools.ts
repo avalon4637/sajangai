@@ -381,7 +381,8 @@ export function createChatTools(businessId: string) {
                 risk: d.riskLevel,
               })),
           };
-        } catch {
+        } catch (error) {
+          console.error("[ChatTools] Failed to calculate cashflow forecast:", error);
           return {
             riskLevel: "safe" as const,
             lowestBalance: 0,

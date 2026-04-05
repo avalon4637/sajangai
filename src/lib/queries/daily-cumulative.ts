@@ -29,8 +29,9 @@ export async function getDailyCumulative(
     if (error) throw error;
 
     return (data as DailyCumulativeData[]) ?? [];
-  } catch {
+  } catch (error) {
     // Fallback: simple daily revenue query
+    console.error("[DailyCumulative] RPC call failed, using fallback query:", error);
     const monthStr = `${year}-${String(month).padStart(2, "0")}`;
     const { data: revenues } = await supabase
       .from("revenues")

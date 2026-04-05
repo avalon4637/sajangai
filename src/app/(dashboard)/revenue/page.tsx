@@ -28,7 +28,8 @@ export default async function RevenuePage({ searchParams }: RevenuePageProps) {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Revenue] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

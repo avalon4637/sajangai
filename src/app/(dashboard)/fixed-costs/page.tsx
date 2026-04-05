@@ -20,7 +20,8 @@ export default async function FixedCostsPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[FixedCosts] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

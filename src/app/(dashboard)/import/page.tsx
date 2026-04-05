@@ -15,7 +15,8 @@ export default async function ImportPage() {
 
   try {
     await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Import] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

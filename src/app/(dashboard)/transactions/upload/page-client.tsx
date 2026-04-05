@@ -224,7 +224,8 @@ export function UploadPageClient() {
 
       setParsedRows(rows);
       setStep("preview");
-    } catch {
+    } catch (error) {
+      console.error("[TransactionUpload] Failed to parse file:", error);
       setParseError("파일을 읽는 중 오류가 발생했습니다.");
     }
   }, []);

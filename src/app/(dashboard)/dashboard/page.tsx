@@ -22,7 +22,8 @@ export default async function DashboardPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Dashboard] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

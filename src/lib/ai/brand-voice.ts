@@ -56,8 +56,9 @@ async function extractVoiceTraits(sampleReplies: string[]): Promise<VoiceTraits>
 
   try {
     return await callClaudeObject(VOICE_LEARNING_PROMPT, prompt, VoiceTraitsSchema, 512);
-  } catch {
+  } catch (error) {
     // Fall back to defaults if parsing fails
+    console.error("[BrandVoice] Failed to analyze voice traits:", error);
     return DEFAULT_VOICE_TRAITS;
   }
 }

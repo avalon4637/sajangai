@@ -10,8 +10,9 @@ export async function InsightFeedServer({ businessId }: InsightFeedServerProps) 
   let insights: InsightEvent[];
   try {
     insights = await getActiveInsights(businessId);
-  } catch {
+  } catch (error) {
     // Table may not exist yet — gracefully return nothing
+    console.error("[InsightFeed] Failed to load active insights:", error);
     insights = [];
   }
 

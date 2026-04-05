@@ -41,7 +41,8 @@ export default async function LedgerPage({ searchParams }: LedgerPageProps) {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Ledger] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

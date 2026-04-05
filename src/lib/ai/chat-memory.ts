@@ -66,8 +66,9 @@ export async function extractSessionSummary(
       key_facts: parsed.key_facts ?? [],
       follow_ups: parsed.follow_ups ?? [],
     });
-  } catch {
+  } catch (error) {
     // Non-fatal — summary extraction is best-effort
+    console.error("[ChatMemory] Failed to extract conversation summary:", error);
   }
 }
 

@@ -18,7 +18,8 @@ export default async function VendorsPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Vendors] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

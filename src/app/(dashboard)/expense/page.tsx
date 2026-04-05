@@ -28,7 +28,8 @@ export default async function ExpensePage({ searchParams }: ExpensePageProps) {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Expense] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

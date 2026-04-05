@@ -18,8 +18,9 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
+          } catch (error) {
             // Server Component에서 호출될 때 무시
+            console.error("[Supabase] Failed to set cookies in Server Component:", error);
           }
         },
       },

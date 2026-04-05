@@ -69,8 +69,9 @@ export default async function BillingPage() {
   if (business) {
     try {
       roi = await calculateMonthlyRoi(business.id, currentYearMonth);
-    } catch {
+    } catch (error) {
       // Non-fatal
+      console.error("[Billing] Failed to calculate monthly ROI:", error);
     }
   }
 

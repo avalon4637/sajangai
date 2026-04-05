@@ -19,7 +19,8 @@ export default async function SettingsPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Settings] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
   const apiKeySet = isHyphenConfigured();

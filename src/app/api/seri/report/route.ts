@@ -147,8 +147,9 @@ export async function POST(req: Request) {
       }
       date = parsed.data.date;
     }
-  } catch {
+  } catch (error) {
     // No body is fine
+    console.error("[API /seri/report] Failed to parse request body:", error);
   }
 
   // Get business_id for authenticated user

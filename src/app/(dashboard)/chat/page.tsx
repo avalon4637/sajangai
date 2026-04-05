@@ -14,7 +14,8 @@ export default async function ChatPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Chat] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

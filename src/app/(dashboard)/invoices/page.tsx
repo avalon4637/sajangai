@@ -22,7 +22,8 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Invoices] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

@@ -96,8 +96,9 @@ export async function analyzeReviewBatch(
           category: t.category as ReviewCategory,
         }))
       );
-    } catch {
+    } catch (error) {
       // Skip malformed response and continue with next batch
+      console.error("[SentimentAnalyzer] Failed to parse batch response:", error);
       continue;
     }
   }

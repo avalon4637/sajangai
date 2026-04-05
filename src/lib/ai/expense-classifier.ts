@@ -75,7 +75,8 @@ export async function classifyTransactions(
     const patternMatch = merchantMappings.find((m) => {
       try {
         return new RegExp(m.merchant_name_pattern, "i").test(tx.merchantName);
-      } catch {
+      } catch (error) {
+        console.error("[ExpenseClassifier] Invalid regex pattern:", error);
         return false;
       }
     });
@@ -183,7 +184,8 @@ ${merchantList}`;
 
   try {
     return await callClaudeObject("", prompt, ExpenseClassificationSchema);
-  } catch {
+  } catch (error) {
+    console.error("[ExpenseClassifier] AI classification failed:", error);
     return createDefaultResults(transactions);
   }
 }

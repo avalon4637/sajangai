@@ -38,7 +38,8 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Analysis] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

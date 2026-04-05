@@ -109,7 +109,8 @@ export function AnalysisPageClient({
     try {
       const csv = await exportRevenueSummary(businessId, yearMonth);
       downloadCsv(csv, `매출요약_${yearMonth}.csv`);
-    } catch {
+    } catch (error) {
+      console.error("[Analysis] Failed to download revenue summary:", error);
       toast.error("다운로드 중 오류가 발생했습니다.");
     } finally {
       setIsDownloading(false);
@@ -122,7 +123,8 @@ export function AnalysisPageClient({
     try {
       const csv = await exportRevenueDetail(businessId, yearMonth);
       downloadCsv(csv, `매출상세_${yearMonth}.csv`);
-    } catch {
+    } catch (error) {
+      console.error("[Analysis] Failed to download revenue detail:", error);
       toast.error("다운로드 중 오류가 발생했습니다.");
     } finally {
       setIsDownloading(false);

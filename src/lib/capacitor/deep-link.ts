@@ -14,8 +14,9 @@ export function initDeepLinks(router: AppRouterInstance): void {
       const url = new URL(event.url);
       const path = url.pathname + url.search;
       router.push(path);
-    } catch {
+    } catch (error) {
       // Invalid URL, ignore
+      console.error("[DeepLink] Failed to parse deep link URL:", error);
     }
   });
 }

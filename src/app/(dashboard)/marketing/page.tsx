@@ -30,7 +30,8 @@ export default async function MarketingPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Marketing] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

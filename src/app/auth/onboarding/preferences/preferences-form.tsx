@@ -65,7 +65,8 @@ export function PreferencesForm({ businessId }: PreferencesFormProps) {
       if (!res.ok) throw new Error("저장 실패");
 
       router.push("/dashboard");
-    } catch {
+    } catch (error) {
+      console.error("[PreferencesForm] Failed to save preferences:", error);
       setError("설정 저장에 실패했습니다. 다시 시도해주세요.");
       setIsSubmitting(false);
     }

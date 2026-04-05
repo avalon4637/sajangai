@@ -12,7 +12,8 @@ export default async function BudgetPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Budget] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 
@@ -23,7 +24,8 @@ export default async function BudgetPage() {
   let pageData: BudgetPageData;
   try {
     pageData = await getBudgetPageData(businessId, year, month);
-  } catch {
+  } catch (error) {
+    console.error("[Budget] Failed to load budget data:", error);
     pageData = {
       comparison: [],
       categoryAverages: [],

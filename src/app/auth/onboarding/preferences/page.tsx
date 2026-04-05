@@ -14,7 +14,8 @@ export default async function PreferencesPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Preferences] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 

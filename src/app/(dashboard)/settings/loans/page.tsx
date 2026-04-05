@@ -12,14 +12,16 @@ export default async function LoansPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Loans] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 
   let loans: LoanBalance[];
   try {
     loans = await getLoanBalances(businessId);
-  } catch {
+  } catch (error) {
+    console.error("[Loans] Failed to load loan balances:", error);
     loans = [];
   }
 

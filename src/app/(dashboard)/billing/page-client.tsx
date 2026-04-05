@@ -147,7 +147,8 @@ export function BillingPageClient({
 
       setShowCardForm(false);
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("[Billing] Payment failed:", error);
       setError("결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
@@ -172,7 +173,8 @@ export function BillingPageClient({
 
       setShowCancelConfirm(false);
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("[Billing] Subscription cancellation failed:", error);
       setError("취소 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsLoading(false);

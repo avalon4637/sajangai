@@ -69,8 +69,9 @@ export async function runViralAnalysis(
         daysSinceOrder: risk.daysSinceOrder,
       });
       messages.push({ target: risk, message });
-    } catch {
+    } catch (error) {
       // Skip failed message generation
+      console.error("[ViralEngine] Failed to generate retention message:", error);
     }
   }
 

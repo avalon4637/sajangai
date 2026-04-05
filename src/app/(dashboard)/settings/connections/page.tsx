@@ -52,7 +52,8 @@ export default async function ConnectionsPage() {
   let businessId: string;
   try {
     businessId = await getCurrentBusinessId();
-  } catch {
+  } catch (error) {
+    console.error("[Connections] Failed to get business ID:", error);
     redirect("/auth/onboarding");
   }
 
