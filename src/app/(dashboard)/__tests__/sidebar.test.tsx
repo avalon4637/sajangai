@@ -42,11 +42,10 @@ describe("Sidebar", () => {
     expect(screen.getByText("마케팅")).toBeInTheDocument();
   });
 
-  it("contains data management section with 5 links", () => {
+  it("contains data management section with links", () => {
     render(<Sidebar {...defaultProps} />);
     expect(screen.getByText("데이터 관리")).toBeInTheDocument();
-    expect(screen.getByText("매출 입력")).toBeInTheDocument();
-    expect(screen.getByText("지출 입력")).toBeInTheDocument();
+    expect(screen.getByText("매출/매입")).toBeInTheDocument();
     expect(screen.getByText("고정비")).toBeInTheDocument();
     expect(screen.getByText("계산서")).toBeInTheDocument();
     expect(screen.getByText("거래처")).toBeInTheDocument();
@@ -60,7 +59,7 @@ describe("Sidebar", () => {
     expect(hrefs).toContain("/analysis");
     expect(hrefs).toContain("/review");
     expect(hrefs).toContain("/marketing");
-    expect(hrefs).toContain("/revenue");
+    expect(hrefs).toContain("/ledger");
   });
 
   it("shows active state for current pathname", () => {

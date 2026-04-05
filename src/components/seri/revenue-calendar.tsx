@@ -153,7 +153,7 @@ export function RevenueCalendar({
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors text-sm"
+              className="p-1.5 rounded-md hover:bg-muted transition-colors text-sm cursor-pointer"
               aria-label="이전 달"
             >
               &#8249;
@@ -164,7 +164,7 @@ export function RevenueCalendar({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors text-sm"
+              className="p-1.5 rounded-md hover:bg-muted transition-colors text-sm cursor-pointer"
               aria-label="다음 달"
             >
               &#8250;

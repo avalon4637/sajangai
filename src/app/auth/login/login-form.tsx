@@ -46,7 +46,7 @@ export function LoginForm() {
         <button
           onClick={handleKakaoLogin}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 rounded-xl py-3.5 px-6 font-semibold text-[15px] transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-3 rounded-xl py-3.5 px-6 font-semibold text-[15px] transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           style={{ backgroundColor: "#FEE500", color: "#000000" }}
           aria-label="카카오로 시작하기"
         >

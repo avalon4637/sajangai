@@ -61,7 +61,7 @@ export function InsightFeed({ insights, onAction, onDismiss }: InsightFeedProps)
       {hasMore && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className="w-full text-center text-xs text-muted-foreground hover:text-foreground py-2"
+          className="w-full text-center text-xs text-muted-foreground hover:text-foreground py-2 cursor-pointer"
         >
           +{sorted.length - INITIAL_SHOW}개 더 보기
         </button>

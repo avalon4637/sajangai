@@ -64,7 +64,7 @@ export function CustomerRiskList({
             <button
               key={customer.id}
               onClick={() => onSelect(customer)}
-              className={`w-full text-left px-5 py-3 transition-colors hover:bg-muted/50 ${
+              className={`w-full text-left px-5 py-3 transition-colors hover:bg-muted/50 cursor-pointer ${
                 isSelected
                   ? "bg-violet-50 dark:bg-violet-950/30 border-l-2 border-l-violet-500"
                   : isCritical

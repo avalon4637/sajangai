@@ -89,7 +89,7 @@ export function PreferencesForm({ businessId }: PreferencesFormProps) {
                 key={opt.value}
                 type="button"
                 onClick={() => setStyle(opt.value)}
-                className={`text-left rounded-lg border p-3 transition-colors ${
+                className={`text-left rounded-lg border p-3 transition-colors cursor-pointer ${
                   style === opt.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30"
@@ -113,7 +113,7 @@ export function PreferencesForm({ businessId }: PreferencesFormProps) {
                 key={opt.value}
                 type="button"
                 onClick={() => setFocus(opt.value)}
-                className={`text-left rounded-lg border p-3 transition-colors ${
+                className={`text-left rounded-lg border p-3 transition-colors cursor-pointer ${
                   focus === opt.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30"
@@ -137,7 +137,7 @@ export function PreferencesForm({ businessId }: PreferencesFormProps) {
                 key={opt.value}
                 type="button"
                 onClick={() => setTime(opt.value)}
-                className={`text-left rounded-lg border p-3 transition-colors ${
+                className={`text-left rounded-lg border p-3 transition-colors cursor-pointer ${
                   time === opt.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30"

@@ -137,7 +137,7 @@ export function DailyBriefing({ data, businessName }: DailyBriefingProps) {
           </Link>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="p-1 rounded hover:bg-muted transition-colors"
+            className="p-1 rounded hover:bg-muted transition-colors cursor-pointer"
             aria-label={expanded ? "브리핑 접기" : "브리핑 펼치기"}
           >
             {expanded ? (

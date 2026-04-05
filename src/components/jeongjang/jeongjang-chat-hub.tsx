@@ -208,7 +208,7 @@ export function JeongjangChatHub({
             <button
               key={s}
               onClick={() => setInput(s)}
-              className="rounded-full border px-3 py-1.5 text-[12px] text-muted-foreground transition hover:border-[#4B6BF5] hover:text-[#4B6BF5]"
+              className="rounded-full border px-3 py-1.5 text-[12px] text-muted-foreground transition hover:border-[#4B6BF5] hover:text-[#4B6BF5] cursor-pointer"
             >
               {s}
             </button>

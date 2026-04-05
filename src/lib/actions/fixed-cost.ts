@@ -32,6 +32,7 @@ export async function createFixedCost(
       is_labor: parsed.is_labor,
       start_date: formatDateOrNull(parsed.start_date),
       end_date: formatDateOrNull(parsed.end_date),
+      payment_day: parsed.payment_day ?? 0,
     });
 
     if (error) {
@@ -67,6 +68,7 @@ export async function updateFixedCost(
         is_labor: parsed.is_labor,
         start_date: formatDateOrNull(parsed.start_date),
         end_date: formatDateOrNull(parsed.end_date),
+        payment_day: parsed.payment_day ?? 0,
       })
       .eq("id", id)
       .eq("business_id", businessId);

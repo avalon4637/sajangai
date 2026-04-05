@@ -252,7 +252,7 @@ export function AnalysisPageClient({
               <div className="flex">
                 <button
                   onClick={() => setCalendarView("weekly")}
-                  className={`px-3.5 py-1.5 text-xs font-medium rounded-l-md border transition-colors ${
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-l-md border transition-colors cursor-pointer ${
                     calendarView === "weekly"
                       ? "bg-[#4B6BF5] text-white border-[#4B6BF5]"
                       : "bg-[#F8F9FA] text-muted-foreground border-border hover:bg-gray-100"
@@ -262,7 +262,7 @@ export function AnalysisPageClient({
                 </button>
                 <button
                   onClick={() => setCalendarView("monthly")}
-                  className={`px-3.5 py-1.5 text-xs font-medium rounded-r-md border-y border-r transition-colors ${
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-r-md border-y border-r transition-colors cursor-pointer ${
                     calendarView === "monthly"
                       ? "bg-[#4B6BF5] text-white border-[#4B6BF5]"
                       : "bg-[#F8F9FA] text-muted-foreground border-border hover:bg-gray-100"
@@ -278,7 +278,7 @@ export function AnalysisPageClient({
                   const ym = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
                   router.push(`/analysis?month=${ym}`);
                 }}
-                className="px-3 py-1.5 text-xs font-medium text-[#4B6BF5] border rounded-md hover:bg-[#EEF1FE] transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-[#4B6BF5] border rounded-md hover:bg-[#EEF1FE] transition-colors cursor-pointer"
               >
                 오늘
               </button>

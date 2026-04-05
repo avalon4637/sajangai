@@ -87,7 +87,7 @@ export function ReviewQueue({
             key={review.id}
             type="button"
             onClick={() => onSelect(review.id)}
-            className={`flex flex-col gap-1.5 p-3 text-left transition-colors hover:bg-muted/50 ${
+            className={`flex flex-col gap-1.5 p-3 text-left transition-colors hover:bg-muted/50 cursor-pointer ${
               isSelected
                 ? "bg-indigo-50 border-l-[3px] border-l-indigo-500"
                 : "border-l-[3px] border-l-transparent"

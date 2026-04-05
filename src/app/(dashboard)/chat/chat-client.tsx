@@ -152,7 +152,7 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
                   key={suggestion}
                   type="button"
                   onClick={() => sendMessage(suggestion)}
-                  className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+                  className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
                 >
                   {suggestion}
                 </button>

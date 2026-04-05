@@ -46,7 +46,7 @@ export function DemoDataBanner({ hasActiveConnections }: DemoDataBannerProps) {
       </div>
       <button
         onClick={handleDismiss}
-        className="shrink-0 rounded p-0.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+        className="shrink-0 rounded p-0.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer"
         aria-label="배너 닫기"
       >
         <X className="size-4" />

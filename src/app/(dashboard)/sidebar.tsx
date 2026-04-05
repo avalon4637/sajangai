@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Settings, LogOut, CreditCard, MessageSquare,
-  PlusCircle, Receipt, Wallet, FileText, Building2,
+  Calendar, Wallet, FileText, Building2,
   ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,8 +52,7 @@ export const agentNavItems = [
 
 /** Data management quick links */
 const dataNavItems = [
-  { href: "/revenue", icon: PlusCircle, label: "\uB9E4\uCD9C \uC785\uB825" },
-  { href: "/expense", icon: Receipt, label: "\uC9C0\uCD9C \uC785\uB825" },
+  { href: "/ledger", icon: Calendar, label: "\uB9E4\uCD9C/\uB9E4\uC785" },
   { href: "/fixed-costs", icon: Wallet, label: "\uACE0\uC815\uBE44" },
   { href: "/invoices", icon: FileText, label: "\uACC4\uC0B0\uC11C" },
   { href: "/vendors", icon: Building2, label: "\uAC70\uB798\uCC98" },

@@ -65,6 +65,12 @@ export const FixedCostSchema = z.object({
   is_labor: z.boolean().default(false),
   start_date: z.coerce.date().optional().nullable(),
   end_date: z.coerce.date().optional().nullable(),
+  payment_day: z
+    .number()
+    .int("정수로 입력해주세요")
+    .min(0, "0 이상이어야 합니다")
+    .max(31, "31 이하여야 합니다")
+    .default(0),
 });
 
 // Inferred types from schemas

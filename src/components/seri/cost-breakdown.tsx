@@ -78,7 +78,7 @@ function CategoryItem({
       {/* Major category header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50/50 transition-colors text-left"
+        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50/50 transition-colors text-left cursor-pointer"
       >
         {category.subCategories.length > 0 ? (
           expanded ? (

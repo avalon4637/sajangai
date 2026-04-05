@@ -172,7 +172,7 @@ export function TransactionsPageClient({
           <button
             key={chip.key}
             onClick={() => handleFilterChange(chip.key)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
               activeFilter === chip.key
                 ? "bg-[#18181B] text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"

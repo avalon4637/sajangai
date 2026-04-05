@@ -185,7 +185,7 @@ export function BatchReplyPanel({
                           <button
                             type="button"
                             onClick={() => handleEditStart(review)}
-                            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 cursor-pointer"
                           >
                             <Pencil className="h-2.5 w-2.5" />
                             수정

@@ -68,6 +68,7 @@ export function FixedCostForm({
           end_date: editingFixedCost.end_date
             ? new Date(editingFixedCost.end_date)
             : null,
+          payment_day: (editingFixedCost as Record<string, unknown>).payment_day as number ?? 0,
         }
       : {
           category: "",
@@ -75,6 +76,7 @@ export function FixedCostForm({
           is_labor: false,
           start_date: null,
           end_date: null,
+          payment_day: 0,
         },
   });
 
@@ -212,6 +214,27 @@ export function FixedCostForm({
               />
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Payment Day */}
+        <div className="space-y-2">
+          <Label>결제일</Label>
+          <Select
+            value={String(watch("payment_day") ?? 0)}
+            onValueChange={(val) => setValue("payment_day", Number(val))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="결제일 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">말일</SelectItem>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                <SelectItem key={d} value={String(d)}>
+                  {d}일
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Actions */}

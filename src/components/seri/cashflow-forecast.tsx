@@ -142,7 +142,7 @@ export function CashflowForecast({
         {/* Scenario toggle */}
         <button
           onClick={() => setShowScenarios(!showScenarios)}
-          className="flex items-center gap-1 text-xs text-muted-foreground mt-3 hover:text-foreground transition-colors"
+          className="flex items-center gap-1 text-xs text-muted-foreground mt-3 hover:text-foreground transition-colors cursor-pointer"
         >
           {showScenarios ? (
             <ChevronUp className="h-3 w-3" />
