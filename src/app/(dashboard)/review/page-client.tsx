@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Loader2, Link } from "lucide-react";
+import { Sparkles, Loader2, Link, CheckSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,12 @@ import { ReviewStatsCards } from "@/components/dapjangi/review-stats-cards";
 import { ReviewQueue } from "@/components/dapjangi/review-queue";
 import { ReviewDetailPanel } from "@/components/dapjangi/review-detail-panel";
 import { SentimentChart } from "@/components/dapjangi/sentiment-chart";
+import { BatchReplyPanel } from "@/components/dapjangi/batch-reply-panel";
+import { getSentimentCategory } from "@/components/dapjangi/sentiment-badge";
+import {
+  batchPublishReplies,
+  updateReviewReplyText,
+} from "@/lib/actions/review-actions";
 
 interface ReviewPageClientProps {
   reviews: DeliveryReview[];
@@ -25,12 +31,20 @@ interface ReviewPageClientProps {
 }
 
 type FilterStatus = "all" | "pending" | "draft" | "ai_waiting" | "published";
+type SentimentFilter = "all" | "positive" | "neutral" | "negative";
 
 const FILTER_CHIPS: { key: FilterStatus; label: string }[] = [
   { key: "all", label: "전체" },
   { key: "pending", label: "미답변" },
   { key: "ai_waiting", label: "AI대기" },
   { key: "published", label: "발행완료" },
+];
+
+const SENTIMENT_CHIPS: { key: SentimentFilter; label: string }[] = [
+  { key: "all", label: "전체 감성" },
+  { key: "positive", label: "긍정" },
+  { key: "neutral", label: "중립" },
+  { key: "negative", label: "부정" },
 ];
 
 function getFilterCount(
@@ -56,21 +70,33 @@ function getFilterCount(
 
 function filterReviews(
   reviews: DeliveryReview[],
-  filter: FilterStatus
+  filter: FilterStatus,
+  sentiment: SentimentFilter = "all"
 ): DeliveryReview[] {
+  let result = reviews;
+
+  // Status filter
   switch (filter) {
     case "pending":
-      return reviews.filter((r) => r.replyStatus === "pending");
+      result = result.filter((r) => r.replyStatus === "pending");
+      break;
     case "ai_waiting":
-      return reviews.filter((r) => r.replyStatus === "draft");
+      result = result.filter((r) => r.replyStatus === "draft");
+      break;
     case "published":
-      return reviews.filter(
+      result = result.filter(
         (r) =>
           r.replyStatus === "published" || r.replyStatus === "auto_published"
       );
-    default:
-      return reviews;
+      break;
   }
+
+  // Sentiment filter
+  if (sentiment !== "all") {
+    result = result.filter((r) => getSentimentCategory(r.sentimentScore) === sentiment);
+  }
+
+  return result;
 }
 
 export function ReviewPageClient({
@@ -82,15 +108,23 @@ export function ReviewPageClient({
 }: ReviewPageClientProps) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
+  const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>("all");
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(
     reviews.length > 0 ? reviews[0].id : null
   );
   const [isGenerating, setIsGenerating] = useState(false);
+  const [batchPanelOpen, setBatchPanelOpen] = useState(false);
 
   // Compute filtered reviews
   const filteredReviews = useMemo(
-    () => filterReviews(reviews, activeFilter),
-    [reviews, activeFilter]
+    () => filterReviews(reviews, activeFilter, sentimentFilter),
+    [reviews, activeFilter, sentimentFilter]
+  );
+
+  // Reviews eligible for batch review (have AI reply in draft status)
+  const draftReviews = useMemo(
+    () => reviews.filter((r) => r.aiReply && r.replyStatus === "draft"),
+    [reviews]
   );
 
   // Find selected review
@@ -102,6 +136,22 @@ export function ReviewPageClient({
   const handleSelect = useCallback((id: string) => {
     setSelectedReviewId(id);
   }, []);
+
+  const handleBatchPublish = useCallback(
+    async (reviewIds: string[]) => {
+      await batchPublishReplies(reviewIds);
+      router.refresh();
+    },
+    [router]
+  );
+
+  const handleUpdateReply = useCallback(
+    async (reviewId: string, aiReply: string) => {
+      await updateReviewReplyText(reviewId, aiReply);
+      router.refresh();
+    },
+    [router]
+  );
 
   const handleGenerateReplies = async () => {
     setIsGenerating(true);
@@ -158,7 +208,7 @@ export function ReviewPageClient({
                 onClick={() => {
                   setActiveFilter(chip.key);
                   // Reset selection to first filtered review
-                  const filtered = filterReviews(reviews, chip.key);
+                  const filtered = filterReviews(reviews, chip.key, sentimentFilter);
                   if (filtered.length > 0) {
                     setSelectedReviewId(filtered[0].id);
                   } else {
@@ -184,27 +234,80 @@ export function ReviewPageClient({
           })}
         </div>
 
-        {/* Right: AI generate button */}
+        {/* Right: Batch + AI generate buttons */}
         {reviews.length > 0 && (
-          <Button
-            onClick={handleGenerateReplies}
-            disabled={isGenerating}
-            size="sm"
-            variant="outline"
-            className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50"
-          >
-            {isGenerating ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Sparkles className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-2">
+            {draftReviews.length > 0 && (
+              <Button
+                onClick={() => setBatchPanelOpen(true)}
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-green-300 text-green-700 hover:bg-green-50"
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                일괄 답글 검토
+                <Badge variant="secondary" className="text-[10px] h-4 px-1.5 ml-0.5">
+                  {draftReviews.length}
+                </Badge>
+              </Button>
             )}
-            {isGenerating ? "생성 중..." : "AI 답글 생성"}
-          </Button>
+            <Button
+              onClick={handleGenerateReplies}
+              disabled={isGenerating}
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50"
+            >
+              {isGenerating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              {isGenerating ? "생성 중..." : "AI 답글 생성"}
+            </Button>
+          </div>
         )}
       </div>
 
+      {/* SENTIMENT FILTER ROW */}
+      {reviews.length > 0 && (
+        <div className="flex items-center gap-1.5">
+          {SENTIMENT_CHIPS.map((chip) => {
+            const isActive = sentimentFilter === chip.key;
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => {
+                  setSentimentFilter(chip.key);
+                  const filtered = filterReviews(reviews, activeFilter, chip.key);
+                  if (filtered.length > 0) {
+                    setSelectedReviewId(filtered[0].id);
+                  } else {
+                    setSelectedReviewId(null);
+                  }
+                }}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
+                  isActive
+                    ? chip.key === "positive"
+                      ? "bg-green-500 text-white"
+                      : chip.key === "negative"
+                        ? "bg-red-500 text-white"
+                        : chip.key === "neutral"
+                          ? "bg-gray-500 text-white"
+                          : "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* STATS ROW */}
-      <ReviewStatsCards stats={stats} totalDays={totalDays} />
+      <ReviewStatsCards stats={stats} totalDays={totalDays} reviews={reviews} />
 
       {/* Empty State */}
       {reviews.length === 0 && (
@@ -278,6 +381,15 @@ export function ReviewPageClient({
       {reviews.length > 0 && (
         <SentimentChart reviews={reviews} avgSentiment={stats.avgSentiment} />
       )}
+
+      {/* Batch Reply Panel (Sheet) */}
+      <BatchReplyPanel
+        open={batchPanelOpen}
+        reviews={draftReviews}
+        onPublish={handleBatchPublish}
+        onUpdateReply={handleUpdateReply}
+        onClose={() => setBatchPanelOpen(false)}
+      />
     </div>
   );
 }

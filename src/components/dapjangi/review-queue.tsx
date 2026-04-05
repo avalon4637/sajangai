@@ -6,6 +6,7 @@
 import { Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { DeliveryReview } from "@/lib/queries/review";
+import { SentimentBadge } from "@/components/dapjangi/sentiment-badge";
 
 interface ReviewQueueProps {
   reviews: DeliveryReview[];
@@ -145,7 +146,7 @@ export function ReviewQueue({
               </p>
             )}
 
-            {/* Status tag */}
+            {/* Status tag + sentiment badge */}
             <div className="flex items-center justify-between">
               <Badge
                 variant={statusInfo.variant}
@@ -153,23 +154,7 @@ export function ReviewQueue({
               >
                 {statusInfo.label}
               </Badge>
-              {review.sentimentScore !== null && (
-                <span
-                  className={`text-[10px] font-medium ${
-                    review.sentimentScore >= 0.6
-                      ? "text-green-600"
-                      : review.sentimentScore <= 0.3
-                        ? "text-red-500"
-                        : "text-amber-600"
-                  }`}
-                >
-                  {review.sentimentScore >= 0.6
-                    ? "긍정"
-                    : review.sentimentScore <= 0.3
-                      ? "부정"
-                      : "중립"}
-                </span>
-              )}
+              <SentimentBadge score={review.sentimentScore} compact />
             </div>
           </button>
         );

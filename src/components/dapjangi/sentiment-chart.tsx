@@ -26,7 +26,7 @@ export function SentimentChart({ reviews, avgSentiment }: SentimentChartProps) {
   let negative = 0;
 
   reviews.forEach((r) => {
-    if (r.sentimentScore === null) return;
+    if (r.sentimentScore == null) return;
     if (r.sentimentScore >= 0.6) positive++;
     else if (r.sentimentScore <= 0.3) negative++;
     else neutral++;

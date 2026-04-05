@@ -5,27 +5,46 @@
 
 import { Star, MessageSquare, Sparkles, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import type { ReviewStats } from "@/lib/queries/review";
+import type { DeliveryReview, ReviewStats } from "@/lib/queries/review";
 
 interface ReviewStatsCardsProps {
   stats: ReviewStats;
   totalDays: number;
+  reviews?: DeliveryReview[];
 }
 
-export function ReviewStatsCards({ stats, totalDays }: ReviewStatsCardsProps) {
+export function ReviewStatsCards({ stats, totalDays, reviews }: ReviewStatsCardsProps) {
   const publishedCount =
     (stats.replyStatusBreakdown["auto_published"] ?? 0) +
     (stats.replyStatusBreakdown["published"] ?? 0);
+
+  // AI reply rate: reviews that have ai_reply (draft + published + auto_published)
+  const aiReplyCount = reviews
+    ? reviews.filter((r) => r.aiReply !== null).length
+    : publishedCount + (stats.replyStatusBreakdown["draft"] ?? 0);
   const replyRate =
     stats.totalCount > 0
-      ? Math.round((publishedCount / stats.totalCount) * 100)
+      ? Math.round((aiReplyCount / stats.totalCount) * 100)
       : 0;
 
-  // Sentiment score: convert from 0-1 to 0-100
-  const sentimentScore =
-    stats.avgSentiment !== null ? Math.round(stats.avgSentiment * 100) : null;
+  // Sentiment: calculate positive ratio from reviews if available
+  const positiveCount = reviews
+    ? reviews.filter((r) => r.sentimentScore !== null && r.sentimentScore >= 0.6).length
+    : 0;
+  const analyzedCount = reviews
+    ? reviews.filter((r) => r.sentimentScore !== null).length
+    : 0;
+  const positiveRate =
+    analyzedCount > 0 ? Math.round((positiveCount / analyzedCount) * 100) : null;
 
-  // Sentiment breakdown: count reviews by sentiment category
+  // Fallback to avgSentiment from stats
+  const sentimentScore =
+    positiveRate !== null
+      ? positiveRate
+      : stats.avgSentiment !== null
+        ? Math.round(stats.avgSentiment * 100)
+        : null;
+
   const dailyAvg =
     totalDays > 0 ? (stats.totalCount / totalDays).toFixed(1) : "0";
 
@@ -97,15 +116,15 @@ export function ReviewStatsCards({ stats, totalDays }: ReviewStatsCardsProps) {
             </span>
           </div>
           <div className="text-2xl font-bold">
-            {sentimentScore !== null ? `${sentimentScore}` : "-"}
-            {sentimentScore !== null && (
-              <span className="text-sm font-normal text-muted-foreground">
-                /100
-              </span>
-            )}
+            {sentimentScore !== null ? `${sentimentScore}%` : "-"}
           </div>
           {sentimentScore !== null && (
-            <SentimentBar score={sentimentScore} />
+            <>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                긍정 비율 ({positiveCount}/{analyzedCount}건)
+              </p>
+              <SentimentBar score={sentimentScore} />
+            </>
           )}
         </CardContent>
       </Card>
@@ -124,9 +143,9 @@ export function ReviewStatsCards({ stats, totalDays }: ReviewStatsCardsProps) {
           <div className="text-2xl font-bold">
             {stats.totalCount > 0 ? `${replyRate}%` : "-"}
           </div>
-          {publishedCount > 0 && (
+          {aiReplyCount > 0 && (
             <p className="text-xs text-muted-foreground mt-1">
-              절약 {savedHours}시간
+              {publishedCount > 0 ? `발행 ${publishedCount}건 · 절약 ${savedHours}시간` : `AI 답글 ${aiReplyCount}건`}
             </p>
           )}
         </CardContent>
