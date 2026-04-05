@@ -7,6 +7,7 @@ import { Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { DeliveryReview } from "@/lib/queries/review";
 import { SentimentBadge } from "@/components/dapjangi/sentiment-badge";
+import { formatRelativeTime } from "@/lib/utils/format-time";
 
 interface ReviewQueueProps {
   reviews: DeliveryReview[];
@@ -56,19 +57,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMin / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMin < 60) return `${diffMin}분 전`;
-  if (diffHours < 24) return `${diffHours}시간 전`;
-  if (diffDays < 7) return `${diffDays}일 전`;
-  return dateStr;
-}
+// formatRelativeTime is now imported from @/lib/utils/format-time
 
 export function ReviewQueue({
   reviews,
@@ -128,7 +117,7 @@ export function ReviewQueue({
                 </div>
               </div>
               <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                {formatRelativeDate(review.reviewDate)}
+                {formatRelativeTime(review.reviewDate)}
               </span>
             </div>
 

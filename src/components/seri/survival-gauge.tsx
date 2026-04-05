@@ -3,10 +3,22 @@
 // Survival Score Gauge - Half-circle SVG gauge with 5 factor bars
 // Displays the 5-factor survival score from survival-score.ts
 
-import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import {
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  ChevronRight,
+  Lightbulb,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { SurvivalScoreResult } from "@/lib/kpi/survival-score";
+import { Button } from "@/components/ui/button";
+import type {
+  SurvivalScoreResult,
+  SurvivalFactorDetail,
+} from "@/lib/kpi/survival-score";
 
 interface SurvivalGaugeProps {
   score: SurvivalScoreResult | null;
@@ -167,6 +179,9 @@ export function SurvivalGauge({ score, previousScore }: SurvivalGaugeProps) {
           )}
         </div>
 
+        {/* Context text */}
+        <ScoreContext total={score.total} />
+
         {/* Factor bars */}
         <div className="mt-5 space-y-2.5">
           <FactorBar
@@ -195,7 +210,118 @@ export function SurvivalGauge({ score, previousScore }: SurvivalGaugeProps) {
             max={score.factors.growth.max}
           />
         </div>
+
+        {/* CTA - score improvement tips */}
+        <ScoreImprovementCTA factors={score.factors} />
       </CardContent>
     </Card>
+  );
+}
+
+// Context text based on score range
+function ScoreContext({ total }: { total: number }) {
+  const rounded = Math.round(total);
+
+  let text: string;
+  let colorClass: string;
+
+  if (rounded >= 80) {
+    text = "안정적인 상태입니다";
+    colorClass = "text-green-600";
+  } else if (rounded >= 50) {
+    text = "개선이 필요합니다";
+    colorClass = "text-amber-600";
+  } else {
+    text = "위험 구간입니다. 지출 점검이 필요해요";
+    colorClass = "text-red-600";
+  }
+
+  return (
+    <p className={`text-sm font-medium text-center mt-2 ${colorClass}`}>
+      {text}
+    </p>
+  );
+}
+
+// Factor label mapping for tips
+const FACTOR_LABELS: Record<string, string> = {
+  profitability: "수익성",
+  fixedCostStability: "고정비안정",
+  laborAppropriateness: "인건비적정",
+  cashLiquidity: "현금유동성",
+  growth: "성장성",
+};
+
+const FACTOR_TIPS: Record<string, string> = {
+  profitability: "매출을 늘리거나 비용을 줄여보세요",
+  fixedCostStability: "고정비 비중을 낮춰보세요 (임대료, 구독료 등)",
+  laborAppropriateness: "인건비 비율을 조정해보세요",
+  cashLiquidity: "현금 유보를 늘리거나 지출 시기를 조절해보세요",
+  growth: "신규 고객 확보나 객단가 향상을 시도해보세요",
+};
+
+interface ScoreImprovementCTAProps {
+  factors: SurvivalScoreResult["factors"];
+}
+
+function ScoreImprovementCTA({ factors }: ScoreImprovementCTAProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Sort factors by score/max ratio (lowest first) and pick top 3
+  const sortedFactors = Object.entries(factors)
+    .map(([key, detail]) => ({
+      key,
+      label: FACTOR_LABELS[key] ?? key,
+      score: (detail as SurvivalFactorDetail).score,
+      max: (detail as SurvivalFactorDetail).max,
+      tip: FACTOR_TIPS[key] ?? "",
+    }))
+    .sort((a, b) => {
+      const ratioA = a.max > 0 ? a.score / a.max : 0;
+      const ratioB = b.max > 0 ? b.score / b.max : 0;
+      return ratioA - ratioB;
+    })
+    .slice(0, 3);
+
+  return (
+    <div className="mt-4">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <Lightbulb className="size-3.5" />
+        이 점수를 올리려면?
+        <ChevronRight
+          className={`size-3 transition-transform duration-200 ${
+            isOpen ? "rotate-90" : ""
+          }`}
+        />
+      </Button>
+
+      {isOpen && (
+        <div className="mt-2 space-y-2 rounded-lg bg-gray-50 p-3">
+          {sortedFactors.map((f) => (
+            <div key={f.key} className="text-xs">
+              <span className="font-medium text-foreground">
+                {f.label} {f.score}/{f.max}
+              </span>
+              <span className="text-muted-foreground"> &rarr; {f.tip}</span>
+            </div>
+          ))}
+
+          <div className="pt-2 border-t border-gray-200">
+            <Link
+              href="/chat"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[#2563EB] hover:underline"
+            >
+              점장에게 자세히 물어보기
+              <ChevronRight className="size-3" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
