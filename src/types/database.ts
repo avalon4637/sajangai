@@ -23,6 +23,8 @@ export type Database = {
           name: string;
           business_type: string | null;
           address: string | null;
+          is_active: boolean;
+          deactivated_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -32,6 +34,8 @@ export type Database = {
           name: string;
           business_type?: string | null;
           address?: string | null;
+          is_active?: boolean;
+          deactivated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -41,6 +45,8 @@ export type Database = {
           name?: string;
           business_type?: string | null;
           address?: string | null;
+          is_active?: boolean;
+          deactivated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -932,6 +938,48 @@ export type Database = {
           business_number?: string | null;
           memo?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_profiles: {
+        Row: {
+          id: string;
+          business_id: string;
+          communication_style: "concise" | "detailed" | "conversational";
+          focus_area: "revenue" | "review" | "cost" | "all";
+          notification_time: "morning" | "evening" | "both";
+          active_hours_start: number;
+          active_hours_end: number;
+          onboarding_completed: boolean;
+          role: "user" | "admin";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          communication_style?: "concise" | "detailed" | "conversational";
+          focus_area?: "revenue" | "review" | "cost" | "all";
+          notification_time?: "morning" | "evening" | "both";
+          active_hours_start?: number;
+          active_hours_end?: number;
+          onboarding_completed?: boolean;
+          role?: "user" | "admin";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          communication_style?: "concise" | "detailed" | "conversational";
+          focus_area?: "revenue" | "review" | "cost" | "all";
+          notification_time?: "morning" | "evening" | "both";
+          active_hours_start?: number;
+          active_hours_end?: number;
+          onboarding_completed?: boolean;
+          role?: "user" | "admin";
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
