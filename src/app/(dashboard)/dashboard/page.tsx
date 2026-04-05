@@ -145,8 +145,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100vh-0px)] md:h-screen flex-col">
-      {/* Daily Briefing Card */}
-      <div className="shrink-0 p-4 md:p-6 pb-0">
+      {/* Compact Briefing Strip */}
+      <div className="shrink-0 px-2 pt-2 md:px-3 md:pt-3">
         {briefingData.hasAnyData ? (
           <DailyBriefing data={briefingData} businessName={businessName} />
         ) : (
