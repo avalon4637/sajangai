@@ -45,7 +45,7 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus }: Mo
             <Menu className="size-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0 bg-white">
+        <SheetContent side="left" className="w-72 max-w-[85vw] p-0 bg-white">
           <SheetHeader className="px-6 py-5 border-b">
             <SheetTitle className="text-lg font-bold text-[#18181B] tracking-tight text-left">
               사장 AI

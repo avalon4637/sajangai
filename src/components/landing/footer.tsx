@@ -25,7 +25,7 @@ export function LandingFooter() {
 
   return (
     <footer className="bg-[#18181B]">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-[120px] py-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[120px] py-10">
         {/* Business Info */}
         <div className="mb-6">
           <h3 className="text-[#A1A1AA] text-xs font-semibold mb-4">

@@ -116,7 +116,7 @@ export function ExpenseTable({ data, onEdit }: ExpenseTableProps) {
   return (
     <>
       <div className="overflow-x-auto rounded-md border">
-        <Table>
+        <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

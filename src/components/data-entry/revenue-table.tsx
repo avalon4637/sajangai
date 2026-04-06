@@ -110,7 +110,7 @@ export function RevenueTable({ data, onEdit }: RevenueTableProps) {
   return (
     <>
       <div className="overflow-x-auto rounded-md border">
-        <Table>
+        <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

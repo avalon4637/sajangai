@@ -82,7 +82,7 @@ export function AgentTeamSection() {
         </div>
 
         {/* 2x2 Grid */}
-        <div className="mt-10 grid grid-cols-2 gap-4">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {agents.map((agent, i) => (
             <div
               key={agent.name}

@@ -90,7 +90,7 @@ export function ChatMessage({ message, onAction }: ChatMessageProps) {
       >
         <span className="text-base">{agent.emoji}</span>
       </div>
-      <div className="min-w-0 max-w-[620px] space-y-2">
+      <div className="min-w-0 max-w-[85vw] sm:max-w-[620px] space-y-2">
         <div className="flex items-center gap-1.5">
           <span className={`text-[13px] font-semibold ${agent.bgColor}`}>
             {agent.name}

@@ -18,7 +18,7 @@ export function ChurnRiskCards({
   recentRevisits,
 }: ChurnRiskCardsProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {/* Critical - 21+ days */}
       <div className="relative overflow-hidden rounded-xl bg-red-50 dark:bg-red-950/30 border-l-4 border-l-red-500 p-5">
         <div className="flex items-start justify-between">

@@ -282,7 +282,7 @@ export function TransactionsPageClient({
           <p className="text-xs font-medium text-muted-foreground mb-3">
             이번 달 합계
           </p>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">매출 </span>
               <span className="font-semibold text-emerald-600">

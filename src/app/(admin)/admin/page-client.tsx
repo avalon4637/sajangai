@@ -63,7 +63,7 @@ export function AdminDashboardClient({
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <KPICard label="총 가입자" value={data.kpi.totalUsers} suffix="명" />
         <KPICard
           label="유료 전환"
@@ -83,8 +83,8 @@ export function AdminDashboardClient({
       </div>
 
       {/* Filter + Search */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-1">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+        <div className="flex flex-wrap gap-1">
           {FILTERS.map((f) => (
             <button
               key={f.value}
@@ -104,13 +104,13 @@ export function AdminDashboardClient({
           placeholder="사업장명 검색..."
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="w-64 rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
+          className="w-full sm:w-64 rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
         />
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto overflow-hidden rounded-lg border border-zinc-200 bg-white">
+        <table className="w-full min-w-[600px] text-sm">
           <thead className="border-b bg-zinc-50 text-left text-zinc-500">
             <tr>
               <th className="px-4 py-3 font-medium">사업장</th>
@@ -283,7 +283,7 @@ function DetailPanel({
   }
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-96 border-l border-zinc-200 bg-white p-6 shadow-xl">
+    <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-96 max-w-[95vw] border-l border-zinc-200 bg-white p-6 shadow-xl overflow-y-auto">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold">{row.businessName}</h3>
         <button

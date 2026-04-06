@@ -324,7 +324,7 @@ export function AnalysisPageClient({
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as TabValue)}
         >
-          <TabsList>
+          <TabsList className="w-full sm:w-auto overflow-x-auto">
             <TabsTrigger value="trend" className="gap-1.5">
               <TrendingUp className="h-4 w-4" />
               <span>추이</span>
