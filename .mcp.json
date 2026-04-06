@@ -15,6 +15,11 @@
       "$comment": "Supabase project management and SQL execution",
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=kdswausexsnqdeghdmas"
+    },
+    "chrome-devtools": {
+      "$comment": "Browser automation via Chrome DevTools Protocol",
+      "command": "cmd.exe",
+      "args": ["/c", "npx -y chrome-devtools-mcp@latest"]
     }
   },
   "staggeredStartup": {

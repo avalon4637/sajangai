@@ -89,6 +89,8 @@ export default async function BillingPage() {
       <BillingPageClient
         subscription={subscriptionWithDays}
         payments={payments}
+        businessId={business?.id ?? null}
+        userEmail={user.email ?? ""}
       />
     </div>
   );

@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { activateSubscription } from "@/lib/billing/subscription";
+import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 
 interface SubscribeRequest {
   billingKey: string;
@@ -20,6 +21,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   if (!user || authError) {
     return NextResponse.json({ error: "인증이 필요합니다." }, { status: 401 });
+  }
+
+  // Rate limit: 3 attempts per 5 minutes per user
+  const rlKey = getRateLimitKey(request, "billing-subscribe", user.id);
+  const rl = checkRateLimit(rlKey, 3, 5 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
   }
 
   let body: SubscribeRequest;

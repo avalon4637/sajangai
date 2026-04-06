@@ -84,63 +84,9 @@ export interface CancelResult {
   cancelledAt: string;
 }
 
-/**
- * Issues a billing key for recurring payments.
- * The billing key is stored on the subscription record for future charges.
- *
- * @param customerKey - Unique identifier for the customer (business_id)
- * @param cardInfo - Card details (number, expiry, birth/password for CVC)
- */
-export async function issueBillingKey(
-  customerKey: string,
-  cardInfo: {
-    cardNumber: string;
-    expiryYear: string;
-    expiryMonth: string;
-    birthOrBusinessRegistrationNumber: string;
-    passwordTwoDigits: string;
-  }
-): Promise<BillingKeyInfo> {
-  if (isTestMode()) {
-    console.log("[PortOne TEST] issueBillingKey for", customerKey);
-    return {
-      billingKey: `test_billing_key_${customerKey}_${Date.now()}`,
-      customerId: customerKey,
-      issuedAt: new Date().toISOString(),
-    };
-  }
-
-  const storeId = getStoreId();
-
-  const result = await portoneRequest<{
-    billingKey: string;
-    customerId: string;
-    issuedAt: string;
-  }>("/billing-keys", {
-    method: "POST",
-    body: JSON.stringify({
-      storeId,
-      channelKey: process.env.PORTONE_CHANNEL_KEY,
-      customer: {
-        id: customerKey,
-      },
-      method: {
-        card: {
-          credential: {
-            number: cardInfo.cardNumber,
-            expiryYear: cardInfo.expiryYear,
-            expiryMonth: cardInfo.expiryMonth,
-            birthOrBusinessRegistrationNumber:
-              cardInfo.birthOrBusinessRegistrationNumber,
-            passwordTwoDigits: cardInfo.passwordTwoDigits,
-          },
-        },
-      },
-    }),
-  });
-
-  return result;
-}
+// NOTE: issueBillingKey was removed — billing key issuance now happens
+// client-side via @portone/browser-sdk (requestIssueBillingKey).
+// Card info never touches our server (PCI-DSS compliant).
 
 /**
  * Charges a stored billing key for recurring payments.
@@ -256,8 +202,12 @@ export async function verifyWebhookSignature(
 ): Promise<boolean> {
   const secret = process.env.PORTONE_WEBHOOK_SECRET;
   if (!secret) {
-    console.warn("PORTONE_WEBHOOK_SECRET not set, skipping verification");
-    return true;
+    if (isTestMode()) {
+      console.warn("[PortOne TEST] PORTONE_WEBHOOK_SECRET not set, skipping verification in test mode");
+      return true;
+    }
+    console.error("[PortOne] PORTONE_WEBHOOK_SECRET not set — rejecting webhook");
+    return false;
   }
 
   // PortOne webhook signature: HMAC-SHA256 of "webhook_id.timestamp.body"

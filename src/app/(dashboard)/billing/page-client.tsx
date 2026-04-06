@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import * as PortOne from "@portone/browser-sdk/v2";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { Subscription, Payment } from "@/lib/billing/subscription";
 
 interface BillingPageClientProps {
   subscription: (Subscription & { daysRemaining: number }) | null;
   payments: Payment[];
+  businessId: string | null;
+  userEmail: string;
 }
 
 function getStatusLabel(status: string): string {
@@ -55,36 +56,16 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-// Card number input formatter
-function formatCardNumber(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 16);
-  return digits.replace(/(.{4})/g, "$1-").replace(/-$/, "");
-}
-
-interface CardFormData {
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-  birthOrBusiness: string;
-  passwordTwo: string;
-}
-
 export function BillingPageClient({
   subscription,
   payments,
+  businessId,
+  userEmail,
 }: BillingPageClientProps) {
   const router = useRouter();
-  const [showCardForm, setShowCardForm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cardForm, setCardForm] = useState<CardFormData>({
-    cardNumber: "",
-    expiryMonth: "",
-    expiryYear: "",
-    birthOrBusiness: "",
-    passwordTwo: "",
-  });
 
   const isTrialActive = subscription?.status === "trial";
   const isActive = subscription?.status === "active";
@@ -94,45 +75,46 @@ export function BillingPageClient({
     subscription.status === "expired" ||
     subscription.status === "past_due";
 
-  const handleCardSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // @MX:ANCHOR: Payment flow entry point — PortOne browser SDK handles card tokenization
+  // @MX:REASON: Card info goes directly to PG (PCI-DSS compliant), never touches our server
+  const handleSubscribe = async () => {
+    if (!businessId) {
+      setError("사업장 정보가 없습니다. 사업자 등록을 먼저 완료해주세요.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // For MVP: call our subscribe API with a mock billing key
-      // In production, this would first call PortOne to issue a billing key,
-      // then pass the billing key to our API.
-      // Since PortOne browser SDK setup is complex, we use a simplified flow.
-
-      // Step 1: Issue billing key via our API (server-side)
-      const issueResponse = await fetch("/api/billing/issue-billing-key", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cardNumber: cardForm.cardNumber.replace(/-/g, ""),
-          expiryMonth: cardForm.expiryMonth,
-          expiryYear: cardForm.expiryYear,
-          birthOrBusinessRegistrationNumber: cardForm.birthOrBusiness,
-          passwordTwoDigits: cardForm.passwordTwo,
-        }),
+      // Step 1: PortOne browser SDK opens PG window
+      // Card info goes directly to PG provider (not our server)
+      const response = await PortOne.requestIssueBillingKey({
+        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+        billingKeyMethod: "CARD",
+        issueName: "sajang.ai 정기결제 등록",
+        customer: {
+          customerId: businessId,
+          email: userEmail,
+        },
       });
 
-      const issueData = (await issueResponse.json()) as {
-        billingKey?: string;
-        error?: string;
-      };
-
-      if (!issueResponse.ok || !issueData.billingKey) {
-        setError(issueData.error ?? "카드 등록에 실패했습니다.");
+      // Step 2: Check for errors (user cancelled or PG failure)
+      if (!response || response.code !== undefined) {
+        const msg =
+          response?.code === "USER_CANCELLED"
+            ? null // User cancelled — no error message needed
+            : response?.message ?? "카드 등록에 실패했습니다.";
+        if (msg) setError(msg);
         return;
       }
 
-      // Step 2: Activate subscription with billing key
+      // Step 3: Send billingKey to our server (NOT card info)
       const subscribeResponse = await fetch("/api/billing/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billingKey: issueData.billingKey }),
+        body: JSON.stringify({ billingKey: response.billingKey }),
       });
 
       const subscribeData = (await subscribeResponse.json()) as {
@@ -145,10 +127,9 @@ export function BillingPageClient({
         return;
       }
 
-      setShowCardForm(false);
       router.refresh();
-    } catch (error) {
-      console.error("[Billing] Payment failed:", error);
+    } catch (err) {
+      console.error("[Billing] Payment failed:", err);
       setError("결제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
@@ -173,8 +154,8 @@ export function BillingPageClient({
 
       setShowCancelConfirm(false);
       router.refresh();
-    } catch (error) {
-      console.error("[Billing] Subscription cancellation failed:", error);
+    } catch (err) {
+      console.error("[Billing] Subscription cancellation failed:", err);
       setError("취소 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
@@ -261,15 +242,15 @@ export function BillingPageClient({
           <CardContent>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
-                <span className="text-gray-400">•</span>
+                <span className="text-gray-400">&#x2022;</span>
                 데이터 수집 주 1회
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-gray-400">•</span>
+                <span className="text-gray-400">&#x2022;</span>
                 AI 분석 제한적 제공
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-gray-400">•</span>
+                <span className="text-gray-400">&#x2022;</span>
                 기본 대시보드 이용
               </li>
             </ul>
@@ -297,19 +278,19 @@ export function BillingPageClient({
           <CardContent>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
+                <span className="text-green-500">&#x2713;</span>
                 데이터 수집 하루 5회
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
+                <span className="text-green-500">&#x2713;</span>
                 AI 분석 무제한
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
+                <span className="text-green-500">&#x2713;</span>
                 전체 에이전트 팀 이용 (점장, 세리, 답장이, 바이럴)
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
+                <span className="text-green-500">&#x2713;</span>
                 일간 리포트 & 카카오 알림
               </li>
             </ul>
@@ -319,12 +300,13 @@ export function BillingPageClient({
 
       {/* CTA buttons */}
       <div className="space-y-3">
-        {(isTrialActive || isExpiredOrDue) && !showCardForm && (
+        {(isTrialActive || isExpiredOrDue) && (
           <Button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => setShowCardForm(true)}
+            onClick={handleSubscribe}
+            disabled={isLoading}
           >
-            점장 고용하기 — 월 9,900원
+            {isLoading ? "처리 중..." : "점장 고용하기 — 월 9,900원"}
           </Button>
         )}
 
@@ -339,139 +321,10 @@ export function BillingPageClient({
         )}
       </div>
 
-      {/* Card registration form */}
-      {showCardForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">카드 정보 입력</CardTitle>
-            <p className="text-sm text-gray-500">
-              카드 정보는 안전하게 PortOne을 통해 처리됩니다.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCardSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="cardNumber">카드 번호</Label>
-                <Input
-                  id="cardNumber"
-                  placeholder="1234-5678-9012-3456"
-                  value={cardForm.cardNumber}
-                  onChange={(e) =>
-                    setCardForm((prev) => ({
-                      ...prev,
-                      cardNumber: formatCardNumber(e.target.value),
-                    }))
-                  }
-                  maxLength={19}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="expiryMonth">유효기간 월 (MM)</Label>
-                  <Input
-                    id="expiryMonth"
-                    placeholder="12"
-                    value={cardForm.expiryMonth}
-                    onChange={(e) =>
-                      setCardForm((prev) => ({
-                        ...prev,
-                        expiryMonth: e.target.value.replace(/\D/g, "").slice(0, 2),
-                      }))
-                    }
-                    maxLength={2}
-                    required
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="expiryYear">유효기간 년 (YY)</Label>
-                  <Input
-                    id="expiryYear"
-                    placeholder="28"
-                    value={cardForm.expiryYear}
-                    onChange={(e) =>
-                      setCardForm((prev) => ({
-                        ...prev,
-                        expiryYear: e.target.value.replace(/\D/g, "").slice(0, 2),
-                      }))
-                    }
-                    maxLength={2}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="birthOrBusiness">
-                  생년월일 (6자리) 또는 사업자번호 (10자리)
-                </Label>
-                <Input
-                  id="birthOrBusiness"
-                  placeholder="920101 또는 1234567890"
-                  value={cardForm.birthOrBusiness}
-                  onChange={(e) =>
-                    setCardForm((prev) => ({
-                      ...prev,
-                      birthOrBusiness: e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 10),
-                    }))
-                  }
-                  maxLength={10}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="passwordTwo">카드 비밀번호 앞 2자리</Label>
-                <Input
-                  id="passwordTwo"
-                  type="password"
-                  placeholder="••"
-                  value={cardForm.passwordTwo}
-                  onChange={(e) =>
-                    setCardForm((prev) => ({
-                      ...prev,
-                      passwordTwo: e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 2),
-                    }))
-                  }
-                  maxLength={2}
-                  required
-                />
-              </div>
-
-              {error && (
-                <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-                  {error}
-                </p>
-              )}
-
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "처리 중..." : "점장 고용하기 — 9,900원 결제"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowCardForm(false);
-                    setError(null);
-                  }}
-                  disabled={isLoading}
-                >
-                  취소
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+          {error}
+        </p>
       )}
 
       {/* Cancel confirmation */}
@@ -485,11 +338,6 @@ export function BillingPageClient({
                 수 있습니다.
               </span>
             </p>
-            {error && (
-              <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md mb-4">
-                {error}
-              </p>
-            )}
             <div className="flex gap-3">
               <Button
                 variant="destructive"
