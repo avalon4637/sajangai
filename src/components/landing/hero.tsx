@@ -13,7 +13,7 @@ export function HeroSection() {
         <div className="flex-1 text-center md:text-left">
           {/* Headline */}
           <h1 className="break-keep text-4xl font-bold leading-tight tracking-tight text-[#1E293B] md:text-5xl lg:text-6xl">
-            하루 990원,
+            하루 330원,
             <br />
             점장 한 명.
           </h1>

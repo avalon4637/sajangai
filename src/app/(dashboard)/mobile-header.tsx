@@ -159,7 +159,7 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
                   subscriptionStatus === "active"
                     ? "bg-[#EFF6FF] text-[#2563EB]"
                     : subscriptionStatus === "trial"
-                      ? "bg-[#FFF7ED] text-[#EA580C]"
+                      ? "bg-amber-50 text-amber-700"
                       : "bg-gray-100 text-gray-500"
                 }`}>
                   {subscriptionStatus === "active"

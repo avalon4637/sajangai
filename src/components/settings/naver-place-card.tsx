@@ -42,6 +42,7 @@ export function NaverPlaceCard({
   const [placeUrl, setPlaceUrl] = useState("");
   const [placeId, setPlaceId] = useState<string | null>(initialPlaceId);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncSuccess, setSyncSuccess] = useState<boolean>(true);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(!initialPlaceId);
   const [lastSync, setLastSync] = useState(lastSyncedAt);
@@ -80,6 +81,7 @@ export function NaverPlaceCard({
           setIsEditing(false);
           setPlaceUrl("");
           setSyncMessage("네이버 플레이스가 연결되었습니다.");
+          setSyncSuccess(true);
         } else {
           const data = await response.json();
           setUrlError(data.error ?? "저장에 실패했습니다.");
@@ -106,6 +108,7 @@ export function NaverPlaceCard({
         }
       } catch {
         setSyncMessage("연결 해제에 실패했습니다.");
+        setSyncSuccess(false);
       }
     });
   }
@@ -126,14 +129,18 @@ export function NaverPlaceCard({
               ? `새 리뷰 ${data.newReviews}건 수집 (총 ${data.totalReviews}건)`
               : `새 리뷰 없음 (총 ${data.totalReviews}건)`
           );
+          setSyncSuccess(true);
           setLastSync(new Date().toISOString());
         } else if (response.status === 429) {
           setSyncMessage("시간당 3회 제한을 초과했습니다. 잠시 후 다시 시도해주세요.");
+          setSyncSuccess(false);
         } else {
           setSyncMessage(data.error ?? "동기화에 실패했습니다.");
+          setSyncSuccess(false);
         }
       } catch {
         setSyncMessage("동기화 요청에 실패했습니다.");
+        setSyncSuccess(false);
       }
     });
   }
@@ -189,7 +196,7 @@ export function NaverPlaceCard({
             </p>
 
             {syncMessage && (
-              <p className="text-xs text-muted-foreground">{syncMessage}</p>
+              <p className={`text-xs ${syncSuccess ? "text-green-600" : "text-red-600"}`}>{syncMessage}</p>
             )}
 
             <div className="flex gap-2">
@@ -235,7 +242,7 @@ export function NaverPlaceCard({
             </div>
 
             {syncMessage && (
-              <p className="text-xs text-muted-foreground">{syncMessage}</p>
+              <p className={`text-xs ${syncSuccess ? "text-green-600" : "text-red-600"}`}>{syncMessage}</p>
             )}
 
             <div className="flex gap-2">

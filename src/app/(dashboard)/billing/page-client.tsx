@@ -363,12 +363,12 @@ export function BillingPageClient({
       )}
 
       {/* Payment history */}
-      {payments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">결제 내역</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">결제 내역</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {payments.length > 0 ? (
             <div className="space-y-3">
               {payments.map((payment) => (
                 <div
@@ -403,9 +403,13 @@ export function BillingPageClient({
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              아직 결제 내역이 없습니다.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

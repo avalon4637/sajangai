@@ -10,7 +10,7 @@ interface JeongjangChatHubProps {
   businessId: string;
   businessName: string;
   initialMessages: ChatMessageData[];
-  roiData: {
+  roiData?: {
     savedMoney: number;
     savedHours: number;
     processedTasks: number;
@@ -140,7 +140,7 @@ export function JeongjangChatHub({
 
   return (
     <div className="flex h-full flex-col">
-      <RoiKpiStrip {...roiData} />
+      {roiData && <RoiKpiStrip {...roiData} />}
 
       {/* Chat area */}
       <div className="flex-1 overflow-y-auto bg-[#F8F9FA] px-8 py-5 space-y-4">

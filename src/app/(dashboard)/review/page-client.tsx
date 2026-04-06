@@ -113,6 +113,7 @@ export function ReviewPageClient({
     reviews.length > 0 ? reviews[0].id : null
   );
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [batchPanelOpen, setBatchPanelOpen] = useState(false);
   const [showUnrepliedOnly, setShowUnrepliedOnly] = useState(false);
 
@@ -166,12 +167,13 @@ export function ReviewPageClient({
 
   const handleGenerateReplies = async () => {
     setIsGenerating(true);
+    setGenerateError(null);
     try {
       const res = await fetch("/api/dapjangi/process", { method: "POST" });
       if (!res.ok) throw new Error("AI reply generation failed");
       router.refresh();
     } catch {
-      // Error handling - user sees button re-enabled
+      setGenerateError("AI 답글 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsGenerating(false);
     }
@@ -216,6 +218,7 @@ export function ReviewPageClient({
               <button
                 key={chip.key}
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => {
                   setActiveFilter(chip.key);
                   // Reset selection to first filtered review
@@ -280,6 +283,13 @@ export function ReviewPageClient({
         )}
       </div>
 
+      {/* AI generation error message */}
+      {generateError && (
+        <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+          {generateError}
+        </div>
+      )}
+
       {/* SENTIMENT FILTER ROW + REPLY STATS */}
       {reviews.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -289,6 +299,7 @@ export function ReviewPageClient({
               <button
                 key={chip.key}
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => {
                   setSentimentFilter(chip.key);
                   const filtered = filterReviews(reviews, activeFilter, chip.key);
@@ -321,6 +332,7 @@ export function ReviewPageClient({
           {/* Unreplied only toggle */}
           <button
             type="button"
+            aria-pressed={showUnrepliedOnly}
             onClick={() => {
               setShowUnrepliedOnly(!showUnrepliedOnly);
               // Reset selection when toggling

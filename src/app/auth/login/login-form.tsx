@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm() {
@@ -72,7 +73,15 @@ export function LoginForm() {
         )}
 
         <p className="text-center text-xs text-muted-foreground">
-          로그인하면 서비스 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다.
+          로그인하면{" "}
+          <Link href="/terms" className="underline hover:text-foreground">
+            서비스 이용약관
+          </Link>
+          {" "}및{" "}
+          <Link href="/privacy" className="underline hover:text-foreground">
+            개인정보처리방침
+          </Link>
+          에 동의하는 것으로 간주됩니다.
         </p>
       </div>
     </div>

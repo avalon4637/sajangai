@@ -19,6 +19,11 @@ describe("Sidebar", () => {
     userEmail: "test@example.com",
     businessName: "Test Store",
     subscriptionStatus: "active" as const,
+    businesses: [
+      { id: "biz-1", name: "Test Store" },
+      { id: "biz-2", name: "Second Store" },
+    ],
+    currentBusinessId: "biz-1",
   };
 
   it("renders the app title", () => {

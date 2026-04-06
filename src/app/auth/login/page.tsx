@@ -12,7 +12,7 @@ export default async function LoginPage() {
 
   return (
     // Dark overlay background covering entire screen
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-50 to-white px-4">
       {/* Modal card */}
       <div className="relative w-full max-w-[95vw] sm:max-w-[400px] bg-white rounded-2xl p-6 sm:p-8 shadow-2xl">
         {/* Close button - top right */}

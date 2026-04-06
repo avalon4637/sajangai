@@ -73,13 +73,14 @@ export function AddBusinessForm() {
         <Input
           id="businessNumber"
           name="businessNumber"
-          placeholder="000-00-00000"
-          maxLength={12}
+          placeholder="0000000000"
+          maxLength={10}
+          inputMode="numeric"
           required
           disabled={isLoading}
         />
         <p className="text-xs text-muted-foreground">
-          숫자 10자리를 입력해 주세요.
+          하이픈(-) 없이 숫자 10자리를 입력해 주세요.
         </p>
       </div>
 

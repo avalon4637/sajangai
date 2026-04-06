@@ -138,11 +138,12 @@ export default async function DashboardPage() {
   }
 
   // ROI data (placeholder - will be calculated from real data later)
-  const roiData = {
-    savedMoney: 847000,
-    savedHours: 23,
-    processedTasks: 142,
-  };
+  // TODO: Replace with real ROI calculation from actual usage data
+  // const roiData = {
+  //   savedMoney: 847000,
+  //   savedHours: 23,
+  //   processedTasks: 142,
+  // };
 
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100vh-0px)] md:h-screen flex-col">
@@ -161,7 +162,6 @@ export default async function DashboardPage() {
           businessId={businessId}
           businessName={businessName}
           initialMessages={initialMessages}
-          roiData={roiData}
         />
       </div>
     </div>

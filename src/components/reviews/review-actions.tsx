@@ -35,17 +35,8 @@ export function ReviewActions({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers or insecure contexts
-      const textarea = document.createElement("textarea");
-      textarea.value = aiReply;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Clipboard API not available (insecure context or unsupported browser)
+      alert("복사 기능을 사용할 수 없습니다. HTTPS 환경에서 다시 시도해주세요.");
     }
   }, [aiReply]);
 

@@ -17,7 +17,7 @@ export default async function BusinessSettingsPage() {
   const businesses = await getUserBusinesses();
 
   return (
-    <>
+    <div className="space-y-8">
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">등록된 사업장</h2>
         <BusinessList businesses={businesses} />
@@ -36,6 +36,6 @@ export default async function BusinessSettingsPage() {
           </p>
         )}
       </section>
-    </>
+    </div>
   );
 }
