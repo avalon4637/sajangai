@@ -109,10 +109,10 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
     <aside className="hidden md:flex w-64 flex-col border-r bg-white min-h-screen">
       {/* Logo */}
       <div className="px-6 py-5 border-b">
-        <h1 className="text-lg font-bold text-[#18181B] tracking-tight">
+        <h1 className="text-lg font-bold text-foreground tracking-tight">
           사장 AI
         </h1>
-        <p className="text-xs text-[#71717A] mt-0.5">AI 점장 서비스</p>
+        <p className="text-xs text-muted-foreground mt-0.5">AI 점장 서비스</p>
       </div>
 
       {/* Business switcher */}
@@ -124,7 +124,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
       <div className="flex-1 overflow-y-auto">
         {/* AI 팀 section - always visible, not collapsible */}
         <nav className="px-3 py-4">
-          <p className="px-3 mb-2 text-xs font-medium text-[#71717A]">AI 팀</p>
+          <p className="px-3 mb-2 text-xs font-medium text-muted-foreground">AI 팀</p>
           <ul className="space-y-1">
             {agentNavItems.map((item) => {
               const isActive = item.exact
@@ -136,8 +136,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                     href={item.href}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                       isActive
-                        ? "bg-[#EFF6FF] text-[#2563EB]"
-                        : "text-[#18181B] hover:bg-gray-50"
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground hover:bg-gray-50"
                     }`}
                   >
                     <span className="text-xl leading-none">{item.emoji}</span>
@@ -151,7 +151,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                       </p>
                       <p
                         className={`text-xs leading-tight mt-0.5 ${
-                          isActive ? "text-[#2563EB]/70" : "text-[#71717A]"
+                          isActive ? "text-primary/70" : "text-muted-foreground"
                         }`}
                       >
                         {item.role}
@@ -168,9 +168,9 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
         <div className="border-t px-3 py-3">
           <Collapsible open={isDataOpen} onOpenChange={() => toggleSection("data")}>
             <CollapsibleTrigger className="flex w-full items-center justify-between px-3 mb-2 group cursor-pointer">
-              <p className="text-xs font-medium text-[#71717A]">데이터 관리</p>
+              <p className="text-xs font-medium text-muted-foreground">데이터 관리</p>
               <ChevronDown
-                className={`size-3.5 text-[#71717A] transition-transform duration-200 ${
+                className={`size-3.5 text-muted-foreground transition-transform duration-200 ${
                   isDataOpen ? "" : "-rotate-90"
                 }`}
               />
@@ -185,8 +185,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                         href={item.href}
                         className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                           isActive
-                            ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
-                            : "text-[#71717A] hover:bg-gray-50 font-medium"
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-muted-foreground hover:bg-gray-50 font-medium"
                         }`}
                       >
                         <item.icon className="size-4 shrink-0" />
@@ -206,8 +206,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
             href="/chat"
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
               pathname.startsWith("/chat")
-                ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
-                : "text-[#18181B] hover:bg-gray-50 font-medium"
+                ? "bg-primary/10 text-primary font-semibold"
+                : "text-foreground hover:bg-gray-50 font-medium"
             }`}
           >
             <MessageSquare className="size-4 shrink-0" />
@@ -223,8 +223,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
           href="/billing"
           className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
             pathname.startsWith("/billing")
-              ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
-              : "text-[#71717A] hover:bg-gray-50 font-medium"
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-muted-foreground hover:bg-gray-50 font-medium"
           }`}
         >
           <CreditCard className="size-4 shrink-0" />
@@ -236,8 +236,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
           href="/settings"
           className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
             pathname.startsWith("/settings")
-              ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
-              : "text-[#71717A] hover:bg-gray-50 font-medium"
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-muted-foreground hover:bg-gray-50 font-medium"
           }`}
         >
           <Settings className="size-4 shrink-0" />
@@ -246,13 +246,13 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
 
         {/* User profile */}
         <div className="px-3 py-2.5 rounded-lg bg-gray-50">
-          <p className="text-sm font-semibold text-[#18181B] truncate">
+          <p className="text-sm font-semibold text-foreground truncate">
             {businessName ?? "사장님"}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               subscriptionStatus === "active"
-                ? "bg-[#EFF6FF] text-[#2563EB]"
+                ? "bg-primary/10 text-primary"
                 : subscriptionStatus === "trial"
                   ? "bg-amber-50 text-amber-700"
                   : "bg-gray-100 text-gray-500"
@@ -261,14 +261,14 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                subscriptionStatus === "trial" ? "무료 체험 중" : "미구독"}
             </span>
           </div>
-          <p className="text-xs text-[#71717A] truncate mt-1">{userEmail}</p>
+          <p className="text-xs text-muted-foreground truncate mt-1">{userEmail}</p>
         </div>
 
         {/* Logout */}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-[#71717A] hover:text-[#18181B] font-medium"
+          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground font-medium"
           onClick={signOut}
         >
           <LogOut className="size-4" />

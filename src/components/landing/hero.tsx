@@ -12,14 +12,14 @@ export function HeroSection() {
         {/* Left: Hero Copy */}
         <div className="flex-1 text-center md:text-left">
           {/* Headline */}
-          <h1 className="break-keep text-4xl font-bold leading-tight tracking-tight text-[#1E293B] md:text-5xl lg:text-6xl">
+          <h1 className="break-keep text-4xl font-bold leading-tight tracking-tight text-slate-800 md:text-5xl lg:text-6xl">
             하루 330원,
             <br />
             점장 한 명.
           </h1>
 
           {/* Sub */}
-          <p className="mt-5 break-keep text-lg leading-relaxed text-[#64748B] md:text-xl">
+          <p className="mt-5 break-keep text-lg leading-relaxed text-slate-500 md:text-xl">
             AI 점장이 매출·리뷰·비용을
             <br className="hidden sm:block" />
             매일 아침 카톡으로 챙겨드려요.
@@ -29,11 +29,11 @@ export function HeroSection() {
           <div className="mt-8 flex flex-col items-center gap-3 md:items-start">
             <Button
               asChild
-              className="h-14 w-full rounded-xl bg-[#1E40AF] px-8 text-base font-semibold text-white hover:bg-[#1d3a9e] md:w-auto"
+              className="h-14 w-full rounded-xl bg-blue-800 px-8 text-base font-semibold text-white hover:bg-blue-900 md:w-auto"
             >
               <Link href="/auth/signup">7일 무료 체험 시작하기 →</Link>
             </Button>
-            <p className="text-sm text-[#64748B]">카드 등록 없이 바로 시작</p>
+            <p className="text-sm text-slate-500">카드 등록 없이 바로 시작</p>
           </div>
         </div>
 

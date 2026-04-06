@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getUserBusinesses } from "@/lib/queries/business";
+import { getUserBusinesses, getCurrentBusinessId } from "@/lib/queries/business";
 import { AddBusinessForm } from "@/components/business/add-business-form";
 import { BusinessList } from "@/components/business/business-list";
 
@@ -15,12 +15,18 @@ export default async function BusinessSettingsPage() {
   }
 
   const businesses = await getUserBusinesses();
+  let currentBusinessId: string | undefined;
+  try {
+    currentBusinessId = await getCurrentBusinessId();
+  } catch {
+    // No current business selected
+  }
 
   return (
     <div className="space-y-8">
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">등록된 사업장</h2>
-        <BusinessList businesses={businesses} />
+        <BusinessList businesses={businesses} currentBusinessId={currentBusinessId} />
       </section>
 
       <section className="space-y-4">

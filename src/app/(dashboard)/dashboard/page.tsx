@@ -146,7 +146,7 @@ export default async function DashboardPage() {
   // };
 
   return (
-    <div className="-m-4 md:-m-6 flex h-[calc(100vh-0px)] md:h-screen flex-col">
+    <div className="-m-4 md:-m-6 flex h-screen flex-col">
       {/* Compact Briefing Strip */}
       <div className="shrink-0 px-2 pt-2 md:px-3 md:pt-3">
         {briefingData.hasAnyData ? (

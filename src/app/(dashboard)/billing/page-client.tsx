@@ -242,15 +242,15 @@ export function BillingPageClient({
           <CardContent>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
-                <span className="text-gray-400">&#x2022;</span>
+                <span className="text-muted-foreground">&ndash;</span>
                 데이터 수집 주 1회
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-gray-400">&#x2022;</span>
+                <span className="text-muted-foreground">&ndash;</span>
                 AI 분석 제한적 제공
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-gray-400">&#x2022;</span>
+                <span className="text-muted-foreground">&ndash;</span>
                 기본 대시보드 이용
               </li>
             </ul>
