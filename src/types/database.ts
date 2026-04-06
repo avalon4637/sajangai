@@ -963,6 +963,7 @@ export type Database = {
           role: "user" | "admin";
           push_token: string | null;
           push_platform: "android" | "ios" | "web" | null;
+          notification_preferences: Record<string, unknown>;
           created_at: string;
           updated_at: string;
         };
@@ -978,6 +979,7 @@ export type Database = {
           role?: "user" | "admin";
           push_token?: string | null;
           push_platform?: "android" | "ios" | "web" | null;
+          notification_preferences?: Record<string, unknown>;
           created_at?: string;
           updated_at?: string;
         };
@@ -993,6 +995,7 @@ export type Database = {
           role?: "user" | "admin";
           push_token?: string | null;
           push_platform?: "android" | "ios" | "web" | null;
+          notification_preferences?: Record<string, unknown>;
           created_at?: string;
           updated_at?: string;
         };

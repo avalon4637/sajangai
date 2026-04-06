@@ -11,7 +11,11 @@ export type TemplateId =
   | "CASHFLOW_WARNING"
   | "WEEKLY_SUMMARY"
   | "INSIGHT_ALERT"
-  | "MONTHLY_ROI";
+  | "MONTHLY_ROI"
+  | "ANOMALY_ALERT"
+  | "SUBSCRIPTION_STARTED"
+  | "SUBSCRIPTION_EXPIRING"
+  | "PAYMENT_FAILED";
 
 export interface TemplateConfig {
   templateId: string;
@@ -118,6 +122,77 @@ export const TEMPLATES: Record<TemplateId, TemplateConfig> = {
         buttonName: "주간 리포트 보기",
         linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
         linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
+      },
+    ],
+  },
+
+  ANOMALY_ALERT: {
+    templateId: process.env.KAKAO_TEMPLATE_ANOMALY ?? "KA01TP_ANOMALY",
+    description: "이상 매출 감지 - 평소 대비 급등/급락 시 발송",
+    variables: [
+      "business_name",
+      "anomaly_type",
+      "metric_name",
+      "current_value",
+      "expected_value",
+      "change_rate",
+    ],
+    buttons: [
+      {
+        buttonType: "WL",
+        buttonName: "상세 분석 보기",
+        linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
+        linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/dashboard`,
+      },
+    ],
+  },
+
+  SUBSCRIPTION_STARTED: {
+    templateId:
+      process.env.KAKAO_TEMPLATE_SUB_STARTED ?? "KA01TP_SUB_START",
+    description: "구독 시작 안내 - 점장 고용 완료 시 발송",
+    variables: ["business_name", "plan_name", "start_date", "next_billing_date"],
+    buttons: [
+      {
+        buttonType: "WL",
+        buttonName: "대시보드 바로가기",
+        linkMo: process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai",
+        linkPc: process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai",
+      },
+    ],
+  },
+
+  SUBSCRIPTION_EXPIRING: {
+    templateId:
+      process.env.KAKAO_TEMPLATE_SUB_EXPIRING ?? "KA01TP_SUB_EXPIRE",
+    description: "구독 만료 예정 안내 - 만료 3일 전 발송",
+    variables: ["business_name", "plan_name", "expire_date", "days_remaining"],
+    buttons: [
+      {
+        buttonType: "WL",
+        buttonName: "구독 연장하기",
+        linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/billing`,
+        linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/billing`,
+      },
+    ],
+  },
+
+  PAYMENT_FAILED: {
+    templateId: process.env.KAKAO_TEMPLATE_PAY_FAILED ?? "KA01TP_PAY_FAIL",
+    description: "결제 실패 안내 - 자동 결제 실패 시 발송",
+    variables: [
+      "business_name",
+      "plan_name",
+      "fail_date",
+      "fail_reason",
+      "retry_date",
+    ],
+    buttons: [
+      {
+        buttonType: "WL",
+        buttonName: "결제 수단 변경",
+        linkMo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/billing`,
+        linkPc: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://sajang.ai"}/billing`,
       },
     ],
   },

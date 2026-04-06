@@ -6,6 +6,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { sendAlimTalk, sendSMS } from "./solapi-client";
 import { TEMPLATES, buildVariables, type TemplateId } from "./templates";
+import {
+  DEFAULT_PREFERENCES,
+  isNotificationEnabled,
+  type NotificationPreferences,
+} from "./notification-preferences";
 
 export interface SendResult {
   success: boolean;
@@ -301,4 +306,182 @@ export async function sendInsightAlert(
     channel: smsResult.success ? "sms" : "none",
     error: smsResult.error,
   };
+}
+
+// @MX:ANCHOR: Notification preference loader - called by preference-aware send functions
+// @MX:REASON: Fan-in from sendAnomalyAlert, sendSubscriptionStarted, sendSubscriptionExpiring, sendPaymentFailed
+async function getPreferences(
+  businessId: string
+): Promise<NotificationPreferences> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("user_profiles")
+      .select("notification_preferences")
+      .eq("business_id", businessId)
+      .single();
+
+    if (!data?.notification_preferences) return DEFAULT_PREFERENCES;
+    return { ...DEFAULT_PREFERENCES, ...data.notification_preferences };
+  } catch {
+    return DEFAULT_PREFERENCES;
+  }
+}
+
+/**
+ * Generic preference-aware send helper.
+ * Checks notification preferences and quiet hours before sending.
+ */
+async function sendWithPreferences(
+  businessId: string,
+  templateId: TemplateId,
+  variables: Record<string, string>,
+  smsFallbackText: string
+): Promise<SendResult> {
+  const prefs = await getPreferences(businessId);
+  if (!isNotificationEnabled(prefs, templateId)) {
+    return { success: true, channel: "none" }; // Suppressed by user preference
+  }
+
+  const phone = await getBusinessPhone(businessId);
+  if (!phone) {
+    return { success: false, channel: "none", error: "No phone number found" };
+  }
+
+  const template = TEMPLATES[templateId];
+  const vars = buildVariables(templateId, variables);
+
+  const alimResult = await sendAlimTalk(
+    phone,
+    template.templateId,
+    vars,
+    template.buttons
+  );
+
+  if (alimResult.success) {
+    await logMessageSend(businessId, templateId, "alimtalk", true);
+    return { success: true, channel: "alimtalk" };
+  }
+
+  // SMS fallback
+  const smsResult = await sendSMS(phone, smsFallbackText.slice(0, 90));
+  await logMessageSend(
+    businessId,
+    templateId,
+    smsResult.success ? "sms" : "none",
+    smsResult.success,
+    smsResult.error
+  );
+
+  return {
+    success: smsResult.success,
+    channel: smsResult.success ? "sms" : "none",
+    error: smsResult.error,
+  };
+}
+
+/**
+ * Send anomaly alert when revenue/metric deviates significantly from normal.
+ */
+export async function sendAnomalyAlert(
+  businessId: string,
+  content: {
+    businessName: string;
+    anomalyType: string; // "급등" | "급락"
+    metricName: string;
+    currentValue: string;
+    expectedValue: string;
+    changeRate: string;
+  }
+): Promise<SendResult> {
+  return sendWithPreferences(
+    businessId,
+    "ANOMALY_ALERT",
+    {
+      business_name: content.businessName,
+      anomaly_type: content.anomalyType,
+      metric_name: content.metricName,
+      current_value: content.currentValue,
+      expected_value: content.expectedValue,
+      change_rate: content.changeRate,
+    },
+    `[${content.businessName}] ${content.metricName} ${content.anomalyType}: ${content.currentValue} (예상 ${content.expectedValue})`
+  );
+}
+
+/**
+ * Send subscription started confirmation.
+ */
+export async function sendSubscriptionStarted(
+  businessId: string,
+  content: {
+    businessName: string;
+    planName: string;
+    startDate: string;
+    nextBillingDate: string;
+  }
+): Promise<SendResult> {
+  return sendWithPreferences(
+    businessId,
+    "SUBSCRIPTION_STARTED",
+    {
+      business_name: content.businessName,
+      plan_name: content.planName,
+      start_date: content.startDate,
+      next_billing_date: content.nextBillingDate,
+    },
+    `[${content.businessName}] ${content.planName} 구독이 시작되었습니다. 다음 결제: ${content.nextBillingDate}`
+  );
+}
+
+/**
+ * Send subscription expiring warning (typically 3 days before expiry).
+ */
+export async function sendSubscriptionExpiring(
+  businessId: string,
+  content: {
+    businessName: string;
+    planName: string;
+    expireDate: string;
+    daysRemaining: string;
+  }
+): Promise<SendResult> {
+  return sendWithPreferences(
+    businessId,
+    "SUBSCRIPTION_EXPIRING",
+    {
+      business_name: content.businessName,
+      plan_name: content.planName,
+      expire_date: content.expireDate,
+      days_remaining: content.daysRemaining,
+    },
+    `[${content.businessName}] ${content.planName} 구독이 ${content.daysRemaining}일 후 만료됩니다.`
+  );
+}
+
+/**
+ * Send payment failure notification.
+ */
+export async function sendPaymentFailed(
+  businessId: string,
+  content: {
+    businessName: string;
+    planName: string;
+    failDate: string;
+    failReason: string;
+    retryDate: string;
+  }
+): Promise<SendResult> {
+  return sendWithPreferences(
+    businessId,
+    "PAYMENT_FAILED",
+    {
+      business_name: content.businessName,
+      plan_name: content.planName,
+      fail_date: content.failDate,
+      fail_reason: content.failReason,
+      retry_date: content.retryDate,
+    },
+    `[${content.businessName}] 결제 실패: ${content.failReason}. 재시도: ${content.retryDate}`
+  );
 }

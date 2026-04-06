@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Link2, Wallet, Landmark, Bot, Building2 } from "lucide-react";
+import { Link2, Wallet, Landmark, Bot, Building2, Bell } from "lucide-react";
 
 const tabs = [
   { href: "/settings", label: "데이터 연동", icon: Link2, exact: true },
@@ -10,6 +10,7 @@ const tabs = [
   { href: "/settings/budget", label: "예산 관리", icon: Wallet },
   { href: "/settings/loans", label: "대출금", icon: Landmark },
   { href: "/settings/connections", label: "AI 에이전트", icon: Bot },
+  { href: "/settings/notifications", label: "알림", icon: Bell },
 ] as const;
 
 export function SettingsNav() {
