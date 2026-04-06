@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Loader2, Link, CheckSquare } from "lucide-react";
+import { Sparkles, Loader2, Link, CheckSquare, CircleCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -114,12 +114,23 @@ export function ReviewPageClient({
   );
   const [isGenerating, setIsGenerating] = useState(false);
   const [batchPanelOpen, setBatchPanelOpen] = useState(false);
+  const [showUnrepliedOnly, setShowUnrepliedOnly] = useState(false);
+
+  // Reply completion stats
+  const replyStats = useMemo(() => {
+    const total = reviews.length;
+    const replied = reviews.filter((r) => r.repliedAt).length;
+    return { total, replied };
+  }, [reviews]);
 
   // Compute filtered reviews
-  const filteredReviews = useMemo(
-    () => filterReviews(reviews, activeFilter, sentimentFilter),
-    [reviews, activeFilter, sentimentFilter]
-  );
+  const filteredReviews = useMemo(() => {
+    let result = filterReviews(reviews, activeFilter, sentimentFilter);
+    if (showUnrepliedOnly) {
+      result = result.filter((r) => !r.repliedAt);
+    }
+    return result;
+  }, [reviews, activeFilter, sentimentFilter, showUnrepliedOnly]);
 
   // Reviews eligible for batch review (have AI reply in draft status)
   const draftReviews = useMemo(
@@ -269,9 +280,9 @@ export function ReviewPageClient({
         )}
       </div>
 
-      {/* SENTIMENT FILTER ROW */}
+      {/* SENTIMENT FILTER ROW + REPLY STATS */}
       {reviews.length > 0 && (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {SENTIMENT_CHIPS.map((chip) => {
             const isActive = sentimentFilter === chip.key;
             return (
@@ -303,6 +314,40 @@ export function ReviewPageClient({
               </button>
             );
           })}
+
+          {/* Separator */}
+          <div className="w-px h-4 bg-border mx-1" />
+
+          {/* Unreplied only toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowUnrepliedOnly(!showUnrepliedOnly);
+              // Reset selection when toggling
+              const nextFiltered = filterReviews(reviews, activeFilter, sentimentFilter)
+                .filter((r) => (!showUnrepliedOnly ? !r.repliedAt : true));
+              if (nextFiltered.length > 0) {
+                setSelectedReviewId(nextFiltered[0].id);
+              } else {
+                setSelectedReviewId(null);
+              }
+            }}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
+              showUnrepliedOnly
+                ? "bg-orange-500 text-white"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            }`}
+          >
+            미답변만
+          </button>
+
+          {/* Reply completion stats */}
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CircleCheck className="h-3.5 w-3.5 text-green-500" />
+            <span>
+              {replyStats.replied}/{replyStats.total} 답변 완료
+            </span>
+          </div>
         </div>
       )}
 

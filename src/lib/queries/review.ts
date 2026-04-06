@@ -18,6 +18,7 @@ export interface DeliveryReview {
   replyStatus: string;
   sentimentScore: number | null;
   keywords: string[];
+  repliedAt: string | null;
   syncedAt: string;
   createdAt: string;
 }
@@ -241,6 +242,7 @@ function mapReviewRow(row: Record<string, unknown>): DeliveryReview {
     replyStatus: row.reply_status as string,
     sentimentScore: row.sentiment_score as number | null,
     keywords: (row.keywords as string[]) ?? [],
+    repliedAt: (row.replied_at as string | null) ?? null,
     syncedAt: row.synced_at as string,
     createdAt: row.created_at as string,
   };

@@ -6,10 +6,10 @@
 |-------|-------|
 | SPEC ID | SPEC-MOBILE-001 |
 | Title | 모바일 최적화 + Capacitor 앱화 |
-| Priority | P3 (다음 스테이지) |
+| Priority | P2 (QA 이후) |
 | Status | Defined |
 | Estimated | 1~2주 |
-| Prerequisite | 웹앱 안정화 완료 후 |
+| Dependencies | SPEC-QA-001 완료 후 |
 
 ## Background
 

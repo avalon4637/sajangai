@@ -47,6 +47,35 @@ export async function batchPublishReplies(
  * @param reviewId - UUID of the review
  * @param aiReply - Updated reply text
  */
+/**
+ * Mark a review as replied (user confirmed they posted the reply on the platform).
+ * Sets replied_at to current timestamp, or clears it if already set (toggle).
+ *
+ * @param reviewId - UUID of the review
+ * @param replied - Whether to mark as replied (true) or unmark (false)
+ */
+export async function markAsReplied(
+  reviewId: string,
+  replied: boolean
+): Promise<{ success: boolean }> {
+  const businessId = await getCurrentBusinessId();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("delivery_reviews")
+    .update({ replied_at: replied ? new Date().toISOString() : null })
+    .eq("id", reviewId)
+    .eq("business_id", businessId);
+
+  if (error) {
+    throw new Error(`답변 완료 처리 실패: ${error.message}`);
+  }
+
+  revalidatePath("/review");
+
+  return { success: true };
+}
+
 export async function updateReviewReplyText(
   reviewId: string,
   aiReply: string

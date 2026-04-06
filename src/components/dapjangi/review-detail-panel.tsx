@@ -15,11 +15,15 @@ import {
   Sparkles,
   X,
   CheckCircle,
+  CircleCheck,
+  Circle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { DeliveryReview } from "@/lib/queries/review";
+import { ReviewActions } from "@/components/reviews/review-actions";
+import { markAsReplied } from "@/lib/actions/review-actions";
 
 interface ReviewDetailPanelProps {
   review: DeliveryReview | null;
@@ -38,6 +42,7 @@ export function ReviewDetailPanel({ review }: ReviewDetailPanelProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isMarkingReplied, setIsMarkingReplied] = useState(false);
 
   if (!review) {
     return (
@@ -111,12 +116,25 @@ export function ReviewDetailPanel({ review }: ReviewDetailPanelProps) {
     }
   };
 
+  const handleToggleReplied = async () => {
+    setIsMarkingReplied(true);
+    try {
+      await markAsReplied(review.id, !review.repliedAt);
+      router.refresh();
+    } catch {
+      // Error handling - user sees button re-enabled
+    } finally {
+      setIsMarkingReplied(false);
+    }
+  };
+
   const canPublish =
     review.replyStatus === "draft" || review.replyStatus === "pending";
   const hasReply = !!review.aiReply;
   const isPublished =
     review.replyStatus === "published" ||
     review.replyStatus === "auto_published";
+  const isReplied = !!review.repliedAt;
 
   return (
     <div className="flex flex-col h-full">
@@ -259,44 +277,75 @@ export function ReviewDetailPanel({ review }: ReviewDetailPanelProps) {
 
       {/* Action buttons footer */}
       {hasReply && !isEditing && (
-        <div className="border-t px-4 py-3 flex items-center gap-2">
-          {canPublish && (
+        <div className="border-t px-4 py-3 space-y-2">
+          {/* Row 1: Copy + Deep link */}
+          <ReviewActions
+            aiReply={review.aiReply}
+            platform={review.platform}
+          />
+
+          {/* Row 2: Publish / Edit / Regenerate / Replied toggle */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {canPublish && (
+              <Button
+                onClick={handlePublish}
+                disabled={isPublishing}
+                className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {isPublishing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                발행하기
+              </Button>
+            )}
+            {canPublish && (
+              <Button
+                variant="outline"
+                onClick={handleEditStart}
+                className="gap-1.5"
+              >
+                <Pencil className="h-4 w-4" />
+                수정하기
+              </Button>
+            )}
             <Button
-              onClick={handlePublish}
-              disabled={isPublishing}
-              className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+              variant="ghost"
+              onClick={handleRegenerate}
+              disabled={isRegenerating}
+              className="gap-1.5 text-muted-foreground"
             >
-              {isPublishing ? (
+              {isRegenerating ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <RefreshCw className="h-4 w-4" />
               )}
-              발행하기
+              재생성
             </Button>
-          )}
-          {canPublish && (
+
+            {/* Replied toggle */}
             <Button
-              variant="outline"
-              onClick={handleEditStart}
-              className="gap-1.5"
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleReplied}
+              disabled={isMarkingReplied}
+              className={`gap-1.5 ml-auto ${
+                isReplied
+                  ? "text-green-700"
+                  : "text-muted-foreground"
+              }`}
             >
-              <Pencil className="h-4 w-4" />
-              수정하기
+              {isMarkingReplied ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isReplied ? (
+                <CircleCheck className="h-4 w-4" />
+              ) : (
+                <Circle className="h-4 w-4" />
+              )}
+              {isReplied ? "답변 완료" : "답변 완료 표시"}
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            onClick={handleRegenerate}
-            disabled={isRegenerating}
-            className="gap-1.5 text-muted-foreground"
-          >
-            {isRegenerating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            재생성
-          </Button>
+          </div>
         </div>
       )}
     </div>
