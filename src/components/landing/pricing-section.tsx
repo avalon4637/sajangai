@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AnimateOnScroll } from "./animate-on-scroll";
 
 const freeFeatures = [
@@ -20,11 +21,11 @@ const paidFeatures = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="bg-[#F8FAFC] py-16 sm:py-20">
+    <section id="pricing" className="bg-slate-50 py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {/* Heading */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-[#1E293B] [word-break:keep-all] sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 [word-break:keep-all] sm:text-3xl">
             요금 안내
           </h2>
         </div>
@@ -34,18 +35,18 @@ export function PricingSection() {
           {/* Free trial */}
           <AnimateOnScroll delay={0}>
           <div className="rounded-2xl border-2 border-gray-200 bg-white p-6">
-            <p className="text-sm font-semibold tracking-wide text-[#64748B]">
+            <p className="text-sm font-semibold tracking-wide text-slate-500">
               무료 체험
             </p>
-            <p className="mt-2 text-3xl font-bold text-[#1E293B]">
+            <p className="mt-2 text-3xl font-bold text-slate-800">
               0원{" "}
-              <span className="text-sm font-normal text-[#64748B]">/ 7일</span>
+              <span className="text-sm font-normal text-slate-500">/ 7일</span>
             </p>
             <ul className="mt-6 space-y-3">
               {freeFeatures.map((feat) => (
                 <li
                   key={feat}
-                  className="flex items-start gap-3 text-sm text-[#64748B]"
+                  className="flex items-start gap-3 text-sm text-slate-500"
                 >
                   <span className="mt-0.5 shrink-0 text-muted-foreground">
                     &ndash;
@@ -63,18 +64,18 @@ export function PricingSection() {
             <p className="text-sm font-semibold tracking-wide text-primary">
               점장 고용
             </p>
-            <p className="mt-2 text-3xl font-bold text-[#1E293B]">
+            <p className="mt-2 text-3xl font-bold text-slate-800">
               29,700원{" "}
-              <span className="text-sm font-normal text-[#64748B]">/ 월</span>
+              <span className="text-sm font-normal text-slate-500">/ 월</span>
             </p>
-            <p className="mt-1 text-xs text-[#64748B]">
+            <p className="mt-1 text-xs text-slate-500">
               (하루 990원, 커피 한 잔 값)
             </p>
             <ul className="mt-6 space-y-3">
               {paidFeatures.map((feat) => (
                 <li
                   key={feat}
-                  className="flex items-start gap-3 text-sm text-[#1E293B]"
+                  className="flex items-start gap-3 text-sm text-slate-800"
                 >
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <span>{feat}</span>
@@ -87,21 +88,19 @@ export function PricingSection() {
 
         {/* CTA */}
         <div className="mt-8 text-center">
-          <Link href="/auth/signup" className="inline-block">
-            <button
-              className="h-14 w-full max-w-xs rounded-xl px-8 text-base font-bold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#1E40AF" }}
-            >
-              7일 무료 체험 시작하기 →
-            </button>
-          </Link>
-          <p className="mt-3 text-xs leading-relaxed text-[#64748B]">
+          <Button
+            asChild
+            className="h-14 w-full max-w-xs rounded-xl bg-blue-800 px-8 text-base font-semibold text-white hover:bg-blue-900"
+          >
+            <Link href="/auth/signup">7일 무료 체험 시작하기 →</Link>
+          </Button>
+          <p className="mt-3 text-xs leading-relaxed text-slate-500">
             카드 등록 없이 · 자동 결제 없음 · 7일 후 직접 결정하세요
           </p>
         </div>
 
         {/* Bottom quote */}
-        <p className="mt-6 text-center text-base font-semibold text-[#1E293B] [word-break:keep-all]">
+        <p className="mt-6 text-center text-base font-semibold text-slate-800 [word-break:keep-all]">
           &ldquo;구독료가 아니에요. 점장 월급이에요.&rdquo;
         </p>
       </div>

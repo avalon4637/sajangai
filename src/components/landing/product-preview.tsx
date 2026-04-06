@@ -102,11 +102,11 @@ export function ProductPreview() {
                     (h, i) => (
                       <div
                         key={i}
-                        className="flex-1 bg-primary/20 rounded-t"
+                        className="flex-1 bg-blue-100 rounded-t"
                         style={{ height: `${h}%` }}
                       >
                         <div
-                          className="w-full bg-primary rounded-t"
+                          className="w-full bg-blue-600 rounded-t"
                           style={{ height: "60%" }}
                         />
                       </div>

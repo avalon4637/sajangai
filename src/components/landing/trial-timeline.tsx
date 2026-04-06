@@ -90,7 +90,7 @@ export function TrialTimeline() {
             transform: isVisible ? "translateY(0)" : "translateY(16px)",
           }}
         >
-          <h2 className="text-2xl font-bold tracking-tight text-[#1E293B] [word-break:keep-all] sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 [word-break:keep-all] sm:text-3xl">
             7일 동안 이런 경험을 하게 돼요
           </h2>
         </div>
@@ -98,7 +98,7 @@ export function TrialTimeline() {
         {/* Timeline */}
         <div className="relative mt-12 pl-8">
           {/* Vertical line */}
-          <div className="absolute left-3 top-0 h-full w-0.5 bg-[#E2E8F0]" />
+          <div className="absolute left-3 top-0 h-full w-0.5 bg-slate-200" />
 
           <div className="space-y-8">
             {timelineItems.map((item, i) => (
@@ -138,12 +138,12 @@ export function TrialTimeline() {
                       {item.day}
                     </span>
                     <span className="text-base">{item.emoji}</span>
-                    <span className="text-sm font-semibold text-[#1E293B]">
+                    <span className="text-sm font-semibold text-slate-800">
                       {item.title}
                     </span>
                   </div>
 
-                  <p className="mt-1.5 text-sm text-[#64748B] [word-break:keep-all]">
+                  <p className="mt-1.5 text-sm text-slate-500 [word-break:keep-all]">
                     {item.desc}
                   </p>
 
@@ -182,8 +182,7 @@ export function TrialTimeline() {
         >
           <Link href="/auth/signup" className="inline-block">
             <button
-              className="h-14 rounded-xl px-8 text-base font-bold text-white shadow-lg transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#1E40AF" }}
+              className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg transition-opacity hover:bg-blue-900"
             >
               지금 체험 시작하기 →
             </button>

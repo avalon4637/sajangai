@@ -20,7 +20,7 @@ export function FinalCTASection() {
         </h2>
 
         <Link href="/auth/signup" className="mt-8 block">
-          <button className="mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-[#1E40AF] shadow-lg transition-opacity hover:opacity-90">
+          <button className="mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-blue-800 shadow-lg transition-opacity hover:opacity-90">
             7일 무료 체험 시작하기 →
           </button>
         </Link>

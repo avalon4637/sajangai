@@ -36,9 +36,9 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section id="faq" className="bg-[#F8FAFC] py-16 sm:py-20">
+    <section id="faq" className="bg-slate-50 py-16 sm:py-20">
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
-        <h2 className="text-center text-2xl font-bold tracking-tight text-[#1E293B] sm:text-3xl">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-slate-800 sm:text-3xl">
           자주 묻는 질문
         </h2>
 
@@ -47,12 +47,12 @@ export function FAQSection() {
             <AccordionItem
               key={i}
               value={`faq-${i}`}
-              className="border-b border-[#E2E8F0]"
+              className="border-b border-slate-200"
             >
-              <AccordionTrigger className="py-5 text-left text-base font-semibold text-[#1E293B] hover:no-underline [word-break:keep-all]">
+              <AccordionTrigger className="py-5 text-left text-base font-semibold text-slate-800 hover:no-underline [word-break:keep-all]">
                 {faq.q}
               </AccordionTrigger>
-              <AccordionContent className="pb-5 text-sm leading-relaxed text-[#64748B] [word-break:keep-all]">
+              <AccordionContent className="pb-5 text-sm leading-relaxed text-slate-500 [word-break:keep-all]">
                 {faq.a}
               </AccordionContent>
             </AccordionItem>

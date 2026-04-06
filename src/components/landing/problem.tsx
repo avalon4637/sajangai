@@ -28,7 +28,7 @@ export function ProblemSection() {
     <section id="problem" className="bg-white px-4 py-16 md:px-8 sm:py-20">
       <div className="mx-auto max-w-4xl">
         {/* Title */}
-        <h2 className="break-keep text-center text-2xl font-bold text-[#1E293B] md:text-3xl">
+        <h2 className="break-keep text-center text-2xl font-bold text-slate-800 md:text-3xl">
           사장님, 혹시 이런 거 겪고 계시죠?
         </h2>
 
@@ -37,10 +37,10 @@ export function ProblemSection() {
           {problems.map((item, i) => (
             <AnimateOnScroll key={i} delay={i * 100}>
               <div
-                className="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 text-center"
+                className="rounded-2xl border border-gray-100 bg-slate-50 p-6 text-center"
               >
                 <div className="mb-3 flex justify-center">{item.icon}</div>
-                <p className="break-keep text-sm leading-relaxed text-[#1E293B] md:text-base">
+                <p className="break-keep text-sm leading-relaxed text-slate-800 md:text-base">
                   {item.text}
                 </p>
               </div>
@@ -49,7 +49,7 @@ export function ProblemSection() {
         </div>
 
         {/* Bottom quote */}
-        <p className="mt-10 break-keep text-center text-base font-medium text-[#64748B] md:text-lg">
+        <p className="mt-10 break-keep text-center text-base font-medium text-slate-500 md:text-lg">
           바쁜 사장님 대신, 알아서 챙기는 AI 점장이 필요해요.
         </p>
       </div>

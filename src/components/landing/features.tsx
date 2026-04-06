@@ -39,7 +39,7 @@ export function FeaturesSection() {
     <section id="features" className="bg-white px-4 py-16 md:px-8 sm:py-20">
       <div className="mx-auto max-w-5xl">
         {/* Title */}
-        <h2 className="break-keep text-center text-2xl font-bold text-[#1E293B] md:text-3xl">
+        <h2 className="break-keep text-center text-2xl font-bold text-slate-800 md:text-3xl">
           점장이 매일 하는 일
         </h2>
 
@@ -48,7 +48,7 @@ export function FeaturesSection() {
           {featureItems.map((item, i) => (
             <AnimateOnScroll key={i} delay={i * 150}>
             <div
-              className={`flex flex-col items-center gap-6 rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 md:flex-row md:gap-10 md:p-8 ${
+              className={`flex flex-col items-center gap-6 rounded-2xl border border-gray-100 bg-slate-50 p-6 md:flex-row md:gap-10 md:p-8 ${
                 i % 2 === 1 ? "md:flex-row-reverse" : ""
               }`}
             >
@@ -58,14 +58,14 @@ export function FeaturesSection() {
                   <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
                     {item.number}
                   </span>
-                  <span className="text-xs font-semibold text-[#64748B]">
+                  <span className="text-xs font-semibold text-slate-500">
                     기능 {item.number}
                   </span>
                 </div>
-                <h3 className="break-keep text-xl font-bold text-[#1E293B]">
+                <h3 className="break-keep text-xl font-bold text-slate-800">
                   {item.title}
                 </h3>
-                <p className="mt-3 break-keep text-sm leading-relaxed text-[#64748B] md:text-base">
+                <p className="mt-3 break-keep text-sm leading-relaxed text-slate-500 md:text-base">
                   {item.desc}
                 </p>
               </div>

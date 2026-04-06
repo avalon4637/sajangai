@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Trophy, Coins } from "lucide-react";
 
 function useCountUp(target: number, duration: number, isActive: boolean) {
   const [count, setCount] = useState(0);
@@ -74,7 +75,7 @@ export function ROISection() {
     <section
       ref={sectionRef}
       id="roi"
-      className="bg-[#F8FAFC] py-16 sm:py-20"
+      className="bg-slate-50 py-16 sm:py-20"
     >
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         {/* Section heading */}
@@ -85,7 +86,7 @@ export function ROISection() {
             transform: isVisible ? "translateY(0)" : "translateY(16px)",
           }}
         >
-          <h2 className="text-2xl font-bold tracking-tight text-[#1E293B] [word-break:keep-all] sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 [word-break:keep-all] sm:text-3xl">
             점장이 벌어준 돈, 매달 알려드려요
           </h2>
         </div>
@@ -107,7 +108,7 @@ export function ROISection() {
             }}
           >
             <p className="text-sm font-semibold tracking-wide text-blue-200">
-              🏆 3월 점장 성과표
+              <Trophy className="inline h-4 w-4" /> 3월 점장 성과표
             </p>
 
             {/* 3 metrics */}
@@ -137,7 +138,7 @@ export function ROISection() {
             {/* ROI multiplier */}
             <div className="mt-4">
               <span className="text-5xl font-bold text-[#F59E0B]">
-                💰 25배
+                <Coins className="mb-1 inline h-10 w-10" /> 25배
               </span>
               <span className="ml-2 text-xl font-semibold text-[#FCD34D]">
                 회수
@@ -147,7 +148,7 @@ export function ROISection() {
 
           {/* Card body — detail */}
           <div className="bg-white px-6 py-5">
-            <ul className="space-y-3 text-sm text-[#1E293B]">
+            <ul className="space-y-3 text-sm text-slate-800">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-[#10B981]">●</span>
                 <span>
@@ -163,14 +164,14 @@ export function ROISection() {
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-[#1E40AF]">●</span>
+                <span className="mt-0.5 text-blue-800">●</span>
                 <span>
                   <strong>시간:</strong> 리뷰 답글 38건, 리포트 30회 자동 처리
                 </span>
               </li>
             </ul>
 
-            <p className="mt-5 text-xs leading-relaxed text-[#64748B]">
+            <p className="mt-5 text-xs leading-relaxed text-slate-500">
               * 보수적 기준으로 계산해요. 과장 없이, 실제 데이터 근거로.
             </p>
           </div>

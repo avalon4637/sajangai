@@ -35,15 +35,15 @@ export function InsightShowcaseSection() {
   return (
     <section
       id="insight-showcase"
-      className="bg-[#F8FAFC] px-4 py-16 md:px-8 sm:py-20"
+      className="bg-slate-50 px-4 py-16 md:px-8 sm:py-20"
     >
       <div className="mx-auto max-w-5xl">
         {/* Title */}
         <div className="mb-10 text-center">
-          <h2 className="break-keep text-2xl font-bold text-[#1E293B] md:text-3xl">
+          <h2 className="break-keep text-2xl font-bold text-slate-800 md:text-3xl">
             점장이 이런 것까지 알려줘요
           </h2>
-          <p className="mt-2 break-keep text-base text-[#64748B]">
+          <p className="mt-2 break-keep text-base text-slate-500">
             실제 카카오톡으로 받는 알림이에요
           </p>
         </div>
@@ -57,7 +57,7 @@ export function InsightShowcaseSection() {
               className="w-64 min-h-[280px] flex-shrink-0 md:w-auto md:flex-shrink"
             >
               {/* Category label */}
-              <p className="mb-2 text-center text-xs font-semibold text-[#64748B]">
+              <p className="mb-2 text-center text-xs font-semibold text-slate-500">
                 {item.title}
               </p>
               <KakaoMockup
@@ -72,9 +72,9 @@ export function InsightShowcaseSection() {
         </div>
 
         {/* Bottom note */}
-        <p className="mt-10 text-center text-sm font-medium text-[#64748B]">
+        <p className="mt-10 text-center text-sm font-medium text-slate-500">
           ... 외{" "}
-          <span className="font-bold text-[#1E40AF]">25가지</span> 인사이트를
+          <span className="font-bold text-blue-800">25가지</span> 인사이트를
           자동으로 감지해요
         </p>
       </div>

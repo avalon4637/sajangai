@@ -17,14 +17,13 @@ export function FloatingCTA() {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-[#E2E8F0] bg-white/95 p-3 backdrop-blur-sm transition-transform duration-300 md:hidden ${
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 p-3 backdrop-blur-sm transition-transform duration-300 md:hidden ${
         visible ? "translate-y-0" : "translate-y-full"
       }`}
     >
       <Link href="/auth/signup" className="block">
         <button
-          className="h-12 w-full rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "#1E40AF" }}
+          className="h-12 w-full rounded-xl bg-blue-800 text-sm font-bold text-white transition-opacity hover:bg-blue-900"
         >
           7일 무료 체험 시작하기 →
         </button>

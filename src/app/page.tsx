@@ -56,8 +56,8 @@ export default function LandingPage() {
         {/* M3: ROI + Agent Team + Pricing (S6~S8) */}
         <ROISection />
         <AgentTeamSection />
-        <PricingSection />
         <SocialProof />
+        <PricingSection />
 
         {/* M4: Trial + FAQ + Final CTA (S9~S11) */}
         <TrialTimeline />
