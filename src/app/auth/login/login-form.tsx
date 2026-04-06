@@ -30,15 +30,12 @@ export function LoginForm() {
   return (
     <div className="flex flex-col items-center gap-8">
       {/* Logo and tagline */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          사장 AI
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          sajang.ai
         </h1>
         <p className="text-muted-foreground text-sm">
-          하루 330원, 점장 한 명
-        </p>
-        <p className="text-muted-foreground text-sm">
-          AI 점장이 매장 운영을 알아서 챙겨드립니다
+          AI 점장에게 매장 관리를 맡겨보세요
         </p>
       </div>
 

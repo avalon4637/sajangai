@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "사장 AI - AI 점장 서비스",
-    template: "%s | 사장 AI",
+    default: "sajang.ai - AI 점장 서비스",
+    template: "%s | sajang.ai",
   },
   description:
     "하루 990원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다.",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "사장 AI",
+    title: "sajang.ai",
   },
 };
 
