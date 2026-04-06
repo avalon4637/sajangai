@@ -961,6 +961,8 @@ export type Database = {
           active_hours_end: number;
           onboarding_completed: boolean;
           role: "user" | "admin";
+          push_token: string | null;
+          push_platform: "android" | "ios" | "web" | null;
           created_at: string;
           updated_at: string;
         };
@@ -974,6 +976,8 @@ export type Database = {
           active_hours_end?: number;
           onboarding_completed?: boolean;
           role?: "user" | "admin";
+          push_token?: string | null;
+          push_platform?: "android" | "ios" | "web" | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -987,6 +991,8 @@ export type Database = {
           active_hours_end?: number;
           onboarding_completed?: boolean;
           role?: "user" | "admin";
+          push_token?: string | null;
+          push_platform?: "android" | "ios" | "web" | null;
           created_at?: string;
           updated_at?: string;
         };

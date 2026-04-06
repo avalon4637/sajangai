@@ -1,5 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { createClient } from "@/lib/supabase/client";
+import { getPlatform } from "./platform";
 
 /**
  * Initialize push notifications on native platforms.
@@ -21,6 +23,26 @@ export async function initPushNotifications(): Promise<string | null> {
       resolve(null);
     });
   });
+}
+
+/**
+ * Save push notification token to the user's profile in Supabase.
+ * Stores the token alongside the platform identifier.
+ */
+export async function savePushToken(token: string): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("user_profiles")
+    .update({
+      push_token: token,
+      push_platform: getPlatform(),
+    })
+    .eq("id", user.id);
 }
 
 /**
