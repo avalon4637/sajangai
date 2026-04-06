@@ -25,6 +25,8 @@ export type Database = {
           address: string | null;
           is_active: boolean;
           deactivated_at: string | null;
+          naver_place_id: string | null;
+          naver_last_synced_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -36,6 +38,8 @@ export type Database = {
           address?: string | null;
           is_active?: boolean;
           deactivated_at?: string | null;
+          naver_place_id?: string | null;
+          naver_last_synced_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -47,6 +51,8 @@ export type Database = {
           address?: string | null;
           is_active?: boolean;
           deactivated_at?: string | null;
+          naver_place_id?: string | null;
+          naver_last_synced_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -285,7 +291,7 @@ export type Database = {
         Row: {
           id: string;
           business_id: string;
-          platform: "baemin" | "coupangeats" | "yogiyo";
+          platform: "baemin" | "coupangeats" | "yogiyo" | "naver_place";
           external_id: string | null;
           rating: number;
           content: string | null;
@@ -296,13 +302,14 @@ export type Database = {
           reply_status: "pending" | "auto_published" | "draft" | "published" | "skipped";
           sentiment_score: number | null;
           keywords: string[] | null;
+          replied_at: string | null;
           synced_at: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           business_id: string;
-          platform: "baemin" | "coupangeats" | "yogiyo";
+          platform: "baemin" | "coupangeats" | "yogiyo" | "naver_place";
           external_id?: string | null;
           rating: number;
           content?: string | null;
@@ -313,13 +320,14 @@ export type Database = {
           reply_status?: "pending" | "auto_published" | "draft" | "published" | "skipped";
           sentiment_score?: number | null;
           keywords?: string[] | null;
+          replied_at?: string | null;
           synced_at?: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           business_id?: string;
-          platform?: "baemin" | "coupangeats" | "yogiyo";
+          platform?: "baemin" | "coupangeats" | "yogiyo" | "naver_place";
           external_id?: string | null;
           rating?: number;
           content?: string | null;
@@ -330,6 +338,7 @@ export type Database = {
           reply_status?: "pending" | "auto_published" | "draft" | "published" | "skipped";
           sentiment_score?: number | null;
           keywords?: string[] | null;
+          replied_at?: string | null;
           synced_at?: string;
           created_at?: string;
         };

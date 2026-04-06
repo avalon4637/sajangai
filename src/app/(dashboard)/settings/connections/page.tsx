@@ -9,6 +9,7 @@ import { getCurrentBusinessId } from "@/lib/queries/business";
 import { getConnections } from "@/lib/queries/connection";
 import { isHyphenConfigured } from "@/lib/hyphen/client";
 import { PlatformConnectionCard } from "@/components/settings/platform-connection-card";
+import { NaverPlaceCard } from "@/components/settings/naver-place-card";
 
 // Platform display metadata
 const PLATFORMS = [
@@ -57,9 +58,15 @@ export default async function ConnectionsPage() {
     redirect("/auth/onboarding");
   }
 
-  const [connections, hyphenConfigured] = await Promise.all([
+  const [connections, hyphenConfigured, businessData] = await Promise.all([
     getConnections(businessId),
     Promise.resolve(isHyphenConfigured()),
+    supabase
+      .from("businesses")
+      .select("naver_place_id, naver_last_synced_at")
+      .eq("id", businessId)
+      .single()
+      .then((res) => res.data),
   ]);
 
   // Map connections by type for lookup
@@ -138,6 +145,17 @@ export default async function ConnectionsPage() {
               />
             )
           )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">리뷰 수집</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NaverPlaceCard
+            businessId={businessId}
+            naverPlaceId={businessData?.naver_place_id ?? null}
+            lastSyncedAt={businessData?.naver_last_synced_at ?? null}
+          />
         </div>
       </section>
     </div>
