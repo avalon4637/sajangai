@@ -78,7 +78,8 @@ export async function trackReplyEffectiveness(
   const endDateStr = new Date().toISOString().split("T")[0];
 
   // Fetch reviews that received a reply (auto_published or published)
-  const { data: repliedReviews } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: repliedReviews } = await (supabase as any)
     .from("delivery_reviews")
     .select("id, rating, platform_user_id, customer_phone, review_date, reply_status")
     .eq("business_id", businessId)
@@ -129,7 +130,8 @@ export async function trackReplyEffectiveness(
   }
 
   // Query delivery_reviews for repeat orders (new reviews from same customers after reply)
-  const { data: returnOrders } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: returnOrders } = await (supabase as any)
     .from("delivery_reviews")
     .select("platform_user_id, customer_phone, review_date")
     .eq("business_id", businessId)
@@ -237,7 +239,8 @@ export async function generateManagementActions(
   const startDate = thirtyDaysAgo.toISOString().split("T")[0];
 
   // Fetch recent reviews with sentiment data
-  const { data: reviews } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: reviews } = await (supabase as any)
     .from("delivery_reviews")
     .select("id, rating, content, keywords, sentiment_score, review_date")
     .eq("business_id", businessId)
@@ -264,10 +267,10 @@ export async function generateManagementActions(
       // Determine category from keyword context
       const category = detectCategory(keyword, review.content);
       const existing = clusterMap.get(category) ?? {
-        keywords: new Map(),
-        contents: [],
-        sentiments: [],
-        dates: [],
+        keywords: new Map<string, number>(),
+        contents: [] as string[],
+        sentiments: [] as number[],
+        dates: [] as string[],
       };
 
       existing.keywords.set(keyword, (existing.keywords.get(keyword) ?? 0) + 1);
@@ -432,7 +435,7 @@ async function saveManagementActionsToMemory(
   const memoryItems = actions.map((action) => ({
     business_id: businessId,
     agent_type: "dapjangi" as const,
-    memory_type: "management_action" as const,
+    memory_type: "management_action",
     content: JSON.stringify({
       actionId: action.id,
       category: action.category,
@@ -444,7 +447,8 @@ async function saveManagementActionsToMemory(
     importance: action.severity === "critical" ? 9 : action.severity === "warning" ? 7 : 5,
   }));
 
-  const { error } = await supabase.from("agent_memory").insert(memoryItems);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("agent_memory").insert(memoryItems);
   if (error) {
     console.error("[ReviewFeedbackLoop] agent_memory insert failed:", error);
   }
@@ -467,7 +471,8 @@ export async function evaluateActionImpact(
   const supabase = await createClient();
 
   // Load the action from agent_memory
-  const { data: memories } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: memories } = await (supabase as any)
     .from("agent_memory")
     .select("content, created_at")
     .eq("business_id", businessId)

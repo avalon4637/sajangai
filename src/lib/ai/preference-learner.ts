@@ -1,5 +1,5 @@
 // Preference learner - tracks and learns user conversation patterns
-// Stores preferences in agent_memory (type: 'preference', agent_type: 'jeongjang')
+// Stores preferences in agent_memory (type: 'preference', agent_type: 'manager')
 // Non-blocking: designed to be called fire-and-forget after chat responses
 
 import { createClient } from "@/lib/supabase/server";
@@ -155,11 +155,12 @@ export async function learnPreferences(
   );
 
   // Load existing preferences from agent_memory
-  const { data: existing } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: existing } = await (supabase as any)
     .from("agent_memory")
     .select("id, content")
     .eq("business_id", businessId)
-    .eq("agent_type", "jeongjang")
+    .eq("agent_type", "manager")
     .eq("memory_type", "preference")
     .order("created_at", { ascending: false })
     .limit(1);
@@ -195,9 +196,10 @@ export async function learnPreferences(
       .eq("id", existingRow.id);
   } else {
     // Create new preference record
-    await supabase.from("agent_memory").insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("agent_memory").insert({
       business_id: businessId,
-      agent_type: "jeongjang",
+      agent_type: "manager",
       memory_type: "preference",
       content: serialized,
       importance: 5,
@@ -218,11 +220,12 @@ export async function buildPreferencePromptModifier(
 ): Promise<string> {
   const supabase = await createClient();
 
-  const { data } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase as any)
     .from("agent_memory")
     .select("content")
     .eq("business_id", businessId)
-    .eq("agent_type", "jeongjang")
+    .eq("agent_type", "manager")
     .eq("memory_type", "preference")
     .order("created_at", { ascending: false })
     .limit(1);

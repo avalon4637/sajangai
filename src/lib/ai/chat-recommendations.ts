@@ -57,7 +57,8 @@ export async function generateTopicSuggestions(
     thisMonthRevenueResult,
   ] = await Promise.all([
     // Latest daily_report for financial health signal
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("daily_reports")
       .select("report_date, report_type, content")
       .eq("business_id", businessId)

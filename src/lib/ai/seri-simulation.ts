@@ -66,7 +66,8 @@ export async function buildKpiInputFromSeri(
       .lte("date", monthEnd),
 
     // Fixed costs including labor
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("fixed_costs")
       .select("amount, is_labor")
       .eq("business_id", businessId)
@@ -83,14 +84,15 @@ export async function buildKpiInputFromSeri(
     0
   );
 
-  const fixedCosts = fixedCostResult.data ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fixedCosts: any[] = fixedCostResult.data ?? [];
   const totalFixedCost = fixedCosts.reduce(
-    (sum, f) => sum + (f.amount ?? 0),
+    (sum: number, f: { amount?: number }) => sum + (f.amount ?? 0),
     0
   );
   const totalLaborCost = fixedCosts
-    .filter((f) => f.is_labor)
-    .reduce((sum, f) => sum + (f.amount ?? 0), 0);
+    .filter((f: { is_labor?: boolean }) => f.is_labor)
+    .reduce((sum: number, f: { amount?: number }) => sum + (f.amount ?? 0), 0);
 
   return {
     totalRevenue,
@@ -109,7 +111,8 @@ async function loadLatestSeriReport(
 ): Promise<SeriReportContent | null> {
   const supabase = await createClient();
 
-  const { data } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase as any)
     .from("daily_reports")
     .select("content")
     .eq("business_id", businessId)
