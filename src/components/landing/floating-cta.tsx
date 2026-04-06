@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function FloatingCTA() {
   const [visible, setVisible] = useState(false);
@@ -22,11 +23,9 @@ export function FloatingCTA() {
       }`}
     >
       <Link href="/auth/signup" className="block">
-        <button
-          className="h-12 w-full rounded-xl bg-blue-800 text-sm font-bold text-white transition-opacity hover:bg-blue-900"
-        >
+        <Button className="h-12 w-full rounded-xl bg-blue-800 text-sm font-bold text-white hover:bg-blue-900">
           7일 무료 체험 시작하기 →
-        </button>
+        </Button>
       </Link>
     </div>
   );

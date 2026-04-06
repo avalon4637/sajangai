@@ -42,11 +42,7 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="py-20 sm:py-28"
-      style={{
-        background:
-          "linear-gradient(180deg, oklch(0.985 0 0) 0%, oklch(0.97 0.005 250) 100%)",
-      }}
+      className="bg-gradient-to-b from-white to-slate-50 py-20 sm:py-28"
     >
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">

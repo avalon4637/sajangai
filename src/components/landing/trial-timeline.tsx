@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const timelineItems = [
   {
@@ -160,9 +161,9 @@ export function TrialTimeline() {
 
                   {item.cta && (
                     <Link href="/auth/signup" className="mt-3 block">
-                      <button className="h-10 w-full rounded-lg bg-amber-500 text-sm font-bold text-white transition-opacity hover:opacity-90">
+                      <Button className="h-10 w-full rounded-lg bg-amber-500 text-sm font-bold text-white hover:bg-amber-600">
                         점장 계속 고용하기 &rarr;
-                      </button>
+                      </Button>
                     </Link>
                   )}
                 </div>
@@ -180,9 +181,12 @@ export function TrialTimeline() {
           }}
         >
           <Link href="/auth/signup" className="inline-block">
-            <button className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg transition-opacity hover:bg-blue-900">
+            <Button
+              size="lg"
+              className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg hover:bg-blue-900"
+            >
               지금 체험 시작하기 &rarr;
-            </button>
+            </Button>
           </Link>
         </div>
       </div>

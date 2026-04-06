@@ -9,50 +9,55 @@ const agents: {
   name: string;
   tagline: string;
   features: string[];
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  iconBg: string;
+  textClass: string;
+  bgClass: string;
+  borderClass: string;
+  iconBgClass: string;
+  dotClass: string;
 }[] = [
   {
     icon: UserRound,
     name: "점장",
     tagline: "총괄 매니저",
     features: ["전체 조율", "리포트 발송", "이상 알림"],
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
-    iconBg: "#DBEAFE",
+    textClass: "text-blue-800",
+    bgClass: "bg-blue-50",
+    borderClass: "border-blue-200",
+    iconBgClass: "bg-blue-100",
+    dotClass: "bg-blue-800",
   },
   {
     icon: MessageSquare,
     name: "답장이",
     tagline: "리뷰 매니저",
     features: ["리뷰 관리", "AI 답글", "감성 분석"],
-    color: "#B45309",
-    bgColor: "#FFFBEB",
-    borderColor: "#FDE68A",
-    iconBg: "#FEF3C7",
+    textClass: "text-amber-700",
+    bgClass: "bg-amber-50",
+    borderClass: "border-amber-200",
+    iconBgClass: "bg-amber-100",
+    dotClass: "bg-amber-700",
   },
   {
     icon: BarChart3,
     name: "세리",
     tagline: "매출 분석가",
     features: ["매출 분석", "비용 감시", "시뮬레이션"],
-    color: "#065F46",
-    bgColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
-    iconBg: "#D1FAE5",
+    textClass: "text-emerald-700",
+    bgClass: "bg-emerald-50",
+    borderClass: "border-emerald-200",
+    iconBgClass: "bg-emerald-100",
+    dotClass: "bg-emerald-700",
   },
   {
     icon: Megaphone,
     name: "바이럴",
     tagline: "마케터",
     features: ["단골 관리", "문자 발송", "프로모션"],
-    color: "#6B21A8",
-    bgColor: "#FAF5FF",
-    borderColor: "#DDD6FE",
-    iconBg: "#EDE9FE",
+    textClass: "text-purple-700",
+    bgClass: "bg-purple-50",
+    borderClass: "border-purple-200",
+    iconBgClass: "bg-purple-100",
+    dotClass: "bg-purple-700",
   },
 ];
 
@@ -101,10 +106,8 @@ export function AgentTeamSection() {
           {agents.map((agent, i) => (
             <div
               key={agent.name}
-              className="rounded-2xl border p-5 transition-all duration-700"
+              className={`rounded-2xl border p-5 transition-all duration-700 ${agent.bgClass} ${agent.borderClass}`}
               style={{
-                backgroundColor: agent.bgColor,
-                borderColor: agent.borderColor,
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? "translateY(0)" : "translateY(20px)",
                 transitionDelay: `${150 + i * 100}ms`,
@@ -113,16 +116,12 @@ export function AgentTeamSection() {
               {/* Icon + name */}
               <div className="flex items-center gap-2">
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full"
-                  style={{ backgroundColor: agent.iconBg }}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${agent.iconBgClass}`}
                 >
-                  <agent.icon className="h-5 w-5" style={{ color: agent.color }} />
+                  <agent.icon className={`h-5 w-5 ${agent.textClass}`} />
                 </div>
                 <div>
-                  <p
-                    className="text-base font-bold"
-                    style={{ color: agent.color }}
-                  >
+                  <p className={`text-base font-bold ${agent.textClass}`}>
                     {agent.name}
                   </p>
                   <p className="text-xs text-slate-500">{agent.tagline}</p>
@@ -137,8 +136,7 @@ export function AgentTeamSection() {
                     className="flex items-center gap-1.5 text-sm text-slate-800"
                   >
                     <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: agent.color }}
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${agent.dotClass}`}
                     />
                     {feat}
                   </li>

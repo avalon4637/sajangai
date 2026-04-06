@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function FinalCTASection() {
   return (
@@ -16,9 +17,12 @@ export function FinalCTASection() {
         </h2>
 
         <Link href="/auth/signup" className="mt-8 block">
-          <button className="mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-blue-800 shadow-lg transition-opacity hover:opacity-90">
+          <Button
+            size="lg"
+            className="mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-blue-800 shadow-lg hover:bg-white/90"
+          >
             7일 무료 체험 시작하기 →
-          </button>
+          </Button>
         </Link>
 
         <p className="mt-3 text-sm text-blue-200">
