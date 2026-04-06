@@ -394,7 +394,7 @@ export function ReviewPageClient({
       {reviews.length > 0 && (
         <>
           {/* Desktop: side by side */}
-          <div className="hidden md:grid md:grid-cols-[45%_55%] gap-0 border rounded-lg overflow-hidden bg-background min-h-[420px]">
+          <div className="hidden md:grid md:grid-cols-[45%_55%] gap-0 border rounded-lg overflow-hidden bg-background min-h-[420px] transition-opacity duration-150">
             {/* LEFT: Review Queue */}
             <div className="border-r overflow-y-auto max-h-[500px]">
               <ReviewQueue
@@ -411,7 +411,7 @@ export function ReviewPageClient({
           </div>
 
           {/* Mobile: stacked layout */}
-          <div className="md:hidden space-y-3">
+          <div className="md:hidden space-y-3 transition-opacity duration-150">
             <Card>
               <CardContent className="p-0">
                 <div className="max-h-[300px] overflow-y-auto">

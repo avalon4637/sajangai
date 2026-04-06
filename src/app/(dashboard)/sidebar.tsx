@@ -175,7 +175,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                 }`}
               />
             </CollapsibleTrigger>
-            <CollapsibleContent>
+            <CollapsibleContent className="transition-all duration-200">
               <ul className="space-y-0.5">
                 {dataNavItems.map((item) => {
                   const isActive = pathname === item.href;

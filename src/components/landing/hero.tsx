@@ -29,7 +29,7 @@ export function HeroSection() {
           <div className="mt-8 flex flex-col items-center gap-3 md:items-start">
             <Button
               asChild
-              className="h-14 w-full rounded-xl bg-blue-800 px-8 text-base font-semibold text-white hover:bg-blue-900 md:w-auto"
+              className="h-14 w-full rounded-xl bg-blue-800 px-8 text-base font-semibold text-white hover:bg-blue-900 md:w-auto transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <Link href="/auth/signup">7일 무료 체험 시작하기 →</Link>
             </Button>

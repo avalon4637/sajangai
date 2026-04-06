@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, ChevronDown, Plus, Check } from "lucide-react";
+import { Building2, ChevronDown, Plus, Check, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +57,11 @@ export function BusinessSwitcher({
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left hover:bg-gray-50 transition-colors disabled:opacity-50"
           disabled={isLoading}
         >
-          <Building2 className="size-4 shrink-0 text-[#71717A]" />
+          {isLoading ? (
+            <Loader2 className="size-4 shrink-0 text-muted-foreground animate-spin" />
+          ) : (
+            <Building2 className="size-4 shrink-0 text-[#71717A]" />
+          )}
           <span className="flex-1 truncate text-sm font-medium text-[#18181B]">
             {currentBusiness?.name ?? "사업장"}
           </span>
