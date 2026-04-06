@@ -12,7 +12,7 @@ export function RoiKpiStrip({
   processedTasks,
 }: RoiKpiStripProps) {
   return (
-    <div className="flex items-center gap-3 border-b px-4 py-1.5 text-[11px]">
+    <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 border-b px-3 py-1.5 text-[11px]">
       <span className="text-muted-foreground">이번 달</span>
       <span>💰 <strong className="text-primary">₩{savedMoney.toLocaleString()}</strong> 절약</span>
       <span className="text-muted">·</span>

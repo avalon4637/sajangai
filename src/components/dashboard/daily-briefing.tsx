@@ -66,7 +66,7 @@ export function DailyBriefing({ data, businessName }: DailyBriefingProps) {
   return (
     <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
       {/* Compact summary strip — always visible */}
-      <div className="flex items-center gap-3 px-3 py-2 md:px-4">
+      <div className="flex items-center flex-wrap gap-x-3 gap-y-1 px-3 py-2 md:px-4">
         {/* Greeting + date */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="text-base">👨‍💼</span>

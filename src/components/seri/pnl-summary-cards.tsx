@@ -98,7 +98,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
   const cardRevenue = current.totalRevenue - deliveryRevenue;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
       {/* Total Revenue */}
       <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
         <CardContent className="p-5">

@@ -93,9 +93,9 @@ export function CustomerRiskList({
                       {isCritical ? "긴급" : isWarning ? "주의" : "관찰 중"}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>마지막 방문: {customer.lastVisit}</span>
-                    <span className="text-muted-foreground/40">|</span>
+                  <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <span className="truncate">마지막 방문: {customer.lastVisit}</span>
+                    <span className="hidden sm:inline text-muted-foreground/40">|</span>
                     <span>{customer.channel}</span>
                   </div>
                 </div>

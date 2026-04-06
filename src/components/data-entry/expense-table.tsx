@@ -71,6 +71,7 @@ export function ExpenseTable({ data, onEdit }: ExpenseTableProps) {
       accessorKey: "memo",
       header: "메모",
       cell: ({ row }) => row.original.memo ?? "-",
+      meta: { hideOnMobile: true },
     },
     {
       id: "actions",
@@ -115,13 +116,21 @@ export function ExpenseTable({ data, onEdit }: ExpenseTableProps) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-md border">
-        <Table className="min-w-[600px]">
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 rounded-md border">
+        <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={
+                      (header.column.columnDef.meta as { hideOnMobile?: boolean })
+                        ?.hideOnMobile
+                        ? "hidden sm:table-cell"
+                        : undefined
+                    }
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -138,7 +147,15 @@ export function ExpenseTable({ data, onEdit }: ExpenseTableProps) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        (cell.column.columnDef.meta as { hideOnMobile?: boolean })
+                          ?.hideOnMobile
+                          ? "hidden sm:table-cell"
+                          : undefined
+                      }
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

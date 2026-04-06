@@ -116,7 +116,7 @@ export function ReviewQueue({
                   ))}
                 </div>
               </div>
-              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+              <span className="text-[10px] text-muted-foreground shrink-0">
                 {formatRelativeTime(review.reviewDate)}
               </span>
             </div>

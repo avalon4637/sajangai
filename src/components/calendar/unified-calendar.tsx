@@ -184,7 +184,7 @@ export function UnifiedCalendar({
       {/* Calendar grid */}
       <div className="border rounded-lg overflow-hidden">
         {/* Day-of-week header */}
-        <div className="grid grid-cols-8 border-b bg-gray-50">
+        <div className="grid grid-cols-7 md:grid-cols-8 border-b bg-gray-50">
           {DAY_LABELS.map((label, i) => (
             <div
               key={label}
@@ -197,14 +197,14 @@ export function UnifiedCalendar({
               {label}
             </div>
           ))}
-          <div className="text-center text-xs font-medium py-2 text-gray-500 border-l">
+          <div className="hidden md:block text-center text-xs font-medium py-2 text-gray-500 border-l">
             주간
           </div>
         </div>
 
         {/* Weeks */}
         {weeks.map((week, wi) => (
-          <div key={wi} className={cn("grid grid-cols-8", wi < weeks.length - 1 && "border-b")}>
+          <div key={wi} className={cn("grid grid-cols-7 md:grid-cols-8", wi < weeks.length - 1 && "border-b")}>
             {week.map((cell, ci) => {
               if (!cell) {
                 return <div key={ci} className="min-h-[72px] md:min-h-[88px] border-r last:border-r-0 bg-gray-50/50" />;
@@ -255,11 +255,11 @@ export function UnifiedCalendar({
                     </p>
                   )}
 
-                  {/* Net indicator (only when both exist) */}
+                  {/* Net indicator (only when both exist, hidden on mobile to save space) */}
                   {cell.revenue > 0 && cell.expense > 0 && (
                     <p
                       className={cn(
-                        "text-[9px] md:text-[10px] font-medium truncate leading-tight mt-0.5",
+                        "hidden sm:block text-[9px] md:text-[10px] font-medium truncate leading-tight mt-0.5",
                         net >= 0 ? "text-emerald-500" : "text-red-400"
                       )}
                     >
@@ -271,8 +271,8 @@ export function UnifiedCalendar({
               );
             })}
 
-            {/* Weekly total column */}
-            <div className="min-h-[72px] md:min-h-[88px] p-1 md:p-1.5 border-l bg-gray-50/50">
+            {/* Weekly total column - hidden on mobile */}
+            <div className="hidden md:block min-h-[72px] md:min-h-[88px] p-1 md:p-1.5 border-l bg-gray-50/50">
               <p className="text-[10px] text-gray-400 mb-0.5">합계</p>
               {weeklyTotals[wi].revenue > 0 && (
                 <p className="text-[10px] md:text-xs text-emerald-600 font-medium truncate leading-tight">

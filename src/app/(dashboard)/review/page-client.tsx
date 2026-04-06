@@ -210,7 +210,7 @@ export function ReviewPageClient({
         </div>
 
         {/* Center: Filter chips */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center flex-wrap gap-1.5">
           {FILTER_CHIPS.map((chip) => {
             const count = getFilterCount(reviews, chip.key);
             const isActive = activeFilter === chip.key;

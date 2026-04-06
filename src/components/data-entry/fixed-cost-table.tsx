@@ -79,11 +79,13 @@ export function FixedCostTable({ data, onEdit }: FixedCostTableProps) {
       accessorKey: "start_date",
       header: "시작일",
       cell: ({ row }) => row.original.start_date ?? "-",
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: "end_date",
       header: "종료일",
       cell: ({ row }) => row.original.end_date ?? "-",
+      meta: { hideOnMobile: true },
     },
     {
       id: "actions",
@@ -159,7 +161,15 @@ export function FixedCostTable({ data, onEdit }: FixedCostTableProps) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={
+                      (header.column.columnDef.meta as { hideOnMobile?: boolean })
+                        ?.hideOnMobile
+                        ? "hidden sm:table-cell"
+                        : undefined
+                    }
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -176,7 +186,15 @@ export function FixedCostTable({ data, onEdit }: FixedCostTableProps) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        (cell.column.columnDef.meta as { hideOnMobile?: boolean })
+                          ?.hideOnMobile
+                          ? "hidden sm:table-cell"
+                          : undefined
+                      }
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

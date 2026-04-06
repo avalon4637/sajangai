@@ -213,7 +213,7 @@ export function InvoiceTracker({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Summary row */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div className="p-3 bg-blue-50 rounded-lg text-center">
             <div className="text-xs text-blue-600 mb-1">총 미수금</div>
             <div className="font-semibold text-blue-700 text-sm">

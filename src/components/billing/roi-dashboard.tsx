@@ -43,16 +43,16 @@ export function RoiDashboard({ roi }: RoiDashboardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Big numbers */}
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
           {items.map((item) => (
             <div key={item.label}>
               <div className="text-2xl mb-1">{item.emoji}</div>
-              <div className="text-lg font-bold">
+              <div className="text-sm sm:text-lg font-bold">
                 {item.isTime
                   ? `${hoursSaved}시간`
                   : formatKRW(item.value)}
               </div>
-              <div className="text-xs text-muted-foreground">{item.label}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">{item.label}</div>
             </div>
           ))}
         </div>
