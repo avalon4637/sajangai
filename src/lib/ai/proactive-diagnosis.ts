@@ -6,6 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import { DIAGNOSIS_PROMPT } from "./jeongjang-prompts";
 import { callClaudeObject } from "./claude-client";
 import { DiagnosisSchema } from "./schemas";
+import {
+  generateManagementActions,
+  type ManagementAction,
+  type ManagementActionSeverity,
+} from "./review-feedback-loop";
 
 export type DiagnosisSeverity = "info" | "warning" | "critical";
 
@@ -268,11 +273,16 @@ export async function diagnose(
   businessId: string
 ): Promise<DiagnosisResult> {
   // Fetch data from multiple sources concurrently
-  const [weeklyTrend, sentimentTrend, sentimentDirection] = await Promise.all([
-    fetchWeeklyTrend(businessId),
-    fetchSentimentTrend(businessId),
-    detectSentimentDirection(businessId),
-  ]);
+  const [weeklyTrend, sentimentTrend, sentimentDirection, managementActions] =
+    await Promise.all([
+      fetchWeeklyTrend(businessId),
+      fetchSentimentTrend(businessId),
+      detectSentimentDirection(businessId),
+      generateManagementActions(businessId).catch((err) => {
+        console.warn("[Diagnosis] Failed to generate management actions:", err);
+        return [] as ManagementAction[];
+      }),
+    ]);
 
   const currentCostRatio =
     weeklyTrend.length > 0
@@ -298,6 +308,23 @@ export async function diagnose(
       console.warn("[Diagnosis] Failed to get structured response from Claude");
       diagnoses = [];
     }
+  }
+
+  // Append management actions as diagnosis items of type "review_management"
+  const actionSeverityMap: Record<ManagementActionSeverity, DiagnosisSeverity> = {
+    critical: "critical",
+    warning: "warning",
+    suggestion: "info",
+  };
+
+  for (const action of managementActions) {
+    diagnoses.push({
+      type: "review_management",
+      severity: actionSeverityMap[action.severity],
+      title: action.title,
+      description: `${action.description} (근거: ${action.evidence.reviewCount}건의 리뷰, 키워드: ${action.evidence.keywords.join(", ")})`,
+      recommendation: action.recommendation,
+    });
   }
 
   // Sort by severity (critical first)

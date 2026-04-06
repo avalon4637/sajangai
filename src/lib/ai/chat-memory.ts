@@ -2,6 +2,10 @@
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createClient } from "@/lib/supabase/server";
+import {
+  generateTopicSuggestions,
+  type TopicSuggestion,
+} from "./chat-recommendations";
 
 const SUMMARY_PROMPT = `Summarize this conversation between a Korean small business owner and their AI assistant.
 
@@ -97,4 +101,23 @@ export async function loadMemoryContext(
   });
 
   return `[Past Conversations]\n${lines.join("\n")}`;
+}
+
+/**
+ * Load proactive topic suggestions for a business.
+ * Single import point for chat UI to get conversation starters.
+ * Wraps generateTopicSuggestions from chat-recommendations module.
+ *
+ * @param businessId - UUID of the target business
+ * @returns Array of topic suggestions sorted by priority
+ */
+export async function loadRecommendations(
+  businessId: string
+): Promise<TopicSuggestion[]> {
+  try {
+    return await generateTopicSuggestions(businessId);
+  } catch (error) {
+    console.error("[ChatMemory] Failed to load recommendations:", error);
+    return [];
+  }
 }

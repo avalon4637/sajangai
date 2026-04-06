@@ -11,6 +11,7 @@ import { buildBusinessProfile } from "@/lib/ai/business-profile";
 import { createChatTools } from "@/lib/ai/chat-tools";
 import { getUserProfile, buildProfilePromptModifier } from "@/lib/queries/user-profile";
 import { loadMemoryContext, extractSessionSummary } from "@/lib/ai/chat-memory";
+import { buildPreferencePromptModifier, learnPreferences } from "@/lib/ai/preference-learner";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 
 export const maxDuration = 60;
@@ -161,6 +162,17 @@ export async function POST(req: Request) {
     }
   }
 
+  // Load learned conversation preferences (from preference-learner)
+  let preferenceModifier = "";
+  if (verifiedBusinessId) {
+    try {
+      preferenceModifier = await buildPreferencePromptModifier(verifiedBusinessId);
+    } catch (err) {
+      console.error("[chat] preference modifier error:", err);
+      // Non-fatal
+    }
+  }
+
   // Load past conversation memory for cross-session context
   let memoryContext = "";
   if (verifiedBusinessId) {
@@ -176,6 +188,7 @@ export async function POST(req: Request) {
     CHAT_SYSTEM_PROMPT,
     profile,
     profileModifier,
+    preferenceModifier,
     memoryContext,
   ].filter(Boolean).join("\n\n");
 
@@ -200,6 +213,10 @@ export async function POST(req: Request) {
       // Extract session summary if enough messages accumulated (fire-and-forget)
       extractSessionSummary(verifiedBusinessId, sessionId)
         .catch((err) => console.error("[chat] Failed to extract summary:", err));
+
+      // Learn user preferences from this session (fire-and-forget)
+      learnPreferences(verifiedBusinessId, sessionId)
+        .catch((err) => console.error("[chat] Failed to learn preferences:", err));
     },
   });
 
