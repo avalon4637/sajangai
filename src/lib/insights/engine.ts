@@ -1,6 +1,14 @@
-// Insight Engine: runs all registered scenarios and stores results
-import type { InsightResult, InsightScenario, ScenarioContext } from "./types";
-import { loadScenarioContext, upsertInsight } from "./queries";
+// Insight Engine: runs all registered scenarios, scores, deduplicates, and stores results
+import type {
+  InsightResult,
+  InsightScenario,
+  ScenarioContext,
+  ScoredInsight,
+} from "./types";
+import { loadScenarioContext, upsertInsight, getRecentInsightsForDedup } from "./queries";
+import { scoreInsights } from "./scoring";
+import { deduplicateInsights } from "./dedup";
+import { getUserInsightHistory } from "./history";
 
 // Scenario registry — import and register each scenario here
 import { a1RevenueReview } from "./scenarios/a1-revenue-review";
@@ -43,6 +51,7 @@ const scenarios: InsightScenario[] = [
 export interface EngineResult {
   businessId: string;
   generated: InsightResult[];
+  scored: ScoredInsight[];
   errors: { scenarioId: string; error: string }[];
   durationMs: number;
 }
@@ -63,7 +72,7 @@ export async function evaluateInsights(
 
   // Minimum data check — skip if no revenue data
   if (ctx.revenues.length === 0) {
-    return { businessId, generated, errors, durationMs: Date.now() - start };
+    return { businessId, generated, scored: [], errors, durationMs: Date.now() - start };
   }
 
   // Filter scenarios based on available data to avoid unnecessary execution
@@ -99,17 +108,67 @@ export async function evaluateInsights(
     }
   }
 
-  // Store all generated insights
+  // --- SPEC-AI-002: Prioritization pipeline ---
+
+  // 1. Deduplicate against recent insights
+  const [recentInsights, userHistory] = await Promise.all([
+    getRecentInsightsForDedup(businessId),
+    getUserInsightHistory(businessId),
+  ]);
+  const deduplicated = deduplicateInsights(generated, recentInsights);
+
+  // 2. Score and rank remaining insights
+  const scored = scoreInsights(deduplicated, userHistory);
+
+  // 3. Store ALL generated insights (including filtered ones) for history
   await Promise.all(
     generated.map((insight) => upsertInsight(businessId, insight))
   );
 
+  // 4. Mark low-score insights as expired (filtered out)
+  const filteredIds = scored
+    .filter((s) => !s.shouldDisplay)
+    .map((s) => s.insight.scenarioId);
+
+  if (filteredIds.length > 0) {
+    // Low-score insights stored but immediately expired so they don't show
+    await Promise.all(
+      filteredIds.map((scenarioId) =>
+        markFilteredInsight(businessId, scenarioId)
+      )
+    );
+  }
+
   return {
     businessId,
     generated,
+    scored,
     errors,
     durationMs: Date.now() - start,
   };
+}
+
+/**
+ * Mark a low-score insight as expired so it doesn't appear in active queries.
+ */
+async function markFilteredInsight(
+  businessId: string,
+  scenarioId: string
+): Promise<void> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from("insight_events")
+      .update({ status: "expired" })
+      .eq("business_id", businessId)
+      .eq("scenario_id", scenarioId)
+      .eq("status", "new");
+  } catch {
+    // Non-critical — insight just won't be auto-filtered
+  }
 }
 
 async function runScenario(

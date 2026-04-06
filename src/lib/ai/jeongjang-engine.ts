@@ -238,7 +238,7 @@ export async function runMorningRoutine(
   const [insights, viralAnalysis] = await Promise.all([
     evaluateInsights(businessId).catch((err): EngineResult => {
       console.error("[점장] Insight engine error:", err);
-      return { businessId, generated: [], errors: [], durationMs: 0 };
+      return { businessId, generated: [], scored: [], errors: [], durationMs: 0 };
     }),
     runViralAnalysis(businessId).catch((err): ViralAnalysis => {
       console.error("[점장] Viral analysis error:", err);

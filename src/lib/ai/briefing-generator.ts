@@ -4,8 +4,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { SeriReportContent } from "./seri-engine";
-import { BRIEFING_SYSTEM_PROMPT } from "./jeongjang-prompts";
+import {
+  BRIEFING_SYSTEM_PROMPT,
+  buildBriefingEnhancedContext,
+} from "./jeongjang-prompts";
 import { callClaudeText } from "./claude-client";
+import { buildPeriodComparison } from "@/lib/queries/period-comparison";
+import {
+  getBusinessBenchmark,
+  getActualRatios,
+} from "@/lib/queries/benchmarks";
 
 export interface BriefingContent {
   generatedAt: string;
@@ -219,14 +227,39 @@ export async function generateDailyBriefing(
     if (cached) return cached;
   }
 
-  // Load sub-agent reports concurrently
-  const [seri, dapjangi] = await Promise.all([
+  // Load sub-agent reports and enhanced data concurrently
+  const [seri, dapjangi, periodComparison, benchmark] = await Promise.all([
     loadSeriReport(businessId, reportDate),
     loadDapjangiReport(businessId, reportDate),
+    buildPeriodComparison(businessId).catch(() => null),
+    getBusinessBenchmark(businessId).catch(() => null),
   ]);
 
-  // Build and call Claude
-  const prompt = buildBriefingPrompt(seri, dapjangi, yearMonth);
+  // Build and call Claude with enhanced context
+  let prompt = buildBriefingPrompt(seri, dapjangi, yearMonth);
+
+  // Append period comparison and benchmark context if available
+  if (periodComparison && benchmark) {
+    const monthRevenue = periodComparison.thisMonth.revenue;
+    const monthExpense = periodComparison.thisMonth.expense;
+    const actualRatios = await getActualRatios(
+      businessId,
+      monthRevenue,
+      monthExpense
+    ).catch(() => ({
+      costRatio: null,
+      laborRatio: null,
+      rentRatio: null,
+      profitMargin: null,
+    }));
+
+    prompt += buildBriefingEnhancedContext({
+      periodComparison,
+      benchmark,
+      actualRatios,
+    });
+  }
+
   const narrative = await callClaudeText(BRIEFING_SYSTEM_PROMPT, prompt);
 
   const structured = parseNarrativeToStructured(narrative, seri, dapjangi);

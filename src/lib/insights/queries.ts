@@ -4,7 +4,10 @@ import type {
   InsightResult,
   InsightStatus,
   ScenarioContext,
+  ScoredInsightEvent,
 } from "./types";
+import { scoreInsights } from "./scoring";
+import { getUserInsightHistory } from "./history";
 
 // insight_events and action_results are not yet in generated DB types.
 // Use untyped queries until types are regenerated after migration.
@@ -17,6 +20,46 @@ async function rawClient(): Promise<any> {
 
 export async function getActiveInsights(
   businessId: string
+): Promise<ScoredInsightEvent[]> {
+  const supabase = await rawClient();
+
+  const { data, error } = await supabase
+    .from("insight_events")
+    .select("*")
+    .eq("business_id", businessId)
+    .in("status", ["new", "seen"])
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  const events = (data ?? []).map(mapRow);
+
+  // Apply scoring and filtering (SPEC-AI-002)
+  const userHistory = await getUserInsightHistory(businessId);
+  const insightResults = events.map(eventToInsightResult);
+  const scored = scoreInsights(insightResults, userHistory);
+
+  // Map scored results back to events, filtered and ranked
+  return scored
+    .filter((s) => s.shouldDisplay)
+    .map((s) => {
+      const event = events.find(
+        (e: InsightEvent) => e.scenarioId === s.insight.scenarioId
+      )!;
+      return {
+        event,
+        score: s.score,
+        rank: s.rank,
+        shouldDisplay: s.shouldDisplay,
+      };
+    });
+}
+
+/**
+ * Get active insights without scoring (legacy compatibility).
+ */
+export async function getActiveInsightsRaw(
+  businessId: string
 ): Promise<InsightEvent[]> {
   const supabase = await rawClient();
 
@@ -26,6 +69,28 @@ export async function getActiveInsights(
     .eq("business_id", businessId)
     .in("status", ["new", "seen"])
     .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map(mapRow);
+}
+
+/**
+ * Get recent insights for deduplication (last 7 days, all statuses).
+ */
+export async function getRecentInsightsForDedup(
+  businessId: string
+): Promise<InsightEvent[]> {
+  const supabase = await rawClient();
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data, error } = await supabase
+    .from("insight_events")
+    .select("*")
+    .eq("business_id", businessId)
+    .gte("created_at", sevenDaysAgo.toISOString());
 
   if (error) throw error;
 
@@ -181,6 +246,18 @@ export async function loadScenarioContext(
 }
 
 // --- Helpers ---
+
+function eventToInsightResult(event: InsightEvent): InsightResult {
+  return {
+    scenarioId: event.scenarioId,
+    category: event.category,
+    severity: event.severity,
+    detection: event.detection,
+    cause: event.cause,
+    solution: event.solution,
+    action: event.action,
+  };
+}
 
 function mapRow(row: Record<string, unknown>): InsightEvent {
   return {

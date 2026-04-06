@@ -23,13 +23,9 @@ export function InsightFeed({ insights, onAction, onDismiss }: InsightFeedProps)
     );
   }
 
-  // Sort: critical first, then warning, then by recency
-  const sorted = [...insights].sort((a, b) => {
-    const severityOrder = { critical: 0, warning: 1, info: 2, opportunity: 3 };
-    const diff = severityOrder[a.severity] - severityOrder[b.severity];
-    if (diff !== 0) return diff;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  // Insights arrive pre-sorted by score from the scoring pipeline (SPEC-AI-002).
+  // No additional sorting needed — order reflects priority scoring.
+  const sorted = insights;
 
   const visible = showAll ? sorted : sorted.slice(0, INITIAL_SHOW);
   const hasMore = sorted.length > INITIAL_SHOW;

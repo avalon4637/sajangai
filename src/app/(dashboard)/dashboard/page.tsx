@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       .maybeSingle()
       .then((res) => res.data),
     getActiveInsights(businessId)
-      .then((insights) => insights.slice(0, 3))
+      .then((scored) => scored.slice(0, 3).map((s) => s.event))
       .catch(() => []),
   ]);
 

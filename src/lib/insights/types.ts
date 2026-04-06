@@ -95,3 +95,26 @@ export interface InsightScenario {
   category: InsightCategory;
   evaluate(ctx: ScenarioContext): Promise<InsightResult | null>;
 }
+
+// --- Scoring & Prioritization (SPEC-AI-002) ---
+
+export interface ScoredInsight {
+  insight: InsightResult;
+  score: number; // 0-100 composite score
+  rank: number; // 1-based rank
+  shouldDisplay: boolean; // false = filtered out
+}
+
+export interface ScoredInsightEvent {
+  event: InsightEvent;
+  score: number;
+  rank: number;
+  shouldDisplay: boolean;
+}
+
+export interface UserInsightHistory {
+  businessId: string;
+  actedOn: string[]; // scenario IDs user clicked/acted on
+  dismissed: string[]; // scenario IDs user dismissed
+  scenarioWeights: Record<string, number>; // learned weights per scenario
+}

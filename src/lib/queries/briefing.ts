@@ -3,6 +3,16 @@
 // Sources: revenues, delivery_reviews, expenses, budgets tables
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  buildPeriodComparison,
+  type PeriodComparison,
+} from "@/lib/queries/period-comparison";
+import {
+  getBusinessBenchmark,
+  getActualRatios,
+  type IndustryBenchmark,
+  type ActualRatios,
+} from "@/lib/queries/benchmarks";
 
 export interface DailyBriefingData {
   revenue: {
@@ -24,6 +34,10 @@ export interface DailyBriefingData {
   };
   anomalies: AnomalyItem[];
   hasAnyData: boolean;
+  // Enhanced briefing data (SPEC-AI-003)
+  periodComparison: PeriodComparison | null;
+  benchmark: IndustryBenchmark | null;
+  actualRatios: ActualRatios | null;
 }
 
 export interface AnomalyItem {
@@ -248,6 +262,20 @@ export async function getDailyBriefingData(
       .then((r: { count: number | null }) => (r.count ?? 0) > 0),
   ]);
 
+  // Fetch enhanced data: period comparison and benchmarks
+  // Run in parallel, gracefully handle failures
+  const [periodComparison, benchmark] = await Promise.all([
+    buildPeriodComparison(businessId).catch(() => null),
+    getBusinessBenchmark(businessId).catch(() => null),
+  ]);
+
+  // Calculate actual ratios from this month's data
+  const actualRatios = await getActualRatios(
+    businessId,
+    monthRevResult,
+    currentMonthExpResult
+  ).catch(() => null);
+
   // Anomaly detection
   const anomalies: AnomalyItem[] = [];
 
@@ -306,5 +334,8 @@ export async function getDailyBriefingData(
     },
     anomalies,
     hasAnyData: hasDataResult,
+    periodComparison,
+    benchmark,
+    actualRatios,
   };
 }

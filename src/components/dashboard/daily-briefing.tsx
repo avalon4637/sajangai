@@ -87,12 +87,25 @@ export function DailyBriefing({ data, businessName }: DailyBriefingProps) {
 
         <div className="h-4 w-px bg-border" />
 
-        {/* Month total */}
+        {/* Month total + week trend */}
         <div className="flex items-center gap-1 shrink-0">
           <span className="text-xs text-muted-foreground">이달</span>
           <span className="text-xs font-semibold">{formatKRW(revenue.monthTotal)}</span>
           {monthProgress !== null && (
             <span className="text-[10px] text-primary font-medium">({monthProgress}%)</span>
+          )}
+          {data.periodComparison?.weekChange != null &&
+            Math.abs(data.periodComparison.weekChange) >= 5 && (
+            <span
+              className={`text-[10px] font-medium ${
+                data.periodComparison.weekChange > 0
+                  ? "text-emerald-600"
+                  : "text-red-500"
+              }`}
+            >
+              {data.periodComparison.weekChange > 0 ? "W+" : "W"}
+              {data.periodComparison.weekChange.toFixed(0)}%
+            </span>
           )}
         </div>
 
@@ -171,6 +184,48 @@ export function DailyBriefing({ data, businessName }: DailyBriefingProps) {
               <p className="text-sm font-bold">{formatKRW(revenue.monthTotal)}</p>
             </div>
           </div>
+
+          {/* Month projection + benchmark */}
+          {data.periodComparison && (
+            <div className="flex items-center gap-2 flex-wrap text-[11px]">
+              <span className="text-muted-foreground">
+                월말 예상: <span className="font-semibold text-foreground">{formatKRW(data.periodComparison.monthProjection)}</span>
+              </span>
+              {data.periodComparison.weekChange != null &&
+                Math.abs(data.periodComparison.weekChange) >= 10 && (
+                <Badge
+                  variant="outline"
+                  className={`rounded-full px-1.5 py-0 text-[10px] font-medium ${
+                    data.periodComparison.weekChange > 0
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-red-50 text-red-700 border-red-200"
+                  }`}
+                >
+                  {data.periodComparison.weekChange > 0 ? (
+                    <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
+                  ) : (
+                    <TrendingDown className="h-2.5 w-2.5 mr-0.5" />
+                  )}
+                  주간 {data.periodComparison.weekChange > 0 ? "+" : ""}
+                  {data.periodComparison.weekChange.toFixed(0)}%
+                </Badge>
+              )}
+              {data.benchmark && data.actualRatios?.profitMargin != null && (
+                <Badge
+                  variant="outline"
+                  className={`rounded-full px-1.5 py-0 text-[10px] font-medium ${
+                    data.actualRatios.profitMargin >= data.benchmark.avgProfitMargin
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
+                  }`}
+                >
+                  {data.actualRatios.profitMargin >= data.benchmark.avgProfitMargin
+                    ? `업종 평균 대비 +${((data.actualRatios.profitMargin - data.benchmark.avgProfitMargin) * 100).toFixed(0)}%p`
+                    : `업종 평균 이하 ${((data.actualRatios.profitMargin - data.benchmark.avgProfitMargin) * 100).toFixed(0)}%p`}
+                </Badge>
+              )}
+            </div>
+          )}
 
           {/* Month progress bar */}
           {monthProgress !== null && (
