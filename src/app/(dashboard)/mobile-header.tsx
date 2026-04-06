@@ -14,18 +14,21 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { agentNavItems } from "./sidebar";
+import { BusinessSwitcher } from "@/components/business/business-switcher";
 
 interface MobileHeaderProps {
   userEmail: string;
   businessName?: string;
   subscriptionStatus?: string;
+  businesses: { id: string; name: string }[];
+  currentBusinessId: string;
 }
 
 /**
  * Mobile header with hamburger menu that opens a Sheet drawer.
  * Only visible on viewports < 768px.
  */
-export function MobileHeader({ userEmail, businessName, subscriptionStatus }: MobileHeaderProps) {
+export function MobileHeader({ userEmail, businessName, subscriptionStatus, businesses, currentBusinessId }: MobileHeaderProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const [open, setOpen] = useState(false);
@@ -54,6 +57,11 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus }: Mo
               AI 점장 서비스
             </p>
           </SheetHeader>
+
+          {/* Business switcher */}
+          <div className="border-b">
+            <BusinessSwitcher businesses={businesses} currentBusinessId={currentBusinessId} />
+          </div>
 
           <nav className="flex-1 px-3 py-4">
             <ul className="space-y-1">

@@ -15,6 +15,7 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import { BusinessSwitcher } from "@/components/business/business-switcher";
 
 const STORAGE_KEY = "sidebar-menu-state";
 
@@ -81,9 +82,11 @@ interface SidebarProps {
   userEmail: string;
   businessName?: string;
   subscriptionStatus?: string;
+  businesses: { id: string; name: string }[];
+  currentBusinessId: string;
 }
 
-export function Sidebar({ userEmail, businessName, subscriptionStatus }: SidebarProps) {
+export function Sidebar({ userEmail, businessName, subscriptionStatus, businesses, currentBusinessId }: SidebarProps) {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const [menuState, setMenuState] = useState<Record<string, boolean>>({ data: true });
@@ -110,6 +113,11 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus }: Sidebar
           사장 AI
         </h1>
         <p className="text-xs text-[#71717A] mt-0.5">AI 점장 서비스</p>
+      </div>
+
+      {/* Business switcher */}
+      <div className="border-b">
+        <BusinessSwitcher businesses={businesses} currentBusinessId={currentBusinessId} />
       </div>
 
       {/* Scrollable navigation area */}
