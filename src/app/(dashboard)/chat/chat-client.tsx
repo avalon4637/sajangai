@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatMessageRenderer } from "@/components/chat/chat-message-renderer";
 
@@ -130,33 +130,32 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="flex items-center justify-center size-16 rounded-full bg-[#EFF6FF] mb-4">
-              <span className="text-2xl">👨‍💼</span>
-            </div>
-            <h3 className="text-lg font-bold text-[#1A1A1A]">
-              안녕하세요, 사장님!
-            </h3>
-            <p className="text-sm text-[#6B7280] mt-1 max-w-md">
-              {businessName}의 AI 점장입니다. 매출, 리뷰, 비용 등
-              궁금한 점을 물어보세요.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-4 justify-center">
-              {[
-                "요즘 장사 어때?",
-                "이번 달 매출 분석해줘",
-                "리뷰 상황 알려줘",
-                "비용 줄일 곳 있어?",
-              ].map((suggestion) => (
-                <button
-                  key={suggestion}
-                  type="button"
-                  onClick={() => sendMessage(suggestion)}
-                  className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
-                >
-                  {suggestion}
-                </button>
-              ))}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md mx-auto px-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">안녕하세요, 사장님!</h3>
+              <p className="text-muted-foreground text-sm mb-6">
+                AI 점장에게 매장 운영에 대해 물어보세요
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  "요즘 장사 어때?",
+                  "이번 달 매출 분석해줘",
+                  "리뷰 상황 알려줘",
+                  "비용 줄일 곳 있어?",
+                ].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => sendMessage(suggestion)}
+                    className="text-left p-3 rounded-xl border hover:border-primary hover:bg-primary/5 transition-colors text-sm cursor-pointer"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

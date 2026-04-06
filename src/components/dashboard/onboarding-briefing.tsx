@@ -19,9 +19,9 @@ const features = [
 
 export function OnboardingBriefing({ businessName }: OnboardingBriefingProps) {
   return (
-    <Card className="overflow-hidden border-0 shadow-md">
+    <Card className="overflow-hidden shadow-sm border">
       {/* Accent top border */}
-      <div className="h-1 bg-gradient-to-r from-primary via-primary/80 to-primary/60" />
+      <div className="h-0.5 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
 
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-4 md:px-6">

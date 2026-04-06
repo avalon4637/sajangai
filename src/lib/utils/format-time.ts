@@ -58,6 +58,23 @@ export function formatRelativeTime(dateString: string): string {
  * Format a date string as short time for chat messages.
  * Returns "HH:MM" in KST for today, or relative time for older messages.
  */
+/**
+ * Format a date string as Korean-friendly absolute date.
+ * Returns "M월 D일 HH:MM" in KST.
+ * Useful for detail views where relative time is less appropriate.
+ */
+export function formatKoreanDate(dateString: string): string {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+
+  const kstDate = toKST(date);
+  const month = kstDate.getMonth() + 1;
+  const day = kstDate.getDate();
+  const hours = kstDate.getHours();
+  const minutes = String(kstDate.getMinutes()).padStart(2, "0");
+  return `${month}월 ${day}일 ${hours}:${minutes}`;
+}
+
 export function formatChatTime(dateString: string): string {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString;

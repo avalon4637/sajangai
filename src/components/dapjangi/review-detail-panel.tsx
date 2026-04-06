@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { DeliveryReview } from "@/lib/queries/review";
 import { ReviewActions } from "@/components/reviews/review-actions";
 import { markAsReplied } from "@/lib/actions/review-actions";
+import { formatKoreanDate } from "@/lib/utils/format-time";
 
 interface ReviewDetailPanelProps {
   review: DeliveryReview | null;
@@ -159,7 +160,7 @@ export function ReviewDetailPanel({ review }: ReviewDetailPanelProps) {
             </div>
           </div>
           <span className="text-xs text-muted-foreground">
-            {review.reviewDate}
+            {formatKoreanDate(review.reviewDate)}
           </span>
         </div>
         {review.customerName && (
@@ -252,7 +253,7 @@ export function ReviewDetailPanel({ review }: ReviewDetailPanelProps) {
                     size="sm"
                     onClick={handleEditSave}
                     disabled={isSaving}
-                    className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="gap-1.5"
                   >
                     {isSaving ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -290,7 +291,7 @@ export function ReviewDetailPanel({ review }: ReviewDetailPanelProps) {
               <Button
                 onClick={handlePublish}
                 disabled={isPublishing}
-                className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="gap-1.5"
               >
                 {isPublishing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

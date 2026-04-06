@@ -74,7 +74,7 @@ export function ROISection() {
     <section
       ref={sectionRef}
       id="roi"
-      className="bg-[#F8FAFC] py-20 sm:py-28"
+      className="bg-[#F8FAFC] py-16 sm:py-20"
     >
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         {/* Section heading */}

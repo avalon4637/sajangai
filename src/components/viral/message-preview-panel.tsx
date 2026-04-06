@@ -63,8 +63,10 @@ export function MessagePreviewPanel({
           <h3 className="font-semibold text-sm">바이럴 추천 메시지</h3>
         </div>
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center">
-            <MessageSquare className="mx-auto size-10 text-muted-foreground/30 mb-3" />
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+              <MessageSquare className="w-6 h-6 text-muted-foreground" />
+            </div>
             <p className="text-sm text-muted-foreground">
               고객을 선택하면 추천 메시지가 표시됩니다
             </p>

@@ -2,12 +2,13 @@
 // Visual contrast between data-only services and sajang.ai
 
 import { Button } from "@/components/ui/button";
+import { AnimateOnScroll } from "./animate-on-scroll";
 
 export function KickSection() {
   return (
     <section
       id="kick"
-      className="bg-[#F8FAFC] px-4 py-16 md:px-8 md:py-24"
+      className="bg-[#F8FAFC] px-4 py-16 md:px-8 sm:py-20"
     >
       <div className="mx-auto max-w-3xl">
         {/* Header */}
@@ -22,6 +23,7 @@ export function KickSection() {
 
         <div className="flex flex-col gap-4">
           {/* ❌ Other services */}
+          <AnimateOnScroll delay={0}>
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 opacity-70">
             <div className="mb-3 flex items-center gap-2">
               <span className="text-xl">❌</span>
@@ -34,11 +36,13 @@ export function KickSection() {
             </p>
             <p className="mt-2 text-xs text-gray-400">...끝.</p>
           </div>
+          </AnimateOnScroll>
 
           {/* Arrow */}
           <div className="text-center text-2xl text-[#1E40AF]">↓</div>
 
           {/* ✅ sajang.ai */}
+          <AnimateOnScroll delay={200}>
           <div className="rounded-2xl border-2 border-[#1E40AF] bg-white p-6 shadow-md">
             <div className="mb-3 flex items-center gap-2">
               <span className="text-xl">✅</span>
@@ -66,6 +70,7 @@ export function KickSection() {
               답글 등록하기
             </Button>
           </div>
+          </AnimateOnScroll>
         </div>
 
         {/* Bottom tagline */}

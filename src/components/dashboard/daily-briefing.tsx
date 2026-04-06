@@ -102,13 +102,13 @@ export function DailyBriefing({ data, businessName }: DailyBriefingProps) {
             <div className="h-4 w-px bg-border" />
             <div className="flex items-center gap-1.5">
               {reviews.unansweredCount > 0 && (
-                <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0 h-5">
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-50 text-amber-700 border-amber-200">
                   <Star className="h-2.5 w-2.5 mr-0.5" />
                   리뷰 {reviews.unansweredCount}
                 </Badge>
               )}
               {anomalies.length > 0 && (
-                <Badge variant="secondary" className="bg-red-100 text-red-700 text-[10px] px-1.5 py-0 h-5">
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-50 text-red-700 border-red-200">
                   <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
                   주의 {anomalies.length}
                 </Badge>

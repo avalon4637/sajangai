@@ -4,7 +4,7 @@ export function FinalCTASection() {
   return (
     <section
       id="cta-final"
-      className="py-20 sm:py-28"
+      className="py-16 sm:py-20"
       style={{
         background:
           "linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)",

@@ -110,7 +110,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
       {/* Logo */}
       <div className="px-6 py-5 border-b">
         <h1 className="text-lg font-bold text-foreground tracking-tight">
-          사장 AI
+          sajang.ai
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">AI 점장 서비스</p>
       </div>
@@ -124,7 +124,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
       <div className="flex-1 overflow-y-auto">
         {/* AI 팀 section - always visible, not collapsible */}
         <nav className="px-3 py-4">
-          <p className="px-3 mb-2 text-xs font-medium text-muted-foreground">AI 팀</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 px-3 mb-1">AI 팀</p>
           <ul className="space-y-1">
             {agentNavItems.map((item) => {
               const isActive = item.exact
@@ -136,8 +136,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                     href={item.href}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                       isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground hover:bg-gray-50"
+                        ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                        : "hover:bg-muted/50 text-muted-foreground"
                     }`}
                   >
                     <span className="text-xl leading-none">{item.emoji}</span>
@@ -168,7 +168,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
         <div className="border-t px-3 py-3">
           <Collapsible open={isDataOpen} onOpenChange={() => toggleSection("data")}>
             <CollapsibleTrigger className="flex w-full items-center justify-between px-3 mb-2 group cursor-pointer">
-              <p className="text-xs font-medium text-muted-foreground">데이터 관리</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">데이터 관리</p>
               <ChevronDown
                 className={`size-3.5 text-muted-foreground transition-transform duration-200 ${
                   isDataOpen ? "" : "-rotate-90"
@@ -185,8 +185,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
                         href={item.href}
                         className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                           isActive
-                            ? "bg-primary/10 text-primary font-semibold"
-                            : "text-muted-foreground hover:bg-gray-50 font-medium"
+                            ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                            : "hover:bg-muted/50 text-muted-foreground"
                         }`}
                       >
                         <item.icon className="size-4 shrink-0" />
@@ -206,8 +206,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
             href="/chat"
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
               pathname.startsWith("/chat")
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-foreground hover:bg-gray-50 font-medium"
+                ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                : "hover:bg-muted/50 text-muted-foreground"
             }`}
           >
             <MessageSquare className="size-4 shrink-0" />
@@ -217,14 +217,14 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
       </div>
 
       {/* Bottom section */}
-      <div className="border-t px-3 py-4 space-y-1">
+      <div className="border-t pt-3 mt-3 px-3 pb-4 space-y-1">
         {/* Billing */}
         <Link
           href="/billing"
           className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
             pathname.startsWith("/billing")
-              ? "bg-primary/10 text-primary font-semibold"
-              : "text-muted-foreground hover:bg-gray-50 font-medium"
+              ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+              : "hover:bg-muted/50 text-muted-foreground"
           }`}
         >
           <CreditCard className="size-4 shrink-0" />
@@ -236,8 +236,8 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
           href="/settings"
           className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
             pathname.startsWith("/settings")
-              ? "bg-primary/10 text-primary font-semibold"
-              : "text-muted-foreground hover:bg-gray-50 font-medium"
+              ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+              : "hover:bg-muted/50 text-muted-foreground"
           }`}
         >
           <Settings className="size-4 shrink-0" />

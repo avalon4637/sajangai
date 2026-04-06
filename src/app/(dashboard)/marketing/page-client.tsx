@@ -133,7 +133,7 @@ export function MarketingPageClient({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">바이럴 / 마케팅</h1>
-          <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:border-violet-800 hover:bg-violet-100">
+          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border-primary/20">
             활동중
           </Badge>
         </div>

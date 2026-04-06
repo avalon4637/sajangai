@@ -79,7 +79,7 @@ export function TrialTimeline() {
     <section
       ref={sectionRef}
       id="trial"
-      className="bg-white py-20 sm:py-28"
+      className="bg-white py-16 sm:py-20"
     >
       <div className="mx-auto max-w-lg px-4 sm:px-6">
         {/* Heading */}

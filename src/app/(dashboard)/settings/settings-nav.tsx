@@ -32,10 +32,10 @@ export function SettingsNav() {
             className={`flex items-center gap-1.5 px-4 py-3 text-sm border-b-2 transition-colors ${
               isActive
                 ? "border-[#4B6BF5] text-[#4B6BF5] font-semibold"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground font-medium"
             }`}
           >
-            <Icon className="size-4" />
+            <Icon className="size-5" />
             {tab.label}
           </Link>
         );

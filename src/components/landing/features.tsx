@@ -2,6 +2,7 @@
 // 3 feature cards with KakaoTalk-style mockups
 
 import { KakaoMockup } from "@/components/landing/kakao-mockup";
+import { AnimateOnScroll } from "./animate-on-scroll";
 
 const featureItems = [
   {
@@ -35,7 +36,7 @@ const featureItems = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-white px-4 py-16 md:px-8 md:py-24">
+    <section id="features" className="bg-white px-4 py-16 md:px-8 sm:py-20">
       <div className="mx-auto max-w-5xl">
         {/* Title */}
         <h2 className="break-keep text-center text-2xl font-bold text-[#1E293B] md:text-3xl">
@@ -45,8 +46,8 @@ export function FeaturesSection() {
         {/* Feature cards */}
         <div className="mt-10 flex flex-col gap-8 md:gap-12">
           {featureItems.map((item, i) => (
+            <AnimateOnScroll key={i} delay={i * 150}>
             <div
-              key={i}
               className={`flex flex-col items-center gap-6 rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 md:flex-row md:gap-10 md:p-8 ${
                 i % 2 === 1 ? "md:flex-row-reverse" : ""
               }`}
@@ -54,7 +55,9 @@ export function FeaturesSection() {
               {/* Text side */}
               <div className="flex-1 text-center md:text-left">
                 <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-3xl">{item.emoji}</span>
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                    {item.number}
+                  </span>
                   <span className="text-xs font-semibold text-[#64748B]">
                     기능 {item.number}
                   </span>
@@ -68,15 +71,17 @@ export function FeaturesSection() {
               </div>
 
               {/* Mockup side */}
-              <div className="w-full max-w-xs flex-shrink-0">
+              <div className="w-full max-w-[260px] flex-shrink-0">
                 <KakaoMockup
                   message={item.mockupMessage}
                   buttons={item.mockupButtons}
                   type="report"
                   time={item.mockupTime}
+                  size="small"
                 />
               </div>
             </div>
+            </AnimateOnScroll>
           ))}
         </div>
       </div>

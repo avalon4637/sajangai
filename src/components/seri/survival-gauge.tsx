@@ -40,8 +40,23 @@ interface FactorBarProps {
   max: number;
 }
 
+// Score-based color helper: red for danger, amber for caution, emerald for safe
+function getScoreColor(ratio: number): { bar: string; text: string } {
+  if (ratio < 0.3) return { bar: "bg-red-500", text: "text-red-500" };
+  if (ratio < 0.6) return { bar: "bg-amber-500", text: "text-amber-500" };
+  return { bar: "bg-emerald-500", text: "text-emerald-500" };
+}
+
+function getScoreStroke(value: number): string {
+  if (value <= 30) return "#EF4444"; // red-500
+  if (value <= 60) return "#F59E0B"; // amber-500
+  return "#10B981"; // emerald-500
+}
+
 function FactorBar({ label, score, max }: FactorBarProps) {
   const pct = max > 0 ? (score / max) * 100 : 0;
+  const ratio = max > 0 ? score / max : 0;
+  const color = getScoreColor(ratio);
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs text-muted-foreground w-20 shrink-0 text-right">
@@ -49,11 +64,11 @@ function FactorBar({ label, score, max }: FactorBarProps) {
       </span>
       <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
         <div
-          className="h-full rounded-full bg-[#10B981] transition-all duration-500"
+          className={`h-full rounded-full ${color.bar} transition-all duration-500`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs font-medium w-12 shrink-0 tabular-nums">
+      <span className={`text-xs font-medium w-12 shrink-0 tabular-nums ${color.text}`}>
         {score}/{max}
       </span>
     </div>
@@ -101,7 +116,7 @@ function HalfCircleGauge({ value }: { value: number }) {
         <path
           d={`M ${bgStartX} ${bgStartY} A ${radius} ${radius} 0 ${largeArc} 1 ${fillEndX} ${fillEndY}`}
           fill="none"
-          stroke="#10B981"
+          stroke={getScoreStroke(value)}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />

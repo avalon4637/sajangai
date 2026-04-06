@@ -2,6 +2,7 @@
 // 4 KakaoTalk mockup cards in horizontal scroll (mobile) / grid (desktop)
 
 import { KakaoMockup } from "@/components/landing/kakao-mockup";
+import { AnimateOnScroll } from "./animate-on-scroll";
 
 const insights = [
   {
@@ -34,7 +35,7 @@ export function InsightShowcaseSection() {
   return (
     <section
       id="insight-showcase"
-      className="bg-[#F8FAFC] px-4 py-16 md:px-8 md:py-24"
+      className="bg-[#F8FAFC] px-4 py-16 md:px-8 sm:py-20"
     >
       <div className="mx-auto max-w-5xl">
         {/* Title */}
@@ -48,11 +49,12 @@ export function InsightShowcaseSection() {
         </div>
 
         {/* Mobile: horizontal scroll / Desktop: 2x2 grid */}
-        <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:overflow-visible md:pb-0 lg:grid-cols-4 lg:gap-6">
+        <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:items-stretch md:overflow-visible md:pb-0 lg:grid-cols-4 lg:gap-6">
           {insights.map((item, i) => (
-            <div
+            <AnimateOnScroll
               key={i}
-              className="w-64 flex-shrink-0 md:w-auto md:flex-shrink"
+              delay={i * 100}
+              className="w-64 min-h-[280px] flex-shrink-0 md:w-auto md:flex-shrink"
             >
               {/* Category label */}
               <p className="mb-2 text-center text-xs font-semibold text-[#64748B]">
@@ -63,8 +65,9 @@ export function InsightShowcaseSection() {
                 buttons={item.buttons}
                 type={item.type}
                 time="방금"
+                size="compact"
               />
-            </div>
+            </AnimateOnScroll>
           ))}
         </div>
 

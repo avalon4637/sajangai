@@ -13,6 +13,9 @@ import { FAQSection } from "@/components/landing/faq-section";
 import { FinalCTASection } from "@/components/landing/final-cta";
 import { LandingFooter } from "@/components/landing/footer";
 import { FloatingCTA } from "@/components/landing/floating-cta";
+import { MidCTA } from "@/components/landing/mid-cta";
+import { ProductPreview } from "@/components/landing/product-preview";
+import { SocialProof } from "@/components/landing/social-proof";
 
 export const metadata: Metadata = {
   title: "sajang.ai - 하루 990원, AI 점장이 매출 리뷰 비용을 챙겨드려요",
@@ -44,14 +47,17 @@ export default function LandingPage() {
         <ProblemSection />
         <KickSection />
 
-        {/* M2: Features + Insight Showcase (S4~S5) */}
+        {/* M2: Features + Product Preview + Insight Showcase (S4~S5) */}
         <FeaturesSection />
+        <ProductPreview />
+        <MidCTA />
         <InsightShowcaseSection />
 
         {/* M3: ROI + Agent Team + Pricing (S6~S8) */}
         <ROISection />
         <AgentTeamSection />
         <PricingSection />
+        <SocialProof />
 
         {/* M4: Trial + FAQ + Final CTA (S9~S11) */}
         <TrialTimeline />

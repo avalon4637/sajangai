@@ -25,15 +25,15 @@ export function getSentimentCategory(
 const SENTIMENT_CONFIG = {
   positive: {
     label: "긍정",
-    className: "bg-green-100 text-green-700 border-green-200",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   neutral: {
     label: "중립",
-    className: "bg-gray-100 text-gray-600 border-gray-200",
+    className: "bg-muted text-muted-foreground border-muted",
   },
   negative: {
     label: "부정",
-    className: "bg-red-100 text-red-700 border-red-200",
+    className: "bg-red-50 text-red-700 border-red-200",
   },
   unknown: {
     label: "미분석",
@@ -48,7 +48,7 @@ export function SentimentBadge({ score, compact }: SentimentBadgeProps): React.J
   return (
     <Badge
       variant="outline"
-      className={`${config.className} ${compact ? "text-[10px] h-4 px-1.5" : "text-[11px] h-5 px-2"}`}
+      className={`rounded-full font-medium ${config.className} ${compact ? "text-[10px] px-1.5 py-0" : "text-[11px] px-2 py-0.5"}`}
     >
       {config.label}
     </Badge>

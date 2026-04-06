@@ -51,7 +51,7 @@ function KpiCard({
   valueColor,
 }: KpiCardProps) {
   return (
-    <Card>
+    <Card className="shadow-sm border hover:shadow-md transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

@@ -6,6 +6,7 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CreditCard } from "lucide-react";
 import type { Subscription, Payment } from "@/lib/billing/subscription";
 
 interface BillingPageClientProps {
@@ -165,7 +166,7 @@ export function BillingPageClient({
   return (
     <div className="space-y-6">
       {/* Current plan status */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg">현재 요금제</CardTitle>
         </CardHeader>
@@ -223,7 +224,7 @@ export function BillingPageClient({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Free trial plan */}
         <Card
-          className={`border-2 ${isTrialActive ? "border-blue-500" : "border-gray-200"}`}
+          className={`border-2 shadow-sm hover:shadow-md transition-shadow ${isTrialActive ? "border-blue-500" : "border-gray-200"}`}
         >
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -259,13 +260,13 @@ export function BillingPageClient({
 
         {/* Paid plan */}
         <Card
-          className={`border-2 ${isActive || isCancelled ? "border-green-500" : "border-gray-200"}`}
+          className={`border-2 shadow-sm hover:shadow-md transition-shadow ${isActive || isCancelled ? "border-primary" : "border-gray-200"}`}
         >
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">점장 고용</CardTitle>
               {isActive && (
-                <Badge className="text-xs bg-green-500">현재 요금제</Badge>
+                <Badge className="text-xs bg-primary">현재 요금제</Badge>
               )}
             </div>
             <p className="text-2xl font-bold">
@@ -302,7 +303,7 @@ export function BillingPageClient({
       <div className="space-y-3">
         {(isTrialActive || isExpiredOrDue) && (
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full"
             onClick={handleSubscribe}
             disabled={isLoading}
           >
@@ -312,8 +313,8 @@ export function BillingPageClient({
 
         {isActive && !showCancelConfirm && (
           <Button
-            variant="outline"
-            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+            variant="destructive"
+            className="w-full"
             onClick={() => setShowCancelConfirm(true)}
           >
             구독 취소
@@ -363,7 +364,7 @@ export function BillingPageClient({
       )}
 
       {/* Payment history */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-base">결제 내역</CardTitle>
         </CardHeader>
@@ -404,9 +405,14 @@ export function BillingPageClient({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              아직 결제 내역이 없습니다.
-            </p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                <CreditCard className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                아직 결제 내역이 없습니다.
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>

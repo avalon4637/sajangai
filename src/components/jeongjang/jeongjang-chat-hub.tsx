@@ -146,7 +146,7 @@ export function JeongjangChatHub({
       <div className="flex-1 overflow-y-auto bg-[#F8F9FA] px-8 py-5 space-y-4">
         {/* Date divider */}
         <div className="flex justify-center">
-          <span className="rounded-full border bg-white px-3.5 py-1 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
             {today}
           </span>
         </div>

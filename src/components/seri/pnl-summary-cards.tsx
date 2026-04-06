@@ -100,7 +100,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
       {/* Total Revenue */}
-      <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
+      <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
       </Card>
 
       {/* Net Profit */}
-      <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
+      <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
             </div>
             <Badge
               variant="outline"
-              className="text-xs border-[#10B981]/30 text-[#059669] bg-[#ECFDF5]"
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200"
             >
               수익률 {profitMargin}%
             </Badge>
@@ -182,7 +182,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
       </Card>
 
       {/* Cash Flow */}
-      <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
+      <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
             </div>
             <Badge
               variant="outline"
-              className="text-xs border-[#10B981]/30 text-[#059669] bg-[#ECFDF5]"
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200"
             >
               안정
             </Badge>
@@ -218,7 +218,7 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
       </Card>
 
       {/* Daily Average Revenue */}
-      <Card className="border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50">
+      <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">

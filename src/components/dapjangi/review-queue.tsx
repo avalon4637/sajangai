@@ -35,25 +35,28 @@ const STATUS_CONFIG: Record<
 > = {
   pending: {
     label: "미답변",
-    variant: "destructive",
+    variant: "outline",
+    className: "rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-50 text-red-700 border-red-200",
   },
   draft: {
     label: "AI완성",
     variant: "outline",
-    className: "border-amber-300 text-amber-700 bg-amber-50",
+    className: "rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-50 text-amber-700 border-amber-200",
   },
   auto_published: {
     label: "자동 발행",
-    variant: "secondary",
+    variant: "outline",
+    className: "rounded-full px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border-primary/20",
   },
   published: {
     label: "발행완료",
-    variant: "default",
-    className: "bg-green-600 text-white",
+    variant: "outline",
+    className: "rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   skipped: {
     label: "건너뜀",
-    variant: "secondary",
+    variant: "outline",
+    className: "rounded-full px-2 py-0.5 text-[11px] font-medium bg-muted text-muted-foreground",
   },
 };
 
@@ -67,7 +70,9 @@ export function ReviewQueue({
   if (reviews.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Clock className="h-8 w-8 text-muted-foreground mb-3" />
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+          <Clock className="w-6 h-6 text-muted-foreground" />
+        </div>
         <p className="text-sm text-muted-foreground">리뷰가 없습니다</p>
       </div>
     );

@@ -34,24 +34,24 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="flex md:hidden items-center justify-between border-b bg-white px-4 py-3">
+    <header className="flex md:hidden items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
       <div>
         <h1 className="text-base font-bold text-foreground tracking-tight">
-          사장 AI
+          sajang.ai
         </h1>
         <p className="text-xs text-muted-foreground">AI 점장 서비스</p>
       </div>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="메뉴 열기">
-            <Menu className="size-5" />
+          <Button variant="ghost" size="icon" className="h-11 w-11" aria-label="메뉴 열기">
+            <Menu className="size-6" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 max-w-[85vw] p-0 bg-white">
           <SheetHeader className="px-6 py-5 border-b">
             <SheetTitle className="text-lg font-bold text-foreground tracking-tight text-left">
-              사장 AI
+              sajang.ai
             </SheetTitle>
             <p className="text-xs text-muted-foreground mt-0.5 text-left">
               AI 점장 서비스
@@ -76,8 +76,8 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                         isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-gray-50"
+                          ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                          : "hover:bg-muted/50 text-muted-foreground"
                       }`}
                     >
                       <span className="text-xl leading-none">{item.emoji}</span>
@@ -111,8 +111,8 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
               onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                 pathname.startsWith("/chat")
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-foreground hover:bg-gray-50 font-medium"
+                  ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                  : "hover:bg-muted/50 text-muted-foreground"
               }`}
             >
               <MessageSquare className="size-4 shrink-0" />
@@ -127,8 +127,8 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
               onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                 pathname.startsWith("/billing")
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-muted-foreground hover:bg-gray-50 font-medium"
+                  ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                  : "hover:bg-muted/50 text-muted-foreground"
               }`}
             >
               <CreditCard className="size-4 shrink-0" />
@@ -141,8 +141,8 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
               onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                 pathname.startsWith("/settings")
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-muted-foreground hover:bg-gray-50 font-medium"
+                  ? "bg-primary/10 border-l-2 border-primary text-primary font-medium"
+                  : "hover:bg-muted/50 text-muted-foreground"
               }`}
             >
               <Settings className="size-4 shrink-0" />

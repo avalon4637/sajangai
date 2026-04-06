@@ -36,7 +36,7 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section id="faq" className="bg-[#F8FAFC] py-20 sm:py-28">
+    <section id="faq" className="bg-[#F8FAFC] py-16 sm:py-20">
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         <h2 className="text-center text-2xl font-bold tracking-tight text-[#1E293B] sm:text-3xl">
           자주 묻는 질문
