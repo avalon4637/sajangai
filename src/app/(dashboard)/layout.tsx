@@ -57,7 +57,7 @@ export default async function DashboardLayout({
   const hasActiveConnections = (activeConnectionCount ?? 0) > 0;
 
   return (
-    <div className="flex h-screen flex-col md:flex-row overflow-hidden">
+    <div className="flex h-[100dvh] flex-col md:flex-row overflow-hidden">
       <Sidebar
         userEmail={user.email ?? ""}
         businessName={currentBusiness.name}
@@ -65,17 +65,21 @@ export default async function DashboardLayout({
         businesses={businesses}
         currentBusinessId={currentBusiness.id}
       />
-      <MobileHeader
-        userEmail={user.email ?? ""}
-        businessName={currentBusiness.name}
-        subscriptionStatus={subscriptionStatus}
-        businesses={businesses}
-        currentBusinessId={currentBusiness.id}
-      />
-      <main className="flex-1 overflow-y-auto p-4 md:p-6">
-        <DemoDataBanner hasActiveConnections={hasActiveConnections} />
-        {children}
-      </main>
+      <div className="flex flex-1 flex-col min-h-0 md:flex-row">
+        <div className="flex flex-1 flex-col min-h-0">
+          <MobileHeader
+            userEmail={user.email ?? ""}
+            businessName={currentBusiness.name}
+            subscriptionStatus={subscriptionStatus}
+            businesses={businesses}
+            currentBusinessId={currentBusiness.id}
+          />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+            <DemoDataBanner hasActiveConnections={hasActiveConnections} />
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

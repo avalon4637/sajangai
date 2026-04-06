@@ -34,7 +34,7 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="flex md:hidden items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
+    <header className="shrink-0 flex md:hidden items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
       <div>
         <h1 className="text-base font-bold text-foreground tracking-tight">
           sajang.ai
