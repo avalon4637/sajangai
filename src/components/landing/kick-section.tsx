@@ -54,12 +54,12 @@ export function KickSection() {
             <div className="mb-4 space-y-1.5 text-sm leading-relaxed text-slate-800 md:text-base">
               <p className="break-keep">
                 &quot;매출이{" "}
-                <span className="font-bold text-[#EF4444]">32%</span>{" "}
+                <span className="font-bold text-red-500">32%</span>{" "}
                 떨어졌어요.
               </p>
               <p className="break-keep">
                 원인은 리뷰 미답변{" "}
-                <span className="font-bold text-[#EF4444]">3건</span>이에요.
+                <span className="font-bold text-red-500">3건</span>이에요.
               </p>
               <p className="break-keep">지난달에도 같은 패턴이었어요.</p>
               <p className="break-keep">AI 답글 3건 준비했어요.&quot;</p>

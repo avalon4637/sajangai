@@ -4,11 +4,7 @@ export function FinalCTASection() {
   return (
     <section
       id="cta-final"
-      className="py-16 sm:py-20"
-      style={{
-        background:
-          "linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)",
-      }}
+      className="py-16 sm:py-20 bg-gradient-to-br from-blue-800 via-blue-600 to-blue-500"
     >
       <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
         <h2 className="text-2xl font-bold leading-snug text-white [word-break:keep-all] sm:text-3xl">

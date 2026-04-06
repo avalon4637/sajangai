@@ -101,11 +101,7 @@ export function ROISection() {
         >
           {/* Card header — gradient blue */}
           <div
-            className="px-6 py-8 text-center"
-            style={{
-              background:
-                "linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)",
-            }}
+            className="px-6 py-8 text-center bg-gradient-to-br from-blue-800 via-blue-600 to-blue-500"
           >
             <p className="text-sm font-semibold tracking-wide text-blue-200">
               <Trophy className="inline h-4 w-4" /> 3월 점장 성과표
@@ -137,10 +133,10 @@ export function ROISection() {
 
             {/* ROI multiplier */}
             <div className="mt-4">
-              <span className="text-5xl font-bold text-[#F59E0B]">
+              <span className="text-5xl font-bold text-amber-500">
                 <Coins className="mb-1 inline h-10 w-10" /> 25배
               </span>
-              <span className="ml-2 text-xl font-semibold text-[#FCD34D]">
+              <span className="ml-2 text-xl font-semibold text-amber-300">
                 회수
               </span>
             </div>
@@ -150,14 +146,14 @@ export function ROISection() {
           <div className="bg-white px-6 py-5">
             <ul className="space-y-3 text-sm text-slate-800">
               <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-[#10B981]">●</span>
+                <span className="mt-0.5 text-emerald-500">●</span>
                 <span>
                   <strong>절약:</strong> 수수료 최적화, 비용 경고 대응으로
                   47만원 절감
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-[#F59E0B]">●</span>
+                <span className="mt-0.5 text-amber-500">●</span>
                 <span>
                   <strong>수익:</strong> 단골 복귀 유도, 평점 관리 효과로
                   28만원 추가

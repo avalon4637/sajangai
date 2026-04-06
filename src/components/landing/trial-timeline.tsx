@@ -6,7 +6,7 @@ import Link from "next/link";
 const timelineItems = [
   {
     day: "D+1",
-    emoji: "☀️",
+    emoji: "\u2600\uFE0F",
     title: "첫 리포트",
     desc: "어제 매출 + 미답변 리뷰 알림",
     reaction: '"오 이게 되네"',
@@ -14,7 +14,7 @@ const timelineItems = [
   },
   {
     day: "D+2",
-    emoji: "🔍",
+    emoji: "\uD83D\uDD0D",
     title: "첫 인사이트",
     desc: '"배달 느림 리뷰 2건, 답글 달까요?"',
     reaction: '"AI가 분석을 해주네"',
@@ -22,7 +22,7 @@ const timelineItems = [
   },
   {
     day: "D+3",
-    emoji: "📊",
+    emoji: "\uD83D\uDCCA",
     title: "재무 분석",
     desc: "이번 주 매출 전주 대비 분석",
     reaction: '"몰랐던 걸 알려주네"',
@@ -30,7 +30,7 @@ const timelineItems = [
   },
   {
     day: "D+5",
-    emoji: "👤",
+    emoji: "\uD83D\uDC64",
     title: "마케팅",
     desc: '"단골 3명이 2주째 안 왔어요"',
     reaction: '"못 챙긴 걸 챙겨줌"',
@@ -38,7 +38,7 @@ const timelineItems = [
   },
   {
     day: "D+6",
-    emoji: "🏆",
+    emoji: "\uD83C\uDFC6",
     title: "1주 성적표",
     desc: "종합 리포트 + 점장 성과 요약",
     reaction: '"이 정도면 쓸 만한데"',
@@ -46,7 +46,7 @@ const timelineItems = [
   },
   {
     day: "D+7",
-    emoji: "⏰",
+    emoji: "\u23F0",
     title: "계약 종료",
     desc: '"오늘 자정에 점장이 퇴근해요"',
     reaction: null,
@@ -113,27 +113,28 @@ export function TrialTimeline() {
               >
                 {/* Circle node */}
                 <div
-                  className="absolute -left-8 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-white text-xs font-bold"
-                  style={{
-                    borderColor: item.accent ? "#F59E0B" : "#1E40AF",
-                    color: item.accent ? "#F59E0B" : "#1E40AF",
-                  }}
+                  className={`absolute -left-8 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-white text-xs font-bold ${
+                    item.accent
+                      ? "border-amber-500 text-amber-500"
+                      : "border-blue-800 text-blue-800"
+                  }`}
                 >
                   {i + 1}
                 </div>
 
                 {/* Content */}
                 <div
-                  className="rounded-xl border p-4 transition-colors"
-                  style={{
-                    borderColor: item.accent ? "#FDE68A" : "#E2E8F0",
-                    backgroundColor: item.accent ? "#FFFBEB" : "#F8FAFC",
-                  }}
+                  className={`rounded-xl border p-4 transition-colors ${
+                    item.accent
+                      ? "border-amber-200 bg-amber-50"
+                      : "border-slate-200 bg-slate-50"
+                  }`}
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className="text-xs font-bold"
-                      style={{ color: item.accent ? "#B45309" : "#1E40AF" }}
+                      className={`text-xs font-bold ${
+                        item.accent ? "text-amber-700" : "text-blue-800"
+                      }`}
                     >
                       {item.day}
                     </span>
@@ -149,8 +150,9 @@ export function TrialTimeline() {
 
                   {item.reaction && (
                     <p
-                      className="mt-1 text-xs font-medium"
-                      style={{ color: item.accent ? "#B45309" : "#1E40AF" }}
+                      className={`mt-1 text-xs font-medium ${
+                        item.accent ? "text-amber-700" : "text-blue-800"
+                      }`}
                     >
                       {item.reaction}
                     </p>
@@ -158,11 +160,8 @@ export function TrialTimeline() {
 
                   {item.cta && (
                     <Link href="/auth/signup" className="mt-3 block">
-                      <button
-                        className="h-10 w-full rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: "#F59E0B" }}
-                      >
-                        점장 계속 고용하기 →
+                      <button className="h-10 w-full rounded-lg bg-amber-500 text-sm font-bold text-white transition-opacity hover:opacity-90">
+                        점장 계속 고용하기 &rarr;
                       </button>
                     </Link>
                   )}
@@ -181,10 +180,8 @@ export function TrialTimeline() {
           }}
         >
           <Link href="/auth/signup" className="inline-block">
-            <button
-              className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg transition-opacity hover:bg-blue-900"
-            >
-              지금 체험 시작하기 →
+            <button className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg transition-opacity hover:bg-blue-900">
+              지금 체험 시작하기 &rarr;
             </button>
           </Link>
         </div>
