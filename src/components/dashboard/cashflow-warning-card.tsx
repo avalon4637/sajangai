@@ -47,10 +47,10 @@ export function CashflowWarningCard({
   const displayExpenses = upcomingExpenses.slice(0, 3);
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
       {/* Header */}
       <div className="mb-2.5 flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100">
           <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
         </div>
         <div>
@@ -84,7 +84,7 @@ export function CashflowWarningCard({
           <span>안전</span>
           <span>위험 기준 {formatCompact(threshold)}</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-amber-100">
+        <div className="h-2 overflow-hidden rounded-full bg-amber-100">
           <div
             className={`h-full rounded-full transition-all ${barColor}`}
             style={{ width: `${Math.round(ratio * 100)}%` }}
@@ -126,16 +126,16 @@ export function CashflowWarningCard({
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-full text-xs text-amber-700"
+            className="h-9 w-full text-xs text-amber-700"
           >
             자금 현황 보기
           </Button>
         </Link>
-        <Link href="/analysis" className="flex-1">
+        <Link href="/analysis?tab=simulation" className="flex-1">
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-full text-xs text-amber-700"
+            className="h-9 w-full text-xs text-amber-700"
           >
             시뮬레이션
           </Button>

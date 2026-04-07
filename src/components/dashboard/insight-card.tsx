@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, TrendingDown, Info, ArrowRight } from "lucide-react";
+import { AlertTriangle, AlertCircle, Info, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -33,7 +33,7 @@ const colorMap = {
 
 const iconMap = {
   critical: AlertTriangle,
-  warning: TrendingDown,
+  warning: AlertCircle,
   info: Info,
 };
 
@@ -49,7 +49,7 @@ export function InsightCard({
   const Icon = iconMap[severity];
 
   return (
-    <div className={`rounded-xl border ${c.border} ${c.bg} p-3`}>
+    <div className={`rounded-2xl border ${c.border} ${c.bg} p-3`}>
       <div className="flex items-start gap-2.5">
         <div className={`mt-0.5 shrink-0 ${c.icon}`}>
           <Icon className="h-4 w-4" />
@@ -68,7 +68,7 @@ export function InsightCard({
           </p>
           {actionLabel && actionHref && (
             <Link href={actionHref}>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+              <Button variant="ghost" size="sm" className="h-9 px-2 text-xs">
                 {actionLabel} <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </Link>

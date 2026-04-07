@@ -130,7 +130,7 @@ function RatingChange({ change }: { change: number }): React.ReactElement {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
-        isPositive ? "text-green-600" : "text-red-600"
+        isPositive ? "text-emerald-600" : "text-red-500"
       }`}
     >
       {isPositive ? (

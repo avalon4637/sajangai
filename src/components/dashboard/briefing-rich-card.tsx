@@ -57,7 +57,7 @@ export function BriefingRichCard({
       {/* KPI Grid */}
       <div className="mb-3 grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-slate-50 p-2.5 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">어제 매출</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">어제 매출</p>
           <p className="text-sm font-bold">{formatCompact(revenue)}</p>
           <p
             className={`text-[10px] font-medium ${isUp ? "text-emerald-600" : "text-red-500"}`}
@@ -67,8 +67,8 @@ export function BriefingRichCard({
           </p>
         </div>
         <div className="rounded-lg bg-slate-50 p-2.5 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">순이익</p>
-          <p className="text-sm font-bold text-emerald-600">
+          <p className="mb-0.5 text-[11px] text-muted-foreground">순이익</p>
+          <p className={`text-sm font-bold ${netProfit >= 0 ? "text-emerald-600" : "text-red-500"}`}>
             {formatCompact(netProfit)}
           </p>
           <p className="text-[10px] text-muted-foreground">
@@ -76,7 +76,7 @@ export function BriefingRichCard({
           </p>
         </div>
         <div className="rounded-lg bg-slate-50 p-2.5 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">리뷰</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">리뷰</p>
           <p className="text-sm font-bold">{reviewCount}건</p>
           {unansweredReviews > 0 && (
             <p className="text-[10px] font-medium text-amber-600">

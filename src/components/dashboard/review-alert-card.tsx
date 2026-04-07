@@ -26,10 +26,11 @@ export function ReviewAlertCard({
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
               {platform}
             </span>
-            <span className="text-xs text-amber-700">
-              {"★".repeat(rating)}
-              {"☆".repeat(5 - rating)}
-            </span>
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }, (_, i) => (
+                <Star key={i} className={`h-3 w-3 ${i < rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+              ))}
+            </div>
           </div>
           <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">
             {preview}
@@ -38,7 +39,7 @@ export function ReviewAlertCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs text-amber-700"
+              className="h-9 px-2 text-xs text-amber-700"
             >
               AI 답글 확인하기 <ArrowRight className="ml-1 h-3 w-3" />
             </Button>

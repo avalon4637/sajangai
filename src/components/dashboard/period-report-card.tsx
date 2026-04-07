@@ -65,7 +65,7 @@ function WeeklyReport({
   lowlight,
 }: Omit<PeriodReportCardProps, "type">): React.JSX.Element {
   return (
-    <div className="rounded-xl border bg-white p-3 shadow-sm">
+    <div className="rounded-2xl border bg-white p-3 shadow-sm">
       {/* Header */}
       <div className="mb-2.5 flex items-center gap-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
@@ -82,19 +82,19 @@ function WeeklyReport({
       {/* KPI Grid */}
       <div className="mb-2.5 grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-slate-50 p-2 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">매출</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">매출</p>
           <p className="text-sm font-bold">{formatCompact(revenue)}</p>
           <ChangeIndicator value={revenueChange} />
         </div>
         <div className="rounded-lg bg-slate-50 p-2 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">순이익</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">순이익</p>
           <p className="text-sm font-bold text-emerald-600">
             {formatCompact(profit)}
           </p>
           <ChangeIndicator value={profitChange} />
         </div>
         <div className="rounded-lg bg-slate-50 p-2 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">리뷰 평점</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">리뷰 평점</p>
           <p className="text-sm font-bold">{reviewAvg.toFixed(1)}</p>
           <p className="text-[10px] text-muted-foreground">/ 5.0</p>
         </div>
@@ -127,7 +127,7 @@ function WeeklyReport({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-full text-xs text-blue-700"
+          className="h-9 w-full text-xs text-blue-700"
         >
           상세 분석 보기
         </Button>
@@ -146,7 +146,7 @@ function MonthlyRoiReport({
   const totalValue = savedMoney + earnedMoney;
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-3">
+    <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-3">
       {/* Header */}
       <div className="mb-2.5 flex items-center gap-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
@@ -163,19 +163,19 @@ function MonthlyRoiReport({
       {/* ROI Grid */}
       <div className="mb-2.5 grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-white/70 p-2 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">절약 비용</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">절약 비용</p>
           <p className="text-sm font-bold text-blue-700">
             {formatCompact(savedMoney)}
           </p>
         </div>
         <div className="rounded-lg bg-white/70 p-2 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">추가 수익</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">추가 수익</p>
           <p className="text-sm font-bold text-emerald-600">
             {formatCompact(earnedMoney)}
           </p>
         </div>
         <div className="rounded-lg bg-white/70 p-2 text-center">
-          <p className="mb-0.5 text-[10px] text-muted-foreground">절약 시간</p>
+          <p className="mb-0.5 text-[11px] text-muted-foreground">절약 시간</p>
           <p className="text-sm font-bold">{savedHours}시간</p>
         </div>
       </div>
@@ -205,7 +205,7 @@ function MonthlyRoiReport({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-full text-xs text-blue-700"
+          className="h-9 w-full text-xs text-blue-700"
         >
           성과 상세 보기
         </Button>

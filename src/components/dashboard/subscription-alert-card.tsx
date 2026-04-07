@@ -61,10 +61,10 @@ export function SubscriptionAlertCard({
   const { Icon } = config;
 
   return (
-    <div className={`rounded-xl border ${config.border} ${config.bg} p-3`}>
+    <div className={`rounded-2xl border ${config.border} ${config.bg} p-3`}>
       <div className="flex items-start gap-2.5">
         <div
-          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${config.iconBg}`}
+          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${config.iconBg}`}
         >
           <Icon className={`h-3.5 w-3.5 ${config.iconColor}`} />
         </div>
@@ -97,7 +97,7 @@ export function SubscriptionAlertCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-7 px-2 text-xs ${config.btnColor}`}
+                className={`h-9 px-2 text-xs ${config.btnColor}`}
               >
                 {type === "payment_failed" ? "결제 수단 변경" : "구독 관리"}
                 <ArrowRight className="ml-1 h-3 w-3" />
