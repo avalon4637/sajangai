@@ -10,6 +10,8 @@ import { OnboardingBriefing } from "@/components/dashboard/onboarding-briefing";
 import { BriefingRichCard } from "@/components/dashboard/briefing-rich-card";
 import { InsightCard } from "@/components/dashboard/insight-card";
 import { ReviewAlertCard } from "@/components/dashboard/review-alert-card";
+import { CashflowWarningCard } from "@/components/dashboard/cashflow-warning-card";
+import { PeriodReportCard } from "@/components/dashboard/period-report-card";
 import { MobileChatInput } from "@/components/dashboard/mobile-chat-input";
 import type { ChatMessageData } from "@/components/jeongjang/chat-message";
 
@@ -42,6 +44,8 @@ export default async function DashboardPage() {
     latestBriefing,
     recentInsights,
     pendingNegativeReviews,
+    seriProfitReport,
+    weeklyReportData,
   ] = await Promise.all([
     getDailyBriefingData(businessId),
     getMonthlyKpi(businessId, currentMonth),
@@ -73,6 +77,26 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false })
       .limit(3)
       .then((res) => res.data ?? []),
+    // Latest cashflow/profit report from seri
+    supabase
+      .from("daily_reports")
+      .select("content")
+      .eq("business_id", businessId)
+      .eq("report_type", "seri_profit")
+      .order("report_date", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then((res) => res.data),
+    // Latest weekly report
+    supabase
+      .from("daily_reports")
+      .select("report_date, report_type, content")
+      .eq("business_id", businessId)
+      .in("report_type", ["review_weekly"])
+      .order("report_date", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then((res) => res.data),
   ]);
 
   const businessName = business?.name ?? "매장";
@@ -180,6 +204,45 @@ export default async function DashboardPage() {
     latestBriefing?.summary ??
     undefined;
 
+  // Parse cashflow warning data from seri profit report
+  const seriContent = seriProfitReport?.content as Record<string, unknown> | null;
+  const cashflowDanger =
+    seriContent &&
+    typeof seriContent.daysUntilDanger === "number" &&
+    seriContent.daysUntilDanger <= 30
+      ? {
+          currentBalance: (seriContent.currentBalance as number) ?? 0,
+          projectedBalance: (seriContent.projectedBalance as number) ?? 0,
+          daysUntilDanger: seriContent.daysUntilDanger as number,
+          threshold: (seriContent.threshold as number) ?? 500000,
+          upcomingExpenses: (
+            (seriContent.upcomingExpenses as { name: string; amount: number; date: string }[]) ?? []
+          ).slice(0, 3),
+        }
+      : null;
+
+  // Parse weekly report data
+  const weeklyContent = weeklyReportData?.content as Record<string, unknown> | null;
+  const weeklyReportDate = weeklyReportData?.report_date
+    ? new Date(weeklyReportData.report_date as string)
+    : null;
+  const isWeeklyRecent =
+    weeklyReportDate &&
+    now.getTime() - weeklyReportDate.getTime() < 7 * 24 * 60 * 60 * 1000;
+  const weeklyReport =
+    weeklyContent && isWeeklyRecent
+      ? {
+          period: (weeklyContent.period as string) ?? "",
+          revenue: (weeklyContent.revenue as number) ?? 0,
+          revenueChange: (weeklyContent.revenueChange as number) ?? 0,
+          profit: (weeklyContent.profit as number) ?? 0,
+          profitChange: (weeklyContent.profitChange as number) ?? 0,
+          reviewAvg: (weeklyContent.reviewAvg as number) ?? 0,
+          highlight: (weeklyContent.highlight as string) ?? undefined,
+          lowlight: (weeklyContent.lowlight as string) ?? undefined,
+        }
+      : null;
+
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] flex-col">
       {/* Compact Briefing Strip */}
@@ -209,6 +272,17 @@ export default async function DashboardPage() {
             briefingText={briefingText}
             time="오전 7:30"
           />
+
+          {/* Cashflow Warning - only when danger detected */}
+          {cashflowDanger && (
+            <CashflowWarningCard
+              currentBalance={cashflowDanger.currentBalance}
+              projectedBalance={cashflowDanger.projectedBalance}
+              daysUntilDanger={cashflowDanger.daysUntilDanger}
+              threshold={cashflowDanger.threshold}
+              upcomingExpenses={cashflowDanger.upcomingExpenses}
+            />
+          )}
 
           {/* Insight Feed */}
           {recentInsights.length > 0 && (
@@ -257,6 +331,21 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
+          )}
+
+          {/* Weekly Report - if recent */}
+          {weeklyReport && (
+            <PeriodReportCard
+              type="weekly"
+              period={weeklyReport.period}
+              revenue={weeklyReport.revenue}
+              revenueChange={weeklyReport.revenueChange}
+              profit={weeklyReport.profit}
+              profitChange={weeklyReport.profitChange}
+              reviewAvg={weeklyReport.reviewAvg}
+              highlight={weeklyReport.highlight}
+              lowlight={weeklyReport.lowlight}
+            />
           )}
 
           {/* Quick action suggestions */}
