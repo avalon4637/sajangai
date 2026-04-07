@@ -94,7 +94,7 @@ export function BillingPageClient({
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
         billingKeyMethod: "CARD",
-        issueName: "sajang.ai 정기결제 등록",
+        issueName: "사장AI 정기결제 등록",
         customer: {
           customerId: businessId,
           email: userEmail,

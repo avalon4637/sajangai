@@ -28,7 +28,7 @@ describe("Sidebar", () => {
 
   it("renders the app title", () => {
     render(<Sidebar {...defaultProps} />);
-    expect(screen.getByText("사장 AI")).toBeInTheDocument();
+    expect(screen.getByText("사장AI")).toBeInTheDocument();
   });
 
   it("renders all 4 agent nav items", () => {

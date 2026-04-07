@@ -32,7 +32,7 @@ export function ProductPreview() {
               <div className="hidden sm:block w-40 shrink-0">
                 <div className="space-y-2">
                   <div className="text-sm font-bold text-slate-800 mb-3">
-                    사장 AI
+                    사장AI
                   </div>
                   {["점장", "세리", "답장이", "바이럴"].map((name, i) => (
                     <div

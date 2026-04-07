@@ -24,7 +24,7 @@ export default async function PreferencesPage() {
       {/* Brand header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold tracking-tight">
-          사장.ai
+          사장AI
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           소상공인을 위한 AI 경영 도우미

@@ -21,7 +21,7 @@ describe("LoginForm", () => {
   it("should render logo and tagline", () => {
     render(<LoginForm />);
 
-    expect(screen.getByText("사장 AI")).toBeInTheDocument();
+    expect(screen.getByText("사장AI")).toBeInTheDocument();
     expect(screen.getByText("하루 330원, 점장 한 명")).toBeInTheDocument();
   });
 

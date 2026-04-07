@@ -1,6 +1,6 @@
 {
-  "name": "sajang.ai - AI 점장",
-  "short_name": "sajang.ai",
+  "name": "사장AI - AI 점장",
+  "short_name": "사장AI",
   "description": "하루 330원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다",
   "start_url": "/dashboard",
   "display": "standalone",
@@ -11,15 +11,15 @@
   "categories": ["business", "finance"],
   "icons": [
     {
-      "src": "/icons/icon-192x192.svg",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.svg",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

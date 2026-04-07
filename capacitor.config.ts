@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "ai.sajang.app",
-  appName: "사장.ai",
+  appName: "사장AI",
   // Server-Rendered WebView: load the production URL directly.
   // For local development, override url to http://localhost:2000
   server: {

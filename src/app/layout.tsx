@@ -22,7 +22,8 @@ export const metadata: Metadata = {
   description:
     "하루 990원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다.",
   icons: {
-    icon: "/icon.svg",
+    icon: "/icons/favicon-32x32.png",
+    apple: "/icons/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
   appleWebApp: {
