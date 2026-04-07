@@ -110,7 +110,7 @@ export function Sidebar({ userEmail, businessName, subscriptionStatus, businesse
       {/* Logo */}
       <div className="px-6 py-5 border-b">
         <h1 className="text-lg font-bold text-foreground tracking-tight">
-          sajang.ai
+          사장AI
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">AI 점장 서비스</p>
       </div>

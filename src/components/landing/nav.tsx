@@ -15,9 +15,9 @@ export async function LandingNav() {
         <Link
           href="/"
           className="text-xl font-bold text-blue-800"
-          aria-label="sajang.ai 홈으로"
+          aria-label="사장AI 홈으로"
         >
-          sajang.ai
+          사장AI
         </Link>
 
         {/* Right side actions */}

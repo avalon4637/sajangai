@@ -37,7 +37,7 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
     <header className="shrink-0 flex md:hidden items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
       <div>
         <h1 className="text-base font-bold text-foreground tracking-tight">
-          sajang.ai
+          사장AI
         </h1>
         <p className="text-xs text-muted-foreground">AI 점장 서비스</p>
       </div>
@@ -51,7 +51,7 @@ export function MobileHeader({ userEmail, businessName, subscriptionStatus, busi
         <SheetContent side="left" className="w-72 max-w-[85vw] p-0 bg-white">
           <SheetHeader className="px-6 py-5 border-b">
             <SheetTitle className="text-lg font-bold text-foreground tracking-tight text-left">
-              sajang.ai
+              사장AI
             </SheetTitle>
             <p className="text-xs text-muted-foreground mt-0.5 text-left">
               AI 점장 서비스

@@ -109,7 +109,7 @@ export function CardPreviewClient() {
         <CompareRow
           kakao={
             <KakaoPreview
-              title="[sajang.ai] 오늘의 브리핑"
+              title="[사장AI] 오늘의 브리핑"
               body={`맛나분식 사장님, 좋은 아침이에요!
 
 어제 매출: 920,000원 (▼26.4%)
@@ -144,7 +144,7 @@ export function CardPreviewClient() {
           kakao={
             <div className="space-y-3">
               <KakaoPreview
-                title="[sajang.ai] 긴급 인사이트"
+                title="[사장AI] 긴급 인사이트"
                 body={`맛나분식 사장님, 중요한 변화가 감지되었습니다.
 
 [긴급] 매출 -32% 감지
@@ -152,7 +152,7 @@ export function CardPreviewClient() {
                 button="인사이트 확인하기"
               />
               <KakaoPreview
-                title="[sajang.ai] 이상 매출 감지"
+                title="[사장AI] 이상 매출 감지"
                 body={`맛나분식 사장님, 매출 이상이 감지되었습니다.
 
 유형: 급락
@@ -198,7 +198,7 @@ export function CardPreviewClient() {
         <CompareRow
           kakao={
             <KakaoPreview
-              title="[sajang.ai] 부정 리뷰 접수"
+              title="[사장AI] 부정 리뷰 접수"
               body={`맛나분식 사장님, 부정 리뷰가 접수되었어요.
 
 플랫폼: 배민
@@ -224,7 +224,7 @@ export function CardPreviewClient() {
         <CompareRow
           kakao={
             <KakaoPreview
-              title="[sajang.ai] 자금 부족 경고"
+              title="[사장AI] 자금 부족 경고"
               body={`맛나분식 사장님, 자금 주의가 필요합니다.
 
 경고일: 4월 10일
@@ -257,7 +257,7 @@ export function CardPreviewClient() {
           kakao={
             <div className="space-y-3">
               <KakaoPreview
-                title="[sajang.ai] 주간 성과 요약"
+                title="[사장AI] 주간 성과 요약"
                 body={`맛나분식 사장님, 이번 주 성과를 정리했어요.
 
 주간 매출: 2,800,000원 (▲8.2%)
@@ -267,7 +267,7 @@ export function CardPreviewClient() {
                 button="주간 리포트 보기"
               />
               <KakaoPreview
-                title="[sajang.ai] 이달의 점장 성과"
+                title="[사장AI] 이달의 점장 성과"
                 body={`맛나분식 사장님, 4월 점장 성과입니다.
 
 절약 비용: 470,000원
@@ -312,7 +312,7 @@ ROI: 25.0배 (월 9,900원 투자)
           kakao={
             <div className="space-y-3">
               <KakaoPreview
-                title="[sajang.ai] 구독 시작 안내"
+                title="[사장AI] 구독 시작 안내"
                 body={`맛나분식 사장님, 점장 고용이 완료되었습니다!
 
 플랜: 점장 고용
@@ -323,7 +323,7 @@ ROI: 25.0배 (월 9,900원 투자)
                 button="대시보드 바로가기"
               />
               <KakaoPreview
-                title="[sajang.ai] 구독 만료 예정"
+                title="[사장AI] 구독 만료 예정"
                 body={`맛나분식 사장님, 구독이 곧 만료됩니다.
 
 플랜: 점장 고용
@@ -334,7 +334,7 @@ ROI: 25.0배 (월 9,900원 투자)
                 button="구독 연장하기"
               />
               <KakaoPreview
-                title="[sajang.ai] 결제 실패 안내"
+                title="[사장AI] 결제 실패 안내"
                 body={`맛나분식 사장님, 결제가 실패했습니다.
 
 플랜: 점장 고용

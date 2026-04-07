@@ -8,7 +8,7 @@ const BUSINESS_INFO = {
   phone: "010-2093-9980",
   email: "purrpurr.ai@gmail.com",
   salesRegistrationNumber: "2016-경기부천-1257",
-  serviceName: "sajang.ai · Agentra Inc.",
+  serviceName: "사장AI · Agentra Inc.",
 };
 
 function InfoItem({ label, value }: { label: string; value: string }) {

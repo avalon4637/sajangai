@@ -48,7 +48,7 @@ export function KickSection() {
             <div className="mb-3 flex items-center gap-2">
               <CircleCheck className="w-5 h-5 text-blue-700" />
               <span className="text-sm font-semibold text-blue-800">
-                sajang.ai (주치의)
+                사장AI (주치의)
               </span>
             </div>
             <div className="mb-4 space-y-1.5 text-sm leading-relaxed text-slate-800 md:text-base">

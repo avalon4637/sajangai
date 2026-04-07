@@ -42,7 +42,7 @@ export default async function AdminLayout({
       <header className="flex items-center justify-between border-b bg-zinc-900 px-6 py-3 text-white">
         <div className="flex items-center gap-6">
           <Link href="/admin" className="text-lg font-bold">
-            sajang.ai Admin
+            사장AI Admin
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <Link

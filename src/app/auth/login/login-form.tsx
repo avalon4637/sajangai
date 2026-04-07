@@ -32,7 +32,7 @@ export function LoginForm() {
       {/* Logo and tagline */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          sajang.ai
+          사장AI
         </h1>
         <p className="text-muted-foreground text-sm">
           AI 점장에게 매장 관리를 맡겨보세요

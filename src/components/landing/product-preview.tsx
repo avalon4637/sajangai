@@ -20,7 +20,7 @@ export function ProductPreview() {
             </div>
             <div className="flex-1 mx-4">
               <div className="bg-white rounded-md px-3 py-1 text-xs text-slate-400 max-w-md mx-auto text-center">
-                sajang.ai/analysis
+                사장AI
               </div>
             </div>
           </div>
