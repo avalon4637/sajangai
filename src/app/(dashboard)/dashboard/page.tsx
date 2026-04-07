@@ -372,7 +372,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Desktop: Chat Hub - hidden on mobile, visible on sm+ */}
-        <div className="hidden min-h-0 flex-1 flex-col sm:flex">
+        <div className="hidden min-h-0 flex-1 flex-col overflow-hidden sm:flex">
           <JeongjangChatHub
             businessId={businessId}
             businessName={businessName}

@@ -142,7 +142,7 @@ function MonthlyRoiReport({
   earnedMoney = 0,
   savedHours = 0,
   roiMultiple = 0,
-  monthlyCost = 9900,
+  monthlyCost = 29700,
 }: Omit<PeriodReportCardProps, "type">): React.JSX.Element {
   const totalValue = savedMoney + earnedMoney;
 

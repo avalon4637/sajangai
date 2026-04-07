@@ -273,7 +273,7 @@ export function CardPreviewClient() {
 절약 비용: 470,000원
 추가 수익: 280,000원
 절약 시간: 23시간
-ROI: 25.0배 (월 9,900원 투자)
+ROI: 25.0배 (월 29,700원 투자)
 
 점장 한 명이 한 달간 이만큼 챙겼어요!`}
                 button="성과 상세 보기"
@@ -299,7 +299,7 @@ ROI: 25.0배 (월 9,900원 투자)
                 earnedMoney={280000}
                 savedHours={23}
                 roiMultiple={25}
-                monthlyCost={9900}
+                monthlyCost={29700}
               />
             </div>
           }

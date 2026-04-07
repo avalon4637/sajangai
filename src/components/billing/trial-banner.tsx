@@ -36,7 +36,7 @@ export function TrialBanner({ daysLeft, isExpired }: TrialBannerProps) {
                 체험 {daysLeft}일 남았어요
               </p>
               <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
-                하루 330원으로 AI 점장을 계속 고용하세요
+                하루 990원으로 AI 점장을 계속 고용하세요
               </p>
             </>
           )}

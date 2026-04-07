@@ -10,12 +10,12 @@ export interface RoiBreakdown {
   customerRetention: number; // Re-engagement message conversions
   timeSavings: number; // Hours saved (converted to KRW)
   totalValue: number;
-  subscriptionCost: number; // 9,900 KRW
+  subscriptionCost: number; // 29,700 KRW (monthly base)
   roiMultiple: number; // totalValue / subscriptionCost
   period: string; // YYYY-MM
 }
 
-const SUBSCRIPTION_COST = 9900;
+const SUBSCRIPTION_COST = 29700;
 const TIME_VALUE_PER_HOUR = 15000; // KRW per hour (minimum wage proxy)
 const REPLY_MINUTES = 3; // Minutes saved per auto-reply
 const REPORT_MINUTES = 10; // Minutes saved per daily report

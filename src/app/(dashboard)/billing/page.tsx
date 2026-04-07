@@ -10,7 +10,6 @@ import {
 import { BillingPageClient } from "./page-client";
 import type { Payment } from "@/lib/billing/subscription";
 import { calculateMonthlyRoi } from "@/lib/roi/calculator";
-import { RoiDashboard } from "@/components/billing/roi-dashboard";
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -76,22 +75,12 @@ export default async function BillingPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">요금제</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          하루 330원, 점장 한 명 — AI 점장이 매장 운영을 알아서 챙겨드립니다
-        </p>
-      </div>
-
-      <RoiDashboard roi={roi} />
-
-      <BillingPageClient
-        subscription={subscriptionWithDays}
-        payments={payments}
-        businessId={business?.id ?? null}
-        userEmail={user.email ?? ""}
-      />
-    </div>
+    <BillingPageClient
+      subscription={subscriptionWithDays}
+      payments={payments}
+      businessId={business?.id ?? null}
+      userEmail={user.email ?? ""}
+      roi={roi}
+    />
   );
 }

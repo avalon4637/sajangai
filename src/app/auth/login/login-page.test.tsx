@@ -22,7 +22,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     expect(screen.getByText("사장AI")).toBeInTheDocument();
-    expect(screen.getByText("하루 330원, 점장 한 명")).toBeInTheDocument();
+    expect(screen.getByText("하루 990원, 점장 한 명")).toBeInTheDocument();
   });
 
   it("should render Kakao login button", () => {

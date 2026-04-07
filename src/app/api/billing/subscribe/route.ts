@@ -5,10 +5,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { activateSubscription } from "@/lib/billing/subscription";
+import { PRICING } from "@/lib/billing/pricing";
+import type { PlanInterval } from "@/lib/billing/pricing";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 
 interface SubscribeRequest {
   billingKey: string;
+  planInterval?: PlanInterval;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -65,7 +68,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const result = await activateSubscription(business.id, body.billingKey);
+  // Validate plan interval
+  const planInterval = body.planInterval ?? "monthly";
+  if (!(planInterval in PRICING)) {
+    return NextResponse.json(
+      { error: "잘못된 요금제입니다." },
+      { status: 400 }
+    );
+  }
+
+  const result = await activateSubscription(business.id, body.billingKey, planInterval);
 
   if (!result.success) {
     return NextResponse.json(

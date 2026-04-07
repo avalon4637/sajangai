@@ -3,9 +3,13 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requestPayment, PortOneError } from "./portone-client";
+import { PRICING } from "./pricing";
+import type { PlanInterval } from "./pricing";
+
+// Re-export for convenience from server-side imports
+export { PRICING, type PlanInterval } from "./pricing";
 
 const TRIAL_DAYS = 7;
-const MONTHLY_AMOUNT = 9900; // KRW
 
 export type SubscriptionPlan = "trial" | "paid";
 export type SubscriptionStatus =
@@ -95,10 +99,12 @@ export async function getSubscription(
  *
  * @param businessId - The business to activate
  * @param billingKey - PortOne billing key from card registration
+ * @param planInterval - Payment interval: monthly, quarterly, or yearly
  */
 export async function activateSubscription(
   businessId: string,
-  billingKey: string
+  billingKey: string,
+  planInterval: PlanInterval = "monthly"
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
 
@@ -113,13 +119,20 @@ export async function activateSubscription(
     return { success: false, error: "구독 정보를 찾을 수 없습니다." };
   }
 
+  const plan = PRICING[planInterval];
   const now = new Date();
   const periodEnd = new Date(now);
-  periodEnd.setMonth(periodEnd.getMonth() + 1);
+  if (planInterval === "yearly") {
+    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+  } else if (planInterval === "quarterly") {
+    periodEnd.setMonth(periodEnd.getMonth() + 3);
+  } else {
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+  }
 
   // Create a payment record first
   const paymentId = `sajang_${businessId}_${Date.now()}`;
-  const orderName = `점장 고용 - ${now.getFullYear()}년 ${now.getMonth() + 1}월`;
+  const orderName = `점장 고용 (${plan.label}) - ${now.getFullYear()}년 ${now.getMonth() + 1}월`;
 
   let portonePaymentId: string | null = null;
   let paymentStatus: "paid" | "failed" = "paid";
@@ -128,7 +141,7 @@ export async function activateSubscription(
   try {
     const paymentResult = await requestPayment(
       billingKey,
-      MONTHLY_AMOUNT,
+      plan.amount,
       orderName,
       paymentId
     );
@@ -146,7 +159,7 @@ export async function activateSubscription(
   // Record payment
   await supabase.from("payments").insert({
     subscription_id: sub.id,
-    amount: MONTHLY_AMOUNT,
+    amount: plan.amount,
     status: paymentStatus,
     portone_payment_id: portonePaymentId,
     paid_at: paymentStatus === "paid" ? now.toISOString() : null,

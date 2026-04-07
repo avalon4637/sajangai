@@ -89,7 +89,7 @@ export async function getAdminDashboardData(filter?: string, search?: string) {
   // KPIs
   const totalUsers = businesses.length;
   const activePaid = subs.filter((s) => s.status === "active" && s.plan === "paid").length;
-  const mrr = activePaid * 9900;
+  const mrr = activePaid * 29700;
 
   return {
     kpi: { totalUsers, activePaid, mrr },

@@ -90,10 +90,10 @@ export interface CancelResult {
 
 /**
  * Charges a stored billing key for recurring payments.
- * Used for monthly subscription billing (9,900 KRW/month).
+ * Used for subscription billing (29,700 KRW/month base).
  *
  * @param billingKey - The billing key issued to the customer
- * @param amount - Amount in KRW (integer, no decimals). Default: 9900
+ * @param amount - Amount in KRW (integer, no decimals)
  * @param orderName - Display name for the payment (e.g., "점장 고용 - 2026년 3월")
  * @param paymentId - Unique payment identifier (for idempotency)
  */
@@ -162,7 +162,7 @@ export async function cancelPayment(
     console.log("[PortOne TEST] cancelPayment:", { paymentId, reason });
     return {
       cancellationId: `test_cancel_${Date.now()}`,
-      cancelledAmount: 9900,
+      cancelledAmount: 29700,
       cancelledAt: new Date().toISOString(),
     };
   }

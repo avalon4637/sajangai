@@ -71,6 +71,9 @@ export function PricingSection() {
             <p className="mt-1 text-xs text-slate-500">
               (하루 990원, 커피 한 잔 값)
             </p>
+            <p className="mt-1 text-xs font-medium text-primary/80">
+              3개월 10% 할인 | 12개월 30% 할인
+            </p>
             <ul className="mt-6 space-y-3">
               {paidFeatures.map((feat) => (
                 <li

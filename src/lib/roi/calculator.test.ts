@@ -29,7 +29,7 @@ describe("ROI Calculator", () => {
     const roi = await calculateMonthlyRoi("test-biz", "2026-04");
 
     expect(roi.period).toBe("2026-04");
-    expect(roi.subscriptionCost).toBe(9900);
+    expect(roi.subscriptionCost).toBe(29700);
     expect(roi.totalValue).toBe(0);
     expect(roi.roiMultiple).toBe(0);
   });
