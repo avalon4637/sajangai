@@ -40,10 +40,24 @@ export default async function AdminLayout({
   return (
     <div className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b bg-zinc-900 px-6 py-3 text-white">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <Link href="/admin" className="text-lg font-bold">
             sajang.ai Admin
           </Link>
+          <nav className="flex items-center gap-1 text-sm">
+            <Link
+              href="/admin"
+              className="rounded px-3 py-1 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            >
+              대시보드
+            </Link>
+            <Link
+              href="/admin/operations"
+              className="rounded px-3 py-1 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            >
+              운영
+            </Link>
+          </nav>
         </div>
         <div className="flex items-center gap-4 text-sm text-zinc-400">
           <span>{user.email}</span>
