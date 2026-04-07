@@ -88,8 +88,7 @@ async function crawlViaApi(placeId: string): Promise<NaverReview[]> {
           display: 50,
           isPhotoUsed: false,
           theme: "0",
-          entry: "place/feed",
-          sortType: "recent",
+          sort: "recent",
         },
       },
       query: `query getVisitorReviews($input: VisitorReviewsInput) {

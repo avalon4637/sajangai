@@ -1,14 +1,17 @@
 // Naver Place review sync module
-// Saves crawled reviews to delivery_reviews table with platform='naver_place'
-// Deduplicates by external_id to avoid duplicate entries
+// Calls Supabase Edge Function (naver-crawl) which runs on Deno Deploy
+// Direct server-side crawling is blocked by Naver's bot detection
 
 import { createClient } from "@/lib/supabase/server";
-import { crawlNaverReviews } from "./crawler";
-import type { NaverReview, SyncResult } from "./types";
+import type { SyncResult } from "./types";
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 /**
- * Sync Naver Place reviews for a business.
- * Crawls reviews, deduplicates against existing data, and inserts new ones.
+ * Sync Naver Place reviews via Supabase Edge Function.
+ * The Edge Function crawls Naver's GraphQL API from Deno Deploy infrastructure
+ * (different IP range, not blocked by Naver).
  *
  * @param businessId - UUID of the business
  * @param placeId - Naver Place restaurant ID (numeric string)
@@ -18,92 +21,54 @@ export async function syncNaverReviews(
   businessId: string,
   placeId: string
 ): Promise<SyncResult> {
-  const supabase = await createClient();
-
   try {
-    // Crawl reviews from Naver Place
-    const crawlResult = await crawlNaverReviews(placeId);
+    // Call Edge Function with saveToDb=true
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/naver-crawl`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        placeId,
+        businessId,
+        saveToDb: true,
+      }),
+    });
 
-    if (crawlResult.error) {
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[NaverSync] Edge Function error:", errorText);
       return {
         success: false,
         newReviews: 0,
         totalReviews: 0,
-        error: crawlResult.error,
+        error: `Edge Function returned ${res.status}`,
       };
     }
 
-    if (crawlResult.reviews.length === 0) {
-      // Update last synced timestamp even if no reviews found
-      await supabase
-        .from("businesses")
-        .update({ naver_last_synced_at: new Date().toISOString() })
-        .eq("id", businessId);
+    const data = await res.json();
 
+    if (data.error) {
       return {
-        success: true,
+        success: false,
         newReviews: 0,
-        totalReviews: 0,
+        totalReviews: data.totalCount ?? 0,
+        error: data.error,
       };
     }
 
-    // Fetch existing external_ids to deduplicate
-    const { data: existingReviews } = await supabase
-      .from("delivery_reviews")
-      .select("external_id")
-      .eq("business_id", businessId)
-      .eq("platform", "naver_place");
-
-    const existingIds = new Set(
-      existingReviews?.map((r) => r.external_id) ?? []
-    );
-
-    // Filter out already-stored reviews
-    const newReviews = crawlResult.reviews.filter(
-      (r) => !existingIds.has(r.externalId)
-    );
-
-    // Insert new reviews
-    if (newReviews.length > 0) {
-      const rows = newReviews.map((review: NaverReview) => ({
-        business_id: businessId,
-        platform: "naver_place" as const,
-        external_id: review.externalId,
-        rating: review.rating,
-        content: review.content,
-        customer_name: review.reviewerName,
-        review_date: review.reviewDate,
-        reply_status: "pending" as const,
-        synced_at: new Date().toISOString(),
-      }));
-
-      const { error: insertError } = await supabase
-        .from("delivery_reviews")
-        .insert(rows);
-
-      if (insertError) {
-        console.error("[NaverSync] Insert error:", insertError.message);
-        return {
-          success: false,
-          newReviews: 0,
-          totalReviews: existingIds.size,
-          error: insertError.message,
-        };
-      }
-    }
-
-    // Update last synced timestamp on business
+    // Update last synced timestamp
+    const supabase = await createClient();
     await supabase
       .from("businesses")
       .update({ naver_last_synced_at: new Date().toISOString() })
       .eq("id", businessId);
 
-    const totalReviews = existingIds.size + newReviews.length;
-
     return {
       success: true,
-      newReviews: newReviews.length,
-      totalReviews,
+      newReviews: data.newReviews ?? data.reviews?.length ?? 0,
+      totalReviews: data.totalCount ?? 0,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
