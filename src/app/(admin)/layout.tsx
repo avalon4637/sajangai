@@ -57,6 +57,12 @@ export default async function AdminLayout({
             >
               운영
             </Link>
+            <Link
+              href="/admin/card-preview"
+              className="rounded px-3 py-1 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            >
+              카드 프리뷰
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-4 text-sm text-zinc-400">
