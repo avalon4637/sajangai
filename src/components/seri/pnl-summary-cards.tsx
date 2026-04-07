@@ -98,14 +98,14 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
   const cardRevenue = current.totalRevenue - deliveryRevenue;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {/* Total Revenue */}
       <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-[#10B981]" />
+              <div className="h-7 w-7 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
+                <Wallet className="h-4 w-4 text-[#10B981]" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">
                 총 매출
@@ -113,13 +113,13 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
             </div>
             <DeltaBadge change={revenueChange} />
           </div>
-          <div className="text-2xl font-bold tracking-tight">
+          <div className="text-lg font-bold tracking-tight">
             {formatAmount(current.totalRevenue)}
-            <span className="text-base font-normal text-muted-foreground ml-0.5">
+            <span className="text-sm font-normal text-muted-foreground ml-0.5">
               원
             </span>
           </div>
-          <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
             <span>
               배달{" "}
               <span className="font-medium text-foreground">
@@ -139,11 +139,11 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
 
       {/* Net Profit */}
       <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
-                <PiggyBank className="h-5 w-5 text-[#10B981]" />
+              <div className="h-7 w-7 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
+                <PiggyBank className="h-4 w-4 text-[#10B981]" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">
                 순이익
@@ -156,18 +156,18 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
               수익률 {profitMargin}%
             </Badge>
           </div>
-          <div className="text-2xl font-bold tracking-tight">
+          <div className="text-lg font-bold tracking-tight">
             <span className={netProfit >= 0 ? "text-[#059669]" : "text-red-500"}>
               {netProfit >= 0 ? "+" : ""}
               {formatAmount(netProfit)}
             </span>
-            <span className="text-base font-normal text-muted-foreground ml-0.5">
+            <span className="text-sm font-normal text-muted-foreground ml-0.5">
               원
             </span>
           </div>
           {/* Mini profit margin bar */}
-          <div className="mt-3">
-            <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+          <div className="mt-2">
+            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] transition-all duration-500"
                 style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
@@ -183,11 +183,11 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
 
       {/* Cash Flow */}
       <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
-                <ArrowRightLeft className="h-5 w-5 text-[#10B981]" />
+              <div className="h-7 w-7 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
+                <ArrowRightLeft className="h-4 w-4 text-[#10B981]" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">
                 현금흐름
@@ -200,13 +200,13 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
               안정
             </Badge>
           </div>
-          <div className="text-2xl font-bold tracking-tight">
+          <div className="text-lg font-bold tracking-tight">
             {formatAmount(cashFlow)}
-            <span className="text-base font-normal text-muted-foreground ml-0.5">
+            <span className="text-sm font-normal text-muted-foreground ml-0.5">
               원
             </span>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground">
+          <div className="mt-2 text-xs text-muted-foreground">
             <span>
               30일 예측{" "}
               <span className="font-medium text-[#059669]">
@@ -219,11 +219,11 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
 
       {/* Daily Average Revenue */}
       <Card className="shadow-sm border border-[#10B981]/20 bg-gradient-to-br from-white to-[#ECFDF5]/50 hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-[#10B981]" />
+              <div className="h-7 w-7 rounded-lg bg-[#ECFDF5] flex items-center justify-center">
+                <BarChart3 className="h-4 w-4 text-[#10B981]" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">
                 일평균 매출
@@ -238,13 +238,13 @@ export function PnlSummaryCards({ current, previous }: PnlSummaryCardsProps) {
               />
             )}
           </div>
-          <div className="text-2xl font-bold tracking-tight">
+          <div className="text-lg font-bold tracking-tight">
             {formatAmount(current.avgDailyRevenue)}
-            <span className="text-base font-normal text-muted-foreground ml-0.5">
+            <span className="text-sm font-normal text-muted-foreground ml-0.5">
               원
             </span>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground">
+          <div className="mt-2 text-xs text-muted-foreground">
             영업일 {current.daysWithRevenue}일 기준
           </div>
         </CardContent>

@@ -55,16 +55,16 @@ export function ReviewStatsCards({ stats, totalDays, reviews }: ReviewStatsCards
     <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
       {/* Total Reviews */}
       <Card className="border-amber-100 bg-amber-50/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100">
               <MessageSquare className="h-4 w-4 text-amber-700" />
             </div>
             <span className="text-sm text-muted-foreground">
               총 리뷰
             </span>
           </div>
-          <div className="text-2xl font-bold">{stats.totalCount}건</div>
+          <div className="text-lg font-bold">{stats.totalCount}건</div>
           <p className="text-xs text-muted-foreground mt-1">
             일평균 {dailyAvg}건
           </p>
@@ -73,9 +73,9 @@ export function ReviewStatsCards({ stats, totalDays, reviews }: ReviewStatsCards
 
       {/* Average Rating */}
       <Card className="border-amber-100 bg-amber-50/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100">
               <Star className="h-4 w-4 text-amber-700" />
             </div>
             <span className="text-sm text-muted-foreground">
@@ -106,16 +106,16 @@ export function ReviewStatsCards({ stats, totalDays, reviews }: ReviewStatsCards
 
       {/* Sentiment Score */}
       <Card className="border-amber-100 bg-amber-50/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100">
               <TrendingUp className="h-4 w-4 text-amber-700" />
             </div>
             <span className="text-sm text-muted-foreground">
               감성 점수
             </span>
           </div>
-          <div className="text-2xl font-bold">
+          <div className="text-lg font-bold">
             {sentimentScore !== null ? `${sentimentScore}%` : "-"}
           </div>
           {sentimentScore !== null && (
@@ -131,16 +131,16 @@ export function ReviewStatsCards({ stats, totalDays, reviews }: ReviewStatsCards
 
       {/* AI Auto Reply Rate */}
       <Card className="border-amber-100 bg-amber-50/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100">
               <Sparkles className="h-4 w-4 text-amber-700" />
             </div>
             <span className="text-sm text-muted-foreground">
               AI 자동답글률
             </span>
           </div>
-          <div className="text-2xl font-bold">
+          <div className="text-lg font-bold">
             {stats.totalCount > 0 ? `${replyRate}%` : "-"}
           </div>
           {aiReplyCount > 0 && (

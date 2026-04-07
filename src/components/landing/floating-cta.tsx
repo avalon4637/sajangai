@@ -22,11 +22,11 @@ export function FloatingCTA() {
         visible ? "translate-y-0" : "translate-y-full"
       }`}
     >
-      <Link href="/auth/signup" className="block">
-        <Button className="h-12 w-full rounded-xl bg-blue-800 text-sm font-bold text-white hover:bg-blue-900">
+      <Button asChild className="h-12 w-full rounded-xl bg-blue-800 text-sm font-bold text-white hover:bg-blue-900">
+        <Link href="/auth/signup">
           7일 무료 체험 시작하기 →
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

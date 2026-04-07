@@ -160,11 +160,11 @@ export function TrialTimeline() {
                   )}
 
                   {item.cta && (
-                    <Link href="/auth/signup" className="mt-3 block">
-                      <Button className="h-10 w-full rounded-lg bg-amber-500 text-sm font-bold text-white hover:bg-amber-600">
+                    <Button asChild className="mt-3 h-10 w-full rounded-lg bg-amber-500 text-sm font-bold text-white hover:bg-amber-600">
+                      <Link href="/auth/signup">
                         점장 계속 고용하기 &rarr;
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -180,14 +180,15 @@ export function TrialTimeline() {
             transform: isVisible ? "translateY(0)" : "translateY(12px)",
           }}
         >
-          <Link href="/auth/signup" className="inline-block">
-            <Button
-              size="lg"
-              className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg hover:bg-blue-900"
-            >
+          <Button
+            size="lg"
+            asChild
+            className="h-14 rounded-xl bg-blue-800 px-8 text-base font-bold text-white shadow-lg hover:bg-blue-900"
+          >
+            <Link href="/auth/signup">
               지금 체험 시작하기 &rarr;
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

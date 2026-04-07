@@ -126,10 +126,12 @@ export function ReviewQueue({
         };
 
         return (
-          <button
+          <div
             key={review.id}
-            type="button"
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(review.id)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(review.id); }}
             className={`flex flex-col gap-1.5 p-3 text-left transition-colors hover:bg-muted/50 cursor-pointer ${
               isSelected
                 ? "bg-indigo-50 border-l-[3px] border-l-indigo-500"
@@ -247,7 +249,7 @@ export function ReviewQueue({
                 답글 완료 처리됨
               </div>
             )}
-          </button>
+          </div>
         );
       })}
     </div>

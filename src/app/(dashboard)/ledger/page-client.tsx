@@ -99,9 +99,9 @@ export function LedgerPageClient({
     <div className="space-y-6">
       {/* Page header */}
       <div className="flex items-center gap-3">
-        <Calendar className="size-6 text-blue-600" />
+        <Calendar className="size-5 text-blue-600" />
         <div>
-          <h1 className="text-2xl font-bold">매출/매입</h1>
+          <h1 className="text-xl font-bold">매출/매입</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
             캘린더에서 일별 매출과 지출을 한눈에 확인하세요
           </p>
@@ -187,14 +187,14 @@ function KpiCard({
   };
 
   return (
-    <div className="rounded-xl border bg-white p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <span className={cn("p-1.5 rounded-lg", colorClasses[color])}>
+    <div className="rounded-xl border bg-white p-3">
+      <div className="flex items-center gap-2 mb-1">
+        <span className={cn("p-1 rounded-lg", colorClasses[color])}>
           {icon}
         </span>
         <span className="text-xs text-gray-500 font-medium">{label}</span>
       </div>
-      <p className={cn("text-lg font-bold", colorClasses[color].split(" ")[0])}>
+      <p className={cn("text-base font-bold", colorClasses[color].split(" ")[0])}>
         {value}
       </p>
     </div>

@@ -9,11 +9,11 @@ export function MidCTA() {
       <p className="text-muted-foreground mb-4">
         지금 바로 점장을 만나보세요
       </p>
-      <Link href="/auth/signup">
-        <Button size="lg" className="rounded-full px-8">
+      <Button size="lg" asChild className="rounded-full px-8">
+        <Link href="/auth/signup">
           7일 무료 체험 시작하기 →
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </section>
   );
 }

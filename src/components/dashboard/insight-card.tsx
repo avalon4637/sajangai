@@ -67,11 +67,11 @@ export function InsightCard({
             {description}
           </p>
           {actionLabel && actionHref && (
-            <Link href={actionHref}>
-              <Button variant="ghost" size="sm" className="h-9 px-2 text-xs">
+            <Button variant="ghost" size="sm" asChild className="h-9 px-2 text-xs">
+              <Link href={actionHref}>
                 {actionLabel} <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
         </div>
       </div>

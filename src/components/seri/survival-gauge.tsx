@@ -153,53 +153,54 @@ export function SurvivalGauge({ score, previousScore }: SurvivalGaugeProps) {
 
   return (
     <Card className="border-gray-100">
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center">
-          {/* Gauge */}
-          <div className="relative w-full max-w-[220px]">
-            <HalfCircleGauge value={score.total} />
-            {/* Score text overlay */}
-            <div className="absolute inset-0 flex flex-col items-center justify-end pb-2">
-              <span className="text-3xl font-bold tabular-nums">
-                {Math.round(score.total)}
-                <span className="text-base font-normal text-muted-foreground">
-                  점
+      <CardContent className="p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:gap-6">
+          {/* Left: Gauge */}
+          <div className="flex flex-col items-center shrink-0">
+            <div className="relative w-full max-w-[160px]">
+              <HalfCircleGauge value={score.total} />
+              {/* Score text overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-end pb-1">
+                <span className="text-2xl font-bold tabular-nums">
+                  {Math.round(score.total)}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    점
+                  </span>
                 </span>
-              </span>
-              <Badge
-                variant="outline"
-                className={`mt-1 ${gradeColor.bg} ${gradeColor.text} ${gradeColor.border}`}
-              >
-                {score.grade}등급
-              </Badge>
+                <Badge
+                  variant="outline"
+                  className={`mt-0.5 text-[11px] ${gradeColor.bg} ${gradeColor.text} ${gradeColor.border}`}
+                >
+                  {score.grade}등급
+                </Badge>
+              </div>
             </div>
+
+            {/* Delta indicator */}
+            {delta !== null && (
+              <div
+                className={`flex items-center gap-1 text-xs mt-1 ${
+                  delta >= 0 ? "text-[#059669]" : "text-red-500"
+                }`}
+              >
+                {delta >= 0 ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
+                )}
+                <span>
+                  전월 대비 {delta >= 0 ? "+" : ""}
+                  {delta}점
+                </span>
+              </div>
+            )}
+
+            {/* Context text */}
+            <ScoreContext total={score.total} />
           </div>
 
-          {/* Delta indicator */}
-          {delta !== null && (
-            <div
-              className={`flex items-center gap-1 text-xs mt-2 ${
-                delta >= 0 ? "text-[#059669]" : "text-red-500"
-              }`}
-            >
-              {delta >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
-              <span>
-                전월 대비 {delta >= 0 ? "+" : ""}
-                {delta}점
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Context text */}
-        <ScoreContext total={score.total} />
-
-        {/* Factor bars */}
-        <div className="mt-5 space-y-2.5">
+          {/* Right: Factor bars */}
+          <div className="flex-1 mt-3 sm:mt-0 space-y-2">
           <FactorBar
             label="수익성"
             score={score.factors.profitability.score}
@@ -225,10 +226,11 @@ export function SurvivalGauge({ score, previousScore }: SurvivalGaugeProps) {
             score={score.factors.growth.score}
             max={score.factors.growth.max}
           />
-        </div>
 
-        {/* CTA - score improvement tips */}
-        <ScoreImprovementCTA factors={score.factors} />
+            {/* CTA - score improvement tips */}
+            <ScoreImprovementCTA factors={score.factors} />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

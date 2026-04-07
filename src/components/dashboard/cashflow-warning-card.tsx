@@ -122,24 +122,26 @@ export function CashflowWarningCard({
 
       {/* Actions */}
       <div className="flex gap-2">
-        <Link href="/analysis" className="flex-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 w-full text-xs text-amber-700"
-          >
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="h-9 w-full text-xs text-amber-700 flex-1"
+        >
+          <Link href="/analysis">
             자금 현황 보기
-          </Button>
-        </Link>
-        <Link href="/analysis?tab=simulation" className="flex-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 w-full text-xs text-amber-700"
-          >
+          </Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="h-9 w-full text-xs text-amber-700 flex-1"
+        >
+          <Link href="/analysis?tab=simulation">
             시뮬레이션
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     </div>
   );

@@ -16,14 +16,15 @@ export function FinalCTASection() {
           지금 만나보세요.
         </h2>
 
-        <Link href="/auth/signup" className="mt-8 block">
-          <Button
-            size="lg"
-            className="mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-blue-800 shadow-lg hover:bg-white/90"
-          >
+        <Button
+          size="lg"
+          asChild
+          className="mt-8 mx-auto h-14 w-full max-w-xs rounded-xl bg-white text-base font-bold text-blue-800 shadow-lg hover:bg-white/90"
+        >
+          <Link href="/auth/signup">
             7일 무료 체험 시작하기 →
-          </Button>
-        </Link>
+          </Link>
+        </Button>
 
         <p className="mt-3 text-sm text-blue-200">
           하루 990원 · 카드 등록 없음

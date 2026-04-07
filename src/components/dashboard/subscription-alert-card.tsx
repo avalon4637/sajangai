@@ -93,16 +93,17 @@ export function SubscriptionAlertCard({
             )}
           </div>
           <div className="mt-2">
-            <Link href="/settings/subscription">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`h-9 px-2 text-xs ${config.btnColor}`}
-              >
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className={`h-9 px-2 text-xs ${config.btnColor}`}
+            >
+              <Link href="/settings/subscription">
                 {type === "payment_failed" ? "결제 수단 변경" : "구독 관리"}
                 <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

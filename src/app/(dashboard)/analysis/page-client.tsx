@@ -282,18 +282,14 @@ export function AnalysisPageClient({
         </div>
       )}
 
-      {/* ===== SURVIVAL SCORE (desktop only) ===== */}
-      {hasData && survivalScore && (
-        <div className="hidden sm:block">
+      {/* ===== SURVIVAL + P&L (desktop only) ===== */}
+      <div className="hidden sm:flex flex-col gap-3">
+        {hasData && survivalScore && (
           <SurvivalGauge
             score={survivalScore}
             previousScore={previousSurvivalScore}
           />
-        </div>
-      )}
-
-      {/* ===== P&L SUMMARY ROW (desktop only) ===== */}
-      <div className="hidden sm:block">
+        )}
         <PnlSummaryCards
           current={currentSummary}
           previous={previousSummary.totalRevenue > 0 ? previousSummary : null}

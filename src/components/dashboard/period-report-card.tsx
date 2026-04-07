@@ -123,15 +123,16 @@ function WeeklyReport({
       )}
 
       {/* Action */}
-      <Link href="/analysis">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-9 w-full text-xs text-blue-700"
-        >
+      <Button
+        variant="ghost"
+        size="sm"
+        asChild
+        className="h-9 w-full text-xs text-blue-700"
+      >
+        <Link href="/analysis">
           상세 분석 보기
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }
@@ -201,15 +202,16 @@ function MonthlyRoiReport({
       </div>
 
       {/* Action */}
-      <Link href="/analysis">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-9 w-full text-xs text-blue-700"
-        >
+      <Button
+        variant="ghost"
+        size="sm"
+        asChild
+        className="h-9 w-full text-xs text-blue-700"
+      >
+        <Link href="/analysis">
           성과 상세 보기
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

@@ -35,15 +35,16 @@ export function ReviewAlertCard({
           <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">
             {preview}
           </p>
-          <Link href="/review">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 px-2 text-xs text-amber-700"
-            >
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="h-9 px-2 text-xs text-amber-700"
+          >
+            <Link href="/review">
               AI 답글 확인하기 <ArrowRight className="ml-1 h-3 w-3" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
