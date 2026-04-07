@@ -636,7 +636,7 @@ export type Database = {
           id: string;
           business_id: string;
           report_date: string;
-          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing";
+          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly";
           content: Record<string, unknown>;
           summary: string | null;
           created_at: string;
@@ -645,7 +645,7 @@ export type Database = {
           id?: string;
           business_id: string;
           report_date: string;
-          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing";
+          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly";
           content: Record<string, unknown>;
           summary?: string | null;
           created_at?: string;
@@ -654,7 +654,7 @@ export type Database = {
           id?: string;
           business_id?: string;
           report_date?: string;
-          report_type?: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing";
+          report_type?: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly";
           content?: Record<string, unknown>;
           summary?: string | null;
           created_at?: string;

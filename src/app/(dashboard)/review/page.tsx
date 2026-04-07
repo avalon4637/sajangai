@@ -35,15 +35,32 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
     params.month ??
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-  // Fetch reviews and stats in parallel
-  const [reviews, stats] = await Promise.all([
+  // Fetch reviews, stats, and weekly report in parallel
+  const [reviews, stats, weeklyReportRow] = await Promise.all([
     getReviews(businessId, {
       platform: params.platform as "baemin" | "coupangeats" | "yogiyo" | undefined,
       replyStatus: params.status,
       limit: 50,
     }),
     getReviewStats(businessId, yearMonth),
+    supabase
+      .from("daily_reports")
+      .select("report_date, content")
+      .eq("business_id", businessId)
+      .eq("report_type", "review_weekly")
+      .order("report_date", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then((res) => res.data),
   ]);
+
+  // Parse weekly report content (stored as JSON in content field)
+  const weeklyReport = weeklyReportRow
+    ? {
+        data: weeklyReportRow.content as Record<string, unknown>,
+        reportDate: weeklyReportRow.report_date as string,
+      }
+    : null;
 
   return (
     <ReviewPageClient
@@ -52,6 +69,7 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
       yearMonth={yearMonth}
       selectedPlatform={params.platform ?? "all"}
       selectedStatus={params.status ?? "all"}
+      weeklyReport={weeklyReport}
     />
   );
 }

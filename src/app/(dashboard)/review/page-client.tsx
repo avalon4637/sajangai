@@ -17,6 +17,8 @@ import { ReviewDetailPanel } from "@/components/dapjangi/review-detail-panel";
 import { SentimentChart } from "@/components/dapjangi/sentiment-chart";
 import { BatchReplyPanel } from "@/components/dapjangi/batch-reply-panel";
 import { getSentimentCategory } from "@/components/dapjangi/sentiment-badge";
+import { WeeklyReportCard } from "@/components/dapjangi/weekly-report-card";
+import type { WeeklyReportData } from "@/components/dapjangi/weekly-report-card";
 import {
   batchPublishReplies,
   updateReviewReplyText,
@@ -28,6 +30,10 @@ interface ReviewPageClientProps {
   yearMonth: string;
   selectedPlatform: string;
   selectedStatus: string;
+  weeklyReport?: {
+    data: Record<string, unknown>;
+    reportDate: string;
+  } | null;
 }
 
 type FilterStatus = "all" | "pending" | "draft" | "ai_waiting" | "published";
@@ -105,6 +111,7 @@ export function ReviewPageClient({
   yearMonth,
   selectedPlatform,
   selectedStatus,
+  weeklyReport,
 }: ReviewPageClientProps) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("pending");
@@ -282,6 +289,12 @@ export function ReviewPageClient({
           </div>
         )}
       </div>
+
+      {/* Weekly Report Card */}
+      <WeeklyReportCard
+        report={(weeklyReport?.data as unknown as WeeklyReportData) ?? null}
+        reportDate={weeklyReport?.reportDate}
+      />
 
       {/* AI generation error message */}
       {generateError && (
