@@ -7,6 +7,10 @@ import { getDailyBriefingData } from "@/lib/queries/briefing";
 import { JeongjangChatHub } from "@/components/jeongjang/jeongjang-chat-hub";
 import { DailyBriefing } from "@/components/dashboard/daily-briefing";
 import { OnboardingBriefing } from "@/components/dashboard/onboarding-briefing";
+import { BriefingRichCard } from "@/components/dashboard/briefing-rich-card";
+import { InsightCard } from "@/components/dashboard/insight-card";
+import { ReviewAlertCard } from "@/components/dashboard/review-alert-card";
+import { MobileChatInput } from "@/components/dashboard/mobile-chat-input";
 import type { ChatMessageData } from "@/components/jeongjang/chat-message";
 
 export default async function DashboardPage() {
@@ -31,7 +35,14 @@ export default async function DashboardPage() {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
   // Fetch all data in parallel
-  const [briefingData, kpi, business, latestBriefing, recentInsights] = await Promise.all([
+  const [
+    briefingData,
+    kpi,
+    business,
+    latestBriefing,
+    recentInsights,
+    pendingNegativeReviews,
+  ] = await Promise.all([
     getDailyBriefingData(businessId),
     getMonthlyKpi(businessId, currentMonth),
     supabase
@@ -52,6 +63,16 @@ export default async function DashboardPage() {
     getActiveInsights(businessId)
       .then((scored) => scored.slice(0, 3).map((s) => s.event))
       .catch(() => []),
+    // Pending negative reviews for alert cards
+    supabase
+      .from("delivery_reviews")
+      .select("id, platform, rating, content")
+      .eq("business_id", businessId)
+      .eq("reply_status", "pending")
+      .lte("rating", 2)
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then((res) => res.data ?? []),
   ]);
 
   const businessName = business?.name ?? "매장";
@@ -137,13 +158,27 @@ export default async function DashboardPage() {
     });
   }
 
-  // ROI data (placeholder - will be calculated from real data later)
-  // TODO: Replace with real ROI calculation from actual usage data
-  // const roiData = {
-  //   savedMoney: 847000,
-  //   savedHours: 23,
-  //   processedTasks: 142,
-  // };
+  // Calculate values for briefing rich card
+  const dayDelta =
+    briefingData.revenue.dayBeforeYesterday === 0
+      ? briefingData.revenue.yesterday > 0
+        ? 100
+        : 0
+      : ((briefingData.revenue.yesterday -
+          briefingData.revenue.dayBeforeYesterday) /
+          briefingData.revenue.dayBeforeYesterday) *
+        100;
+
+  const weeklyChange = briefingData.periodComparison?.weekChange ?? 0;
+  const monthProjection =
+    briefingData.periodComparison?.monthProjection ??
+    briefingData.revenue.monthTotal;
+  const profitMargin = (kpi?.gross_margin ?? 0) * 100;
+
+  const briefingText =
+    (latestBriefing?.content as Record<string, string>)?.narrative ??
+    latestBriefing?.summary ??
+    undefined;
 
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] flex-col">
@@ -156,13 +191,110 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Chat Hub - takes remaining space */}
-      <div className="flex-1 min-h-0">
-        <JeongjangChatHub
-          businessId={businessId}
-          businessName={businessName}
-          initialMessages={initialMessages}
-        />
+      {/* Mobile: Content Feed | Desktop: Chat Hub */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* Mobile feed - visible only on mobile */}
+        <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3 sm:hidden">
+          {/* Briefing Rich Card */}
+          <BriefingRichCard
+            revenue={briefingData.revenue.yesterday}
+            revenueChange={dayDelta}
+            netProfit={kpi?.net_profit ?? 0}
+            profitMargin={profitMargin}
+            weeklyChange={weeklyChange}
+            monthProjection={monthProjection}
+            monthTarget={briefingData.revenue.monthTarget ?? undefined}
+            reviewCount={briefingData.reviews.totalThisMonth}
+            unansweredReviews={briefingData.reviews.unansweredCount}
+            briefingText={briefingText}
+            time="오전 7:30"
+          />
+
+          {/* Insight Feed */}
+          {recentInsights.length > 0 && (
+            <div className="space-y-2">
+              <p className="px-1 text-xs font-semibold text-muted-foreground">
+                인사이트
+              </p>
+              {recentInsights.map((insight) => (
+                <InsightCard
+                  key={insight.id}
+                  severity={
+                    (insight.severity as "critical" | "warning" | "info") ??
+                    "info"
+                  }
+                  title={insight.detection?.title ?? ""}
+                  description={
+                    insight.detection
+                      ? `${insight.detection.metric} (${insight.detection.comparedTo})`
+                      : ""
+                  }
+                  actionHref="/analysis"
+                  actionLabel="상세 보기"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Unanswered negative reviews */}
+          {pendingNegativeReviews.length > 0 && (
+            <div className="space-y-2">
+              <p className="px-1 text-xs font-semibold text-muted-foreground">
+                미답변 리뷰
+              </p>
+              {pendingNegativeReviews.map((review) => (
+                <ReviewAlertCard
+                  key={review.id}
+                  platform={review.platform}
+                  rating={review.rating}
+                  preview={
+                    review.content
+                      ? review.content.length > 80
+                        ? review.content.substring(0, 80) + "..."
+                        : review.content
+                      : "내용 없음"
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Quick action suggestions */}
+          <div className="space-y-2">
+            <p className="px-1 text-xs font-semibold text-muted-foreground">
+              점장에게 물어보기
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                "요즘 장사 어때?",
+                "이번 달 매출 분석",
+                "리뷰 상황 알려줘",
+                "비용 줄일 곳 있어?",
+              ].map((q) => (
+                <button
+                  key={q}
+                  className="rounded-xl border p-2.5 text-left text-xs transition-colors hover:border-blue-300 hover:bg-blue-50/50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: Chat Hub - hidden on mobile, visible on sm+ */}
+        <div className="hidden min-h-0 flex-1 flex-col sm:flex">
+          <JeongjangChatHub
+            businessId={businessId}
+            businessName={businessName}
+            initialMessages={initialMessages}
+          />
+        </div>
+
+        {/* Mobile: Chat input at bottom (always visible) */}
+        <div className="shrink-0 sm:hidden">
+          <MobileChatInput businessId={businessId} />
+        </div>
       </div>
     </div>
   );

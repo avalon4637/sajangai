@@ -3,16 +3,21 @@
 // Scrollable review queue list for Dapjangi review management
 // Shows review items with platform badge, stars, content preview, status
 
-import { Star, Clock } from "lucide-react";
+import { useState } from "react";
+import { Star, Clock, Copy, ExternalLink, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { DeliveryReview } from "@/lib/queries/review";
 import { SentimentBadge } from "@/components/dapjangi/sentiment-badge";
 import { formatRelativeTime } from "@/lib/utils/format-time";
+import { getReviewDeeplink } from "@/lib/utils/review-deeplinks";
 
 interface ReviewQueueProps {
   reviews: DeliveryReview[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  mobileInlineActions?: boolean;
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -66,7 +71,40 @@ export function ReviewQueue({
   reviews,
   selectedId,
   onSelect,
+  mobileInlineActions = false,
 }: ReviewQueueProps) {
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+
+  const handleMarkComplete = async (reviewId: string) => {
+    // Optimistic update
+    setCompletedIds((prev) => new Set(prev).add(reviewId));
+
+    try {
+      const res = await fetch("/api/dapjangi/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId }),
+      });
+
+      if (!res.ok) {
+        setCompletedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(reviewId);
+          return next;
+        });
+        toast.error("상태 변경에 실패했습니다");
+      } else {
+        toast.success("답글 완료 처리되었습니다");
+      }
+    } catch {
+      setCompletedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(reviewId);
+        return next;
+      });
+      toast.error("네트워크 오류가 발생했습니다");
+    }
+  };
   if (reviews.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -140,6 +178,16 @@ export function ReviewQueue({
               </p>
             )}
 
+            {/* Mobile: AI reply preview */}
+            {mobileInlineActions && review.aiReply && (
+              <div className="sm:hidden rounded-md bg-amber-50 px-2.5 py-1.5 mt-0.5">
+                <p className="text-[10px] font-medium text-amber-700 mb-0.5">AI 답글</p>
+                <p className="text-xs text-amber-900 line-clamp-2 leading-relaxed">
+                  {review.aiReply}
+                </p>
+              </div>
+            )}
+
             {/* Status tag + sentiment badge */}
             <div className="flex items-center justify-between">
               <Badge
@@ -150,6 +198,55 @@ export function ReviewQueue({
               </Badge>
               <SentimentBadge score={review.sentimentScore} compact />
             </div>
+
+            {/* Mobile inline actions */}
+            {mobileInlineActions && !completedIds.has(review.id) && (
+              <div
+                className="flex sm:hidden gap-2 mt-1.5 pt-2 border-t"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {review.aiReply && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-xs h-8"
+                    onClick={() => {
+                      navigator.clipboard.writeText(review.aiReply!);
+                      toast.success("답글이 복사되었습니다");
+                    }}
+                  >
+                    <Copy className="w-3 h-3 mr-1" /> 복사
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-xs h-8"
+                  onClick={() => {
+                    const url = getReviewDeeplink(review.platform, review.externalId);
+                    window.open(url, "_blank");
+                  }}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" /> 답글 쓰러가기
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs h-8 px-3"
+                  onClick={() => handleMarkComplete(review.id)}
+                >
+                  <Check className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+
+            {/* Completed indicator */}
+            {mobileInlineActions && completedIds.has(review.id) && (
+              <div className="flex sm:hidden items-center gap-1.5 mt-1.5 pt-2 border-t text-xs text-emerald-600">
+                <Check className="w-3.5 h-3.5" />
+                답글 완료 처리됨
+              </div>
+            )}
           </button>
         );
       })}

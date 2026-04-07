@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Calendar,
   TrendingUp,
   BarChart3,
@@ -88,6 +89,7 @@ export function AnalysisPageClient({
     data: DailyRevenueSummary;
   } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   // Trigger CSV download in the browser
   const downloadCsv = (csvContent: string, filename: string) => {
@@ -163,6 +165,21 @@ export function AnalysisPageClient({
 
   const hasData = currentData.length > 0;
 
+  // Compact currency format for mobile KPI strip
+  const formatCompact = (amount: number): string => {
+    if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억`;
+    if (amount >= 10_000) return `${Math.round(amount / 10_000).toLocaleString()}만`;
+    return amount.toLocaleString();
+  };
+
+  // Derive values for compact KPI strip
+  const survivalTotal = survivalScore?.total ?? 0;
+  const survivalGrade = survivalScore?.grade ?? "-";
+  const totalRevenue = currentSummary.totalRevenue;
+  const totalExpense = totalExpenseProp ?? 0;
+  const netProfit = totalRevenue - totalExpense;
+  const currentCash = cashflowData?.currentCash ?? 0;
+
   return (
     <div className="space-y-6">
       {/* ===== TOP BAR ===== */}
@@ -230,25 +247,64 @@ export function AnalysisPageClient({
         </div>
       </div>
 
-      {/* ===== SURVIVAL SCORE ===== */}
-      {hasData && survivalScore && (
-        <SurvivalGauge
-          score={survivalScore}
-          previousScore={previousSurvivalScore}
-        />
+      {/* ===== MOBILE COMPACT KPI STRIP ===== */}
+      {hasData && (
+        <div className="flex sm:hidden items-center gap-2 overflow-x-auto pb-2">
+          {survivalScore && (
+            <div
+              className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+                survivalTotal <= 30
+                  ? "bg-red-50 text-red-700"
+                  : survivalTotal <= 60
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-emerald-50 text-emerald-700"
+              }`}
+            >
+              {survivalTotal}점 {survivalGrade}등급
+            </div>
+          )}
+          <div className="shrink-0 rounded-lg border px-3 py-1.5 text-xs">
+            <span className="text-muted-foreground">매출</span>{" "}
+            <span className="font-semibold">{formatCompact(totalRevenue)}</span>
+          </div>
+          <div className="shrink-0 rounded-lg border px-3 py-1.5 text-xs">
+            <span className="text-muted-foreground">순이익</span>{" "}
+            <span
+              className={`font-semibold ${netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}
+            >
+              {formatCompact(netProfit)}
+            </span>
+          </div>
+          <div className="shrink-0 rounded-lg border px-3 py-1.5 text-xs">
+            <span className="text-muted-foreground">현금</span>{" "}
+            <span className="font-semibold">{formatCompact(currentCash)}</span>
+          </div>
+        </div>
       )}
 
-      {/* ===== P&L SUMMARY ROW ===== */}
-      <PnlSummaryCards
-        current={currentSummary}
-        previous={previousSummary.totalRevenue > 0 ? previousSummary : null}
-      />
+      {/* ===== SURVIVAL SCORE (desktop only) ===== */}
+      {hasData && survivalScore && (
+        <div className="hidden sm:block">
+          <SurvivalGauge
+            score={survivalScore}
+            previousScore={previousSurvivalScore}
+          />
+        </div>
+      )}
+
+      {/* ===== P&L SUMMARY ROW (desktop only) ===== */}
+      <div className="hidden sm:block">
+        <PnlSummaryCards
+          current={currentSummary}
+          previous={previousSummary.totalRevenue > 0 ? previousSummary : null}
+        />
+      </div>
 
       {/* ===== MAIN CONTENT: Calendar + Side Panel ===== */}
       {hasData && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-          {/* LEFT COLUMN: Calendar (Main Content) */}
-          <div className="space-y-4">
+          {/* LEFT COLUMN: Calendar (Main Content) - order-first on mobile */}
+          <div className="space-y-4 order-first">
             {/* Calendar view toggle: weekly/monthly + today button */}
             <div className="flex items-center gap-2">
               <div className="flex">
@@ -303,17 +359,29 @@ export function AnalysisPageClient({
           </div>
 
           {/* RIGHT COLUMN: AI Narrative + Cost Breakdown + Cashflow */}
-          <div className="space-y-4">
-            <SeriAiNarrative
-              seriReport={seriReport}
-              summary={currentSummary}
-              yearMonth={yearMonth}
-            />
-            <CostBreakdown
-              categories={costCategories ?? []}
-              totalExpense={totalExpenseProp ?? 0}
-            />
-            <CashflowForecast cashflow={cashflowData ?? null} />
+          <div className="space-y-4 order-last">
+            {/* Collapsible toggle on mobile */}
+            <button
+              onClick={() => setShowAnalysis(!showAnalysis)}
+              className="flex sm:hidden w-full items-center justify-between rounded-lg border p-3"
+            >
+              <span className="text-sm font-medium">세리의 분석</span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${showAnalysis ? "rotate-180" : ""}`}
+              />
+            </button>
+            <div className={`${showAnalysis ? "block" : "hidden"} sm:block space-y-4`}>
+              <SeriAiNarrative
+                seriReport={seriReport}
+                summary={currentSummary}
+                yearMonth={yearMonth}
+              />
+              <CostBreakdown
+                categories={costCategories ?? []}
+                totalExpense={totalExpenseProp ?? 0}
+              />
+              <CashflowForecast cashflow={cashflowData ?? null} />
+            </div>
           </div>
         </div>
       )}

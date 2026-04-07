@@ -107,7 +107,7 @@ export function ReviewPageClient({
   selectedStatus,
 }: ReviewPageClientProps) {
   const router = useRouter();
-  const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
+  const [activeFilter, setActiveFilter] = useState<FilterStatus>("pending");
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>("all");
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(
     reviews.length > 0 ? reviews[0].id : null
@@ -363,8 +363,32 @@ export function ReviewPageClient({
         </div>
       )}
 
-      {/* STATS ROW */}
-      <ReviewStatsCards stats={stats} totalDays={totalDays} reviews={reviews} />
+      {/* Mobile compact KPI strip */}
+      <div className="flex sm:hidden items-center gap-2 mb-1">
+        <div className="flex-1 rounded-lg border p-2 text-center">
+          <p className="text-[10px] text-muted-foreground">리뷰</p>
+          <p className="text-sm font-bold">{stats.totalCount}건</p>
+        </div>
+        <div className="flex-1 rounded-lg border p-2 text-center">
+          <p className="text-[10px] text-muted-foreground">평균</p>
+          <p className="text-sm font-bold">
+            {stats.totalCount > 0
+              ? `★${stats.avgRating.toFixed(1)}`
+              : "-"}
+          </p>
+        </div>
+        <div className="flex-1 rounded-lg border p-2 text-center">
+          <p className="text-[10px] text-muted-foreground">미답변</p>
+          <p className="text-sm font-bold text-amber-600">
+            {reviews.filter((r) => r.replyStatus === "pending").length}건
+          </p>
+        </div>
+      </div>
+
+      {/* STATS ROW - desktop only */}
+      <div className="hidden sm:block">
+        <ReviewStatsCards stats={stats} totalDays={totalDays} reviews={reviews} />
+      </div>
 
       {/* Empty State */}
       {reviews.length === 0 && (
@@ -410,33 +434,29 @@ export function ReviewPageClient({
             </div>
           </div>
 
-          {/* Mobile: stacked layout */}
-          <div className="md:hidden space-y-3 transition-opacity duration-150">
+          {/* Mobile: single-list layout with inline actions per card */}
+          <div className="md:hidden transition-opacity duration-150">
             <Card>
               <CardContent className="p-0">
-                <div className="max-h-[300px] overflow-y-auto">
+                <div className="max-h-[60vh] overflow-y-auto">
                   <ReviewQueue
                     reviews={filteredReviews}
                     selectedId={selectedReviewId}
                     onSelect={handleSelect}
+                    mobileInlineActions
                   />
                 </div>
               </CardContent>
             </Card>
-            {selectedReview && (
-              <Card>
-                <CardContent className="p-0">
-                  <ReviewDetailPanel review={selectedReview} />
-                </CardContent>
-              </Card>
-            )}
           </div>
         </>
       )}
 
-      {/* BOTTOM ROW: Sentiment + Keywords */}
+      {/* BOTTOM ROW: Sentiment + Keywords - desktop only */}
       {reviews.length > 0 && (
-        <SentimentChart reviews={reviews} avgSentiment={stats.avgSentiment} />
+        <div className="hidden sm:block">
+          <SentimentChart reviews={reviews} avgSentiment={stats.avgSentiment} />
+        </div>
       )}
 
       {/* Batch Reply Panel (Sheet) */}
