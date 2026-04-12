@@ -13,10 +13,12 @@ export async function recalculateMonthlyKpi(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc("recalculate_monthly_kpi", {
-    p_business_id: businessId,
-    p_year_month: yearMonth,
-  });
+  // Cast needed: generated Supabase types don't include this RPC yet.
+  // Created via migration 20260412200000_recalculate_monthly_kpi_fn.sql.
+  const { error } = await (supabase.rpc as Function)(
+    "recalculate_monthly_kpi",
+    { p_business_id: businessId, p_year_month: yearMonth }
+  );
 
   if (error) {
     console.error("[kpi-sync] recalculate_monthly_kpi RPC failed:", error);

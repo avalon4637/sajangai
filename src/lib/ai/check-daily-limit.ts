@@ -50,9 +50,9 @@ export async function checkAiDailyLimit(
       .gte("created_at", utcTodayStartKst.toISOString());
 
     if (error) {
-      // On DB error, allow the request (fail open) but log
+      // On DB error, fail closed to prevent cost explosion
       console.error("[ai-daily-limit] count query failed:", error.message);
-      return { allowed: true, remaining: limit, limit };
+      return { allowed: false, remaining: 0, limit };
     }
 
     const used = count ?? 0;
@@ -64,8 +64,8 @@ export async function checkAiDailyLimit(
       limit,
     };
   } catch (err) {
-    // On unexpected error, fail open
+    // On unexpected error, fail closed to prevent cost explosion
     console.error("[ai-daily-limit] unexpected error:", err);
-    return { allowed: true, remaining: limit, limit };
+    return { allowed: false, remaining: 0, limit };
   }
 }

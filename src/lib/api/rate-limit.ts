@@ -46,9 +46,9 @@ export async function checkRateLimit(
       .gte("created_at" as never, windowStart);
 
     if (error) {
-      // On DB error, allow the request (fail open) but log
+      // On DB error, fail closed for AI routes to prevent cost explosion
       console.error("[rate-limit] count query failed:", error.message);
-      return { allowed: true, remaining: limit - 1, resetAt };
+      return { allowed: false, remaining: 0, resetAt };
     }
 
     const currentCount = count ?? 0;
@@ -63,7 +63,7 @@ export async function checkRateLimit(
         if (delErr) console.error("[rate-limit] prune failed:", delErr.message);
       });
 
-    if (currentCount > limit) {
+    if (currentCount >= limit) {
       return { allowed: false, remaining: 0, resetAt };
     }
 
@@ -73,9 +73,9 @@ export async function checkRateLimit(
       resetAt,
     };
   } catch (err) {
-    // On unexpected error, fail open
+    // On unexpected error, fail closed to prevent cost explosion
     console.error("[rate-limit] unexpected error:", err);
-    return { allowed: true, remaining: limit - 1, resetAt };
+    return { allowed: false, remaining: 0, resetAt };
   }
 }
 
