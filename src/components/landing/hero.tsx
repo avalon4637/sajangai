@@ -12,6 +12,14 @@ export function HeroSection() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-12 md:flex-row md:items-center md:gap-16">
         {/* Left: Hero Copy */}
         <div className="flex-1 text-center md:text-left">
+          {/* BETA badge — transparent about launch state */}
+          <div className="mb-4 flex justify-center md:justify-start">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-300/60">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              BETA · 기능 추가 중
+            </span>
+          </div>
+
           {/* Headline */}
           <h1 className="break-keep text-4xl font-bold leading-tight tracking-tight text-slate-800 md:text-5xl lg:text-6xl">
             하루 990원,

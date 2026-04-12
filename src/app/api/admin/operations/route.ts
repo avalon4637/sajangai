@@ -5,6 +5,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { analyzeWeeklyReviews } from "@/lib/ai/review-analyzer";
 import { syncNaverReviews } from "@/lib/naver/sync";
+import { runSync } from "@/lib/hyphen/sync-orchestrator";
+import { isHyphenConfigured } from "@/lib/hyphen/client";
+import { runMorningRoutine } from "@/lib/ai/jeongjang-engine";
+import { fetchRevenueReviewSnapshot } from "@/lib/insights/cross-query";
+import { analyzeRevenueReviewCross } from "@/lib/ai/cross-diagnosis";
 
 // Helper: verify admin and return supabase client
 async function requireAdmin() {
@@ -173,6 +178,127 @@ export async function POST(request: Request) {
         return NextResponse.json({
           success: false,
           message: `네이버 동기화 실패: ${errorMessage}`,
+        });
+      }
+    }
+
+    case "cross_diagnosis": {
+      // Phase 1.4 — Level 3 prescriptive diagnosis for revenue x reviews.
+      // Runs a DB cross-query then asks Claude Haiku for root cause + actions.
+      try {
+        const snapshot = await fetchRevenueReviewSnapshot(businessId);
+        const diagnosis = await analyzeRevenueReviewCross(snapshot, {
+          caller: "admin-operations",
+        });
+
+        if (!diagnosis) {
+          return NextResponse.json({
+            success: true,
+            message:
+              "크로스 진단 결과 유의미한 시그널이 없어요 (매출 변동 <10% + 부정 리뷰 0건)",
+            data: { snapshot, diagnosis: null },
+          });
+        }
+
+        // Persist the diagnosis into daily_reports for dashboard consumption.
+        const { supabase: sb } = result;
+        const today = new Date().toISOString().slice(0, 10);
+        await sb.from("daily_reports").upsert(
+          {
+            business_id: businessId,
+            report_date: today,
+            report_type: "cross_diagnosis",
+            summary: diagnosis.rootCause,
+            content: {
+              generatedAt: new Date().toISOString(),
+              snapshot,
+              diagnosis,
+            } as unknown as Record<string, unknown>,
+          },
+          { onConflict: "business_id,report_date,report_type" }
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: `크로스 진단 완료 (원인: ${diagnosis.rootCause.slice(0, 50)}..., 행동 ${diagnosis.actionableSteps.length}건)`,
+          data: {
+            snapshot,
+            diagnosis,
+          },
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        return NextResponse.json({
+          success: false,
+          message: `크로스 진단 실패: ${errorMessage}`,
+        });
+      }
+    }
+
+    case "generate_briefing": {
+      // Phase 1.2 — Manual jeongjang morning routine trigger.
+      // Runs the full pipeline (seri -> dapjangi -> diagnosis -> briefing)
+      // and writes the result into daily_reports. The dashboard will then
+      // render the new briefing via TodayBriefingCard.
+      try {
+        const routine = await runMorningRoutine(businessId, undefined, {
+          skipMessaging: true, // don't send kakao yet — Phase 1.3 handles delivery
+        });
+        return NextResponse.json({
+          success: true,
+          message: `오늘의 브리핑 생성 완료 (세리 보고서 + 리뷰 ${routine.dapjangiSummary?.processed ?? 0}건 처리)`,
+          data: {
+            reportDate: routine.date,
+            durationMs: routine.durationMs,
+            messageSent: routine.messageSent,
+            criticalAlerts: routine.criticalAlerts.length,
+          },
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        return NextResponse.json({
+          success: false,
+          message: `브리핑 생성 실패: ${errorMessage}`,
+        });
+      }
+    }
+
+    case "hyphen_sync": {
+      // Phase 1.1 — Manual Hyphen sync trigger.
+      // Calls the full orchestrator which processes every active api_connection
+      // (card + delivery) for the business.
+      if (!isHyphenConfigured()) {
+        return NextResponse.json({
+          success: false,
+          message:
+            "하이픈 API 키가 설정되지 않았습니다. HYPHEN_USER_ID / HYPHEN_HKEY를 확인해주세요.",
+        });
+      }
+
+      try {
+        const result = await runSync(businessId);
+        const successOps = result.operations.filter((op) => op.success);
+        const failedOps = result.operations.filter((op) => !op.success);
+
+        return NextResponse.json({
+          success: !result.hasErrors,
+          message: result.hasErrors
+            ? `하이픈 동기화 일부 실패 (성공 ${successOps.length}건 / 실패 ${failedOps.length}건, 총 ${result.totalRecords}건 저장)`
+            : `하이픈 동기화 완료 (${result.totalRecords}건 저장)`,
+          data: {
+            totalRecords: result.totalRecords,
+            operations: result.operations,
+            testMode: process.env.HYPHEN_TEST_MODE === "true",
+          },
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        return NextResponse.json({
+          success: false,
+          message: `하이픈 동기화 실패: ${errorMessage}`,
         });
       }
     }

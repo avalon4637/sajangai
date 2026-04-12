@@ -287,6 +287,61 @@ export type Database = {
         };
         Relationships: [];
       };
+      ai_call_logs: {
+        // Added in 20260411000000_ai_call_logs — Phase 0.5 observability
+        Row: {
+          id: number;
+          business_id: string | null;
+          caller: string | null;
+          function_name: string;
+          model: string;
+          input_tokens: number;
+          output_tokens: number;
+          cache_read_tokens: number | null;
+          cache_write_tokens: number | null;
+          cost_krw: number;
+          latency_ms: number;
+          status: "success" | "error";
+          error_code: string | null;
+          error_message: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          business_id?: string | null;
+          caller?: string | null;
+          function_name: string;
+          model: string;
+          input_tokens?: number;
+          output_tokens?: number;
+          cache_read_tokens?: number | null;
+          cache_write_tokens?: number | null;
+          cost_krw?: number;
+          latency_ms?: number;
+          status: "success" | "error";
+          error_code?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          business_id?: string | null;
+          caller?: string | null;
+          function_name?: string;
+          model?: string;
+          input_tokens?: number;
+          output_tokens?: number;
+          cache_read_tokens?: number | null;
+          cache_write_tokens?: number | null;
+          cost_krw?: number;
+          latency_ms?: number;
+          status?: "success" | "error";
+          error_code?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       delivery_reviews: {
         Row: {
           id: string;
@@ -636,7 +691,7 @@ export type Database = {
           id: string;
           business_id: string;
           report_date: string;
-          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly";
+          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly" | "cross_diagnosis";
           content: Record<string, unknown>;
           summary: string | null;
           created_at: string;
@@ -645,7 +700,7 @@ export type Database = {
           id?: string;
           business_id: string;
           report_date: string;
-          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly";
+          report_type: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly" | "cross_diagnosis";
           content: Record<string, unknown>;
           summary?: string | null;
           created_at?: string;
@@ -654,7 +709,7 @@ export type Database = {
           id?: string;
           business_id?: string;
           report_date?: string;
-          report_type?: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly";
+          report_type?: "seri_profit" | "seri_cashflow" | "seri_cost" | "dapjangi_review" | "jeongjang_briefing" | "review_weekly" | "cross_diagnosis";
           content?: Record<string, unknown>;
           summary?: string | null;
           created_at?: string;

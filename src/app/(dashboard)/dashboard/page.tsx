@@ -8,6 +8,9 @@ import { JeongjangChatHub } from "@/components/jeongjang/jeongjang-chat-hub";
 import { DailyBriefing } from "@/components/dashboard/daily-briefing";
 import { OnboardingBriefing } from "@/components/dashboard/onboarding-briefing";
 import { BriefingRichCard } from "@/components/dashboard/briefing-rich-card";
+import { TodayBriefingCard } from "@/components/dashboard/today-briefing-card";
+import { WeeklyRoiCard } from "@/components/dashboard/weekly-roi-card";
+import { calculateWeeklyRoiMini } from "@/lib/roi/calculator";
 import { InsightCard } from "@/components/dashboard/insight-card";
 import { ReviewAlertCard } from "@/components/dashboard/review-alert-card";
 import { CashflowWarningCard } from "@/components/dashboard/cashflow-warning-card";
@@ -35,6 +38,9 @@ export default async function DashboardPage() {
 
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  // Today's date in local ISO (YYYY-MM-DD) for the Phase 1.2 briefing filter.
+  // "Today" = from 07:00 KST so that 08:00 cron output shows up right away.
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   // Fetch all data in parallel
   const [
@@ -46,6 +52,7 @@ export default async function DashboardPage() {
     pendingNegativeReviews,
     seriProfitReport,
     weeklyReportData,
+    weeklyRoi,
   ] = await Promise.all([
     getDailyBriefingData(businessId),
     getMonthlyKpi(businessId, currentMonth),
@@ -55,12 +62,15 @@ export default async function DashboardPage() {
       .eq("id", businessId)
       .single()
       .then((res) => res.data),
+    // Phase 1.2: Today-only filter so the card is strictly "today's briefing"
+    // rather than "most recent briefing whenever that was".
     supabase
       .from("daily_reports")
       .select("id, report_date, summary, content")
       .eq("business_id", businessId)
       .eq("report_type", "jeongjang_briefing")
-      .order("report_date", { ascending: false })
+      .eq("report_date", todayIso)
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
       .then((res) => res.data),
@@ -97,6 +107,11 @@ export default async function DashboardPage() {
       .limit(1)
       .maybeSingle()
       .then((res) => res.data),
+    // Phase 1.5 — Weekly ROI mini
+    calculateWeeklyRoiMini(businessId).catch((err) => {
+      console.error("[dashboard] weekly ROI error:", err);
+      return null;
+    }),
   ]);
 
   const businessName = business?.name ?? "매장";
@@ -243,6 +258,16 @@ export default async function DashboardPage() {
         }
       : null;
 
+  // Phase 1.2: Normalize briefing shape for TodayBriefingCard (null when absent today)
+  const todayBriefingForCard = latestBriefing
+    ? {
+        id: latestBriefing.id,
+        reportDate: latestBriefing.report_date as string,
+        summary: latestBriefing.summary,
+        content: latestBriefing.content as Record<string, unknown> | null,
+      }
+    : null;
+
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] flex-col">
       {/* Compact Briefing Strip */}
@@ -253,6 +278,22 @@ export default async function DashboardPage() {
           <OnboardingBriefing businessName={businessName} />
         )}
       </div>
+
+      {/* Phase 1.2: Today's Briefing Card — desktop only.
+          Mobile already renders BriefingRichCard in the feed below. */}
+      <div className="hidden shrink-0 px-3 pt-2 sm:block md:px-6 md:pt-3">
+        <TodayBriefingCard
+          briefing={todayBriefingForCard}
+          businessName={businessName}
+        />
+      </div>
+
+      {/* Phase 1.5: Weekly ROI mini card — desktop only, shown alongside briefing */}
+      {weeklyRoi && (
+        <div className="hidden shrink-0 px-3 pt-2 sm:block md:px-6">
+          <WeeklyRoiCard roi={weeklyRoi} />
+        </div>
+      )}
 
       {/* Mobile: Content Feed | Desktop: Chat Hub */}
       <div className="flex min-h-0 flex-1 flex-col">

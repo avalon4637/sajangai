@@ -105,6 +105,9 @@ export function ROISection() {
           >
             <p className="text-sm font-semibold tracking-wide text-blue-200">
               <Trophy className="inline h-4 w-4" /> 3월 점장 성과표
+              <span className="ml-2 inline-flex items-center rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold text-amber-200 ring-1 ring-amber-300/40">
+                예시
+              </span>
             </p>
 
             {/* 3 metrics */}
@@ -168,7 +171,8 @@ export function ROISection() {
             </ul>
 
             <p className="mt-5 text-xs leading-relaxed text-slate-500">
-              * 보수적 기준으로 계산해요. 과장 없이, 실제 데이터 근거로.
+              * 위 숫자는 예시 화면이에요. 실제 금액은 사장님 매장 데이터로
+              매월 계산해서 알려드려요. (월간 ROI 보고서는 곧 출시 예정)
             </p>
           </div>
         </div>

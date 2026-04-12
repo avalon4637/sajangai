@@ -46,6 +46,49 @@ async function getBusinessPhone(businessId: string): Promise<string | null> {
 }
 
 /**
+ * Phase 1.3 — Respect user notification preferences + quiet hours.
+ * Call this at the top of every send* function so we never spam disabled users.
+ *
+ * Returns { allowed: true } when the send may proceed, or
+ * { allowed: false, reason } when it must be skipped.
+ */
+async function shouldSend(
+  businessId: string,
+  templateId: TemplateId
+): Promise<{ allowed: boolean; reason?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: biz } = await supabase
+      .from("businesses")
+      .select("user_id")
+      .eq("id", businessId)
+      .single();
+    if (!biz) return { allowed: false, reason: "business not found" };
+
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("notification_preferences")
+      .eq("id", biz.user_id)
+      .maybeSingle();
+
+    const prefs: NotificationPreferences = {
+      ...DEFAULT_PREFERENCES,
+      ...((profile?.notification_preferences as Partial<NotificationPreferences>) ??
+        {}),
+    };
+
+    if (!isNotificationEnabled(prefs, templateId)) {
+      return { allowed: false, reason: "disabled_or_quiet_hours" };
+    }
+    return { allowed: true };
+  } catch (err) {
+    console.error("[messaging] shouldSend check failed:", err);
+    // On error, fall back to sending (best-effort; error is surfaced in logs)
+    return { allowed: true };
+  }
+}
+
+/**
  * Log message send attempt to sync_logs for audit trail.
  * Non-blocking - errors here do not affect the send result.
  */
@@ -88,6 +131,10 @@ export async function sendDailyBriefing(
     alert: string;
   }
 ): Promise<SendResult> {
+  const gate = await shouldSend(businessId, "DAILY_BRIEFING");
+  if (!gate.allowed) {
+    return { success: false, channel: "none", error: gate.reason };
+  }
   const phone = await getBusinessPhone(businessId);
   if (!phone) {
     return { success: false, channel: "none", error: "No phone number found" };
@@ -146,6 +193,10 @@ export async function sendUrgentAlert(
   alertType: "URGENT_REVIEW" | "CASHFLOW_WARNING",
   content: Record<string, string>
 ): Promise<SendResult> {
+  const gate = await shouldSend(businessId, alertType);
+  if (!gate.allowed) {
+    return { success: false, channel: "none", error: gate.reason };
+  }
   const phone = await getBusinessPhone(businessId);
   if (!phone) {
     return { success: false, channel: "none", error: "No phone number found" };
@@ -206,6 +257,10 @@ export async function sendWeeklySummary(
     highlight: string;
   }
 ): Promise<SendResult> {
+  const gate = await shouldSend(businessId, "WEEKLY_SUMMARY");
+  if (!gate.allowed) {
+    return { success: false, channel: "none", error: gate.reason };
+  }
   const phone = await getBusinessPhone(businessId);
   if (!phone) {
     return { success: false, channel: "none", error: "No phone number found" };
@@ -264,6 +319,10 @@ export async function sendInsightAlert(
     recommendation: string;
   }
 ): Promise<SendResult> {
+  const gate = await shouldSend(businessId, "INSIGHT_ALERT");
+  if (!gate.allowed) {
+    return { success: false, channel: "none", error: gate.reason };
+  }
   const phone = await getBusinessPhone(businessId);
   if (!phone) {
     return { success: false, channel: "none", error: "No phone number found" };
@@ -372,6 +431,84 @@ async function sendWithPreferences(
     smsResult.success,
     smsResult.error
   );
+
+  return {
+    success: smsResult.success,
+    channel: smsResult.success ? "sms" : "none",
+    error: smsResult.error,
+  };
+}
+
+// ─── Phase 1.7 — Trial nurture sequence ─────────────────────────────────────
+
+/**
+ * Day-specific copy for the D+1 ~ D+6 trial nurture sequence.
+ * These are the messages the Planner defined in the landing brief (S9).
+ * Kept SMS-only for now — will upgrade to AlimTalk when TRIAL_NURTURE template
+ * is registered in SolAPI (Phase 2).
+ */
+const TRIAL_NURTURE_COPY: Record<number, (businessName: string) => string> = {
+  1: (name) =>
+    `[${name}] 사장AI 체험 1일차! 첫 리포트가 준비됐어요. 앱에서 오늘의 브리핑을 확인해보세요.`,
+  3: (name) =>
+    `[${name}] 체험 3일차! 점장이 매출·리뷰 패턴을 분석하기 시작했어요. 새 인사이트를 확인해보세요.`,
+  5: (name) =>
+    `[${name}] 체험 5일차! 재무 분석 결과가 준비됐어요. 놓치기 쉬운 지출 패턴을 알려드려요.`,
+  6: (name) =>
+    `[${name}] 체험 종료까지 1일! 지금까지 점장이 분석한 결과를 성적표로 확인해보세요. 계속 쓰시려면 점장 고용하기.`,
+};
+
+/**
+ * Send a trial nurture message for a specific trial day.
+ * Falls through to SMS because AlimTalk templates for the sequence are not
+ * registered yet. Respects notification preferences via shouldSend().
+ */
+export async function sendTrialNurture(
+  businessId: string,
+  dayNumber: number,
+  businessName: string
+): Promise<SendResult> {
+  const copyFn = TRIAL_NURTURE_COPY[dayNumber];
+  if (!copyFn) {
+    return {
+      success: false,
+      channel: "none",
+      error: `unsupported day: ${dayNumber}`,
+    };
+  }
+
+  // Gate through the same preference path as daily briefing
+  const gate = await shouldSend(businessId, "DAILY_BRIEFING");
+  if (!gate.allowed) {
+    return { success: false, channel: "none", error: gate.reason };
+  }
+
+  const phone = await getBusinessPhone(businessId);
+  if (!phone) {
+    return { success: false, channel: "none", error: "No phone number found" };
+  }
+
+  const smsText = copyFn(businessName).slice(0, 90);
+  const smsResult = await sendSMS(phone, smsText);
+
+  // Log with a descriptive summary so admin ops can trace each nurture step
+  try {
+    const supabase = await createClient();
+    await supabase.from("agent_activity_log").insert({
+      business_id: businessId,
+      agent_type: "manager",
+      action: "message_sent",
+      summary: `trial_nurture_d${dayNumber} via ${smsResult.success ? "sms" : "none"}: ${smsResult.success ? "성공" : "실패"}`,
+      details: {
+        templateId: `TRIAL_NURTURE_D${dayNumber}`,
+        channel: smsResult.success ? "sms" : "none",
+        success: smsResult.success,
+        error: smsResult.error,
+      } as unknown as Record<string, unknown>,
+    });
+  } catch (err) {
+    console.error("[messaging] trial nurture log error:", err);
+  }
 
   return {
     success: smsResult.success,

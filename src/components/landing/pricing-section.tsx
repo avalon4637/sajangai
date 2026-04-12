@@ -9,15 +9,17 @@ const freeFeatures = [
   "기본 대시보드 이용",
 ];
 
+// Landing copy honesty: badge "(베타)" = in production; "(곧 출시)" = not yet live.
+// Matches actual implementation state as of 2026-04-11.
 const paidFeatures = [
-  "매일 아침 카톡 리포트",
-  "매출·리뷰·비용 자동 분석",
-  "25가지 경영 인사이트",
-  "AI 리뷰 답글 자동 생성",
-  "원클릭 실행 (답글/문자/프로모션)",
-  "월간 ROI 보고서",
-  "점장과 자유 대화",
-];
+  { label: "매일 아침 카톡 리포트", badge: "베타" },
+  { label: "매출·리뷰·비용 분석", badge: null },
+  { label: "25가지 경영 인사이트 시나리오", badge: null },
+  { label: "AI 리뷰 답글 초안 + 원탭 복사", badge: null },
+  { label: "실행 도우미 (답글·문자·프로모션 초안)", badge: null },
+  { label: "월간 ROI 보고서", badge: "곧 출시" },
+  { label: "점장과 자유 대화", badge: null },
+] as const;
 
 export function PricingSection() {
   return (
@@ -77,11 +79,24 @@ export function PricingSection() {
             <ul className="mt-6 space-y-3">
               {paidFeatures.map((feat) => (
                 <li
-                  key={feat}
+                  key={feat.label}
                   className="flex items-start gap-3 text-sm text-slate-800"
                 >
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span>{feat}</span>
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span>{feat.label}</span>
+                    {feat.badge && (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${
+                          feat.badge === "베타"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-slate-200 text-slate-600"
+                        }`}
+                      >
+                        {feat.badge}
+                      </span>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>

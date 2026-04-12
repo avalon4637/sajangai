@@ -203,9 +203,22 @@ export async function runSync(
   }
 
   if (!connections || connections.length === 0) {
-    // No active connections - run with mock data for demonstration
-    const mockOp = await runMockSync(businessId);
-    operations.push(...mockOp);
+    // No active connections.
+    // Mock fallback is OFF by default as of Phase 1.1 — opt-in via
+    // HYPHEN_ALLOW_MOCK_FALLBACK=true (non-prod demos only).
+    // In production, surface the empty state so ops can see missing credentials.
+    if (process.env.HYPHEN_ALLOW_MOCK_FALLBACK === "true") {
+      const mockOp = await runMockSync(businessId);
+      operations.push(...mockOp);
+    } else {
+      operations.push({
+        type: "no_active_connections",
+        success: false,
+        recordsCount: 0,
+        error:
+          "No active api_connections for this business. Add credentials in /settings/connections.",
+      });
+    }
   } else {
     // Process each connection independently
     for (const connection of connections as ActiveConnection[]) {

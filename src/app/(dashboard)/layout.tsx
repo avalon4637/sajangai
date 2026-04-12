@@ -75,6 +75,17 @@ export default async function DashboardLayout({
             currentBusinessId={currentBusiness.id}
           />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
+            {/* BETA banner — transparent about service state */}
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-200 px-2 py-0.5 font-bold tracking-wide">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+                BETA
+              </span>
+              <span className="leading-relaxed">
+                사장AI는 기능 추가 중이에요. 일부 기능(월간 ROI, 배달앱 자동
+                수집)은 순차 공개돼요.
+              </span>
+            </div>
             <DemoDataBanner hasActiveConnections={hasActiveConnections} />
             {children}
           </main>

@@ -138,3 +138,78 @@ function getNextMonth(yearMonth: string): string {
   const date = new Date(y, m, 1); // month is 0-indexed, so m = next month
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
+
+// ─── Phase 1.5 — Weekly ROI mini version ─────────────────────────────────────
+
+export interface WeeklyRoiMini {
+  weekStart: string; // ISO date (Mon of this week)
+  weekEnd: string; // ISO date (today or Sun of this week)
+  repliesHandled: number;
+  reportsDelivered: number;
+  minutesSaved: number;
+  krwSaved: number;
+  status: "strong" | "moderate" | "starting";
+}
+
+/**
+ * Cheap weekly ROI that only counts signals we already emit:
+ *   - review replies acted in action_results
+ *   - daily_reports delivered
+ *
+ * No AI calls. Purpose: show the trial user a D+7 "얼마나 일했는지" number
+ * so they have a concrete reason to convert at the end of the trial.
+ */
+export async function calculateWeeklyRoiMini(
+  businessId: string
+): Promise<WeeklyRoiMini> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any;
+
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun
+  // Snap back to Monday (Mon=1). If today is Sun(0), go back 6 days.
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(now);
+  monday.setDate(monday.getDate() - mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+
+  const weekStartIso = monday.toISOString();
+  const weekEndIso = now.toISOString();
+
+  // Review replies this week
+  const { count: replyCount } = await supabase
+    .from("action_results")
+    .select("*", { count: "exact", head: true })
+    .eq("business_id", businessId)
+    .eq("action_type", "reply_reviews")
+    .gte("executed_at", weekStartIso)
+    .lte("executed_at", weekEndIso);
+
+  // Daily reports this week
+  const { count: reportCount } = await supabase
+    .from("daily_reports")
+    .select("*", { count: "exact", head: true })
+    .eq("business_id", businessId)
+    .gte("created_at", weekStartIso)
+    .lte("created_at", weekEndIso);
+
+  const replies = replyCount ?? 0;
+  const reports = reportCount ?? 0;
+
+  const minutesSaved = replies * REPLY_MINUTES + reports * REPORT_MINUTES;
+  const hoursSaved = minutesSaved / 60;
+  const krwSaved = Math.round(hoursSaved * TIME_VALUE_PER_HOUR);
+
+  const status: WeeklyRoiMini["status"] =
+    minutesSaved >= 60 ? "strong" : minutesSaved >= 15 ? "moderate" : "starting";
+
+  return {
+    weekStart: weekStartIso.slice(0, 10),
+    weekEnd: weekEndIso.slice(0, 10),
+    repliesHandled: replies,
+    reportsDelivered: reports,
+    minutesSaved,
+    krwSaved,
+    status,
+  };
+}
