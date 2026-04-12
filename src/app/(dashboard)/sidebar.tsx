@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Settings, LogOut, CreditCard, MessageSquare,
   Calendar, Wallet, FileText, Building2,
-  ChevronDown,
+  ChevronDown, Receipt, Upload,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -53,10 +53,13 @@ export const agentNavItems = [
 
 /** Data management quick links */
 const dataNavItems = [
-  { href: "/ledger", icon: Calendar, label: "\uB9E4\uCD9C/\uB9E4\uC785" },
-  { href: "/fixed-costs", icon: Wallet, label: "\uACE0\uC815\uBE44" },
-  { href: "/invoices", icon: FileText, label: "\uACC4\uC0B0\uC11C" },
-  { href: "/vendors", icon: Building2, label: "\uAC70\uB798\uCC98" },
+  { href: "/revenue", icon: Receipt, label: "매출 입력" },
+  { href: "/expense", icon: Wallet, label: "비용 입력" },
+  { href: "/ledger", icon: Calendar, label: "매출/매입" },
+  { href: "/fixed-costs", icon: Wallet, label: "고정비" },
+  { href: "/import", icon: Upload, label: "CSV 가져오기" },
+  { href: "/invoices", icon: FileText, label: "계산서" },
+  { href: "/vendors", icon: Building2, label: "거래처" },
 ];
 
 function loadMenuState(): Record<string, boolean> {

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusinessId } from "@/lib/queries/business";
 import { getMonthlyKpi } from "@/lib/queries/monthly-summary";
@@ -460,12 +461,13 @@ export default async function DashboardPage() {
                 "리뷰 상황 알려줘",
                 "비용 줄일 곳 있어?",
               ].map((q) => (
-                <button
+                <Link
                   key={q}
+                  href={`/chat?q=${encodeURIComponent(q)}`}
                   className="rounded-xl border p-2.5 text-left text-xs transition-colors hover:border-blue-300 hover:bg-blue-50/50"
                 >
                   {q}
-                </button>
+                </Link>
               ))}
             </div>
           </div>

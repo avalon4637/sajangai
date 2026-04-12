@@ -9,7 +9,7 @@ const tabs = [
   { href: "/settings/business", label: "사업장 관리", icon: Building2 },
   { href: "/settings/budget", label: "예산 관리", icon: Wallet },
   { href: "/settings/loans", label: "대출금", icon: Landmark },
-  { href: "/settings/connections", label: "AI 에이전트", icon: Bot },
+  { href: "/settings/connections", label: "외부 연동", icon: Bot },
   { href: "/settings/notifications", label: "알림", icon: Bell },
 ] as const;
 
