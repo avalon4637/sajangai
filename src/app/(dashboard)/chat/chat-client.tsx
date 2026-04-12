@@ -25,9 +25,32 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  // Fix mobile keyboard overlap: adjust container height when virtual keyboard opens
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleResize = () => {
+      if (containerRef.current) {
+        const offsetTop = containerRef.current.getBoundingClientRect().top;
+        containerRef.current.style.height = `${vv.height - offsetTop}px`;
+      }
+      scrollToBottom();
+    };
+
+    vv.addEventListener("resize", handleResize);
+    vv.addEventListener("scroll", handleResize);
+    return () => {
+      vv.removeEventListener("resize", handleResize);
+      vv.removeEventListener("scroll", handleResize);
+    };
+  }, [scrollToBottom]);
 
   useEffect(() => {
     scrollToBottom();
@@ -111,7 +134,7 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
   };
 
   return (
-    <>
+    <div ref={containerRef} className="flex flex-col flex-1 min-h-0">
       {/* Chat Header */}
       <div className="flex items-center gap-3 border-b bg-white px-6 py-4">
         <div className="flex items-center justify-center size-9 rounded-full bg-[#5B21B6] text-white text-sm font-bold">
@@ -220,6 +243,6 @@ export function ChatClient({ businessId, businessName }: ChatClientProps) {
           )}
         </Button>
       </form>
-    </>
+    </div>
   );
 }

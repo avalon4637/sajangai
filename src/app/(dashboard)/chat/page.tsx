@@ -27,7 +27,7 @@ export default async function ChatPage() {
     .single();
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-screen">
+    <div className="flex flex-col h-[calc(100svh-3.5rem)] md:h-screen">
       <ChatClient
         businessId={businessId}
         businessName={business?.name ?? "매장"}

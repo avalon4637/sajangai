@@ -307,7 +307,7 @@ export default async function DashboardPage() {
   })();
 
   return (
-    <div className="-m-4 md:-m-6 flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] flex-col">
+    <div className="-m-4 md:-m-6 flex h-[calc(100svh-3.5rem)] md:h-[100svh] flex-col">
       {/* Trial countdown banner - always visible for trial/expired users */}
       {trialBannerData && (
         <div className="shrink-0 px-2 pt-2 md:px-3 md:pt-3">

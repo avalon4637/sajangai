@@ -57,7 +57,7 @@ export default async function DashboardLayout({
   const hasActiveConnections = (activeConnectionCount ?? 0) > 0;
 
   return (
-    <div className="flex h-[100dvh] flex-col md:flex-row overflow-hidden">
+    <div className="flex h-[100svh] flex-col md:flex-row overflow-hidden">
       <Sidebar
         userEmail={user.email ?? ""}
         businessName={currentBusiness.name}
