@@ -156,28 +156,40 @@ export async function syncDeliveryReviews(
     const stores = response.data?.storeList ?? [];
     const allReviews = stores.flatMap((store) => store.reviewList ?? []);
 
+    if (allReviews.length === 0) {
+      return { platform, reviewCount: 0, skippedCount: 0 };
+    }
+
+    // Phase 3.6 — Batched upsert (was N+1).
+    // Chunk at 500 rows to stay well under Supabase request limits, and let
+    // the DB handle dedup via the onConflict key.
     const supabase = await createClient();
+    const normalizedAll = allReviews.map((review) =>
+      normalizeDeliveryReview(review, businessId, platform)
+    );
+
+    const CHUNK = 500;
     let upsertedCount = 0;
     let skippedCount = 0;
 
-    for (const review of allReviews) {
-      const normalized = normalizeDeliveryReview(review, businessId, platform);
-
-      const { error } = await supabase
+    for (let i = 0; i < normalizedAll.length; i += CHUNK) {
+      const chunk = normalizedAll.slice(i, i + CHUNK);
+      const { error, count } = await supabase
         .from("delivery_reviews")
-        .upsert(normalized, {
+        .upsert(chunk, {
           onConflict: "business_id,platform,external_id",
           ignoreDuplicates: false,
+          count: "exact",
         });
 
       if (error) {
         console.error(
-          `[SyncReviews] Upsert error for ${platform}:`,
+          `[SyncReviews] Batch upsert error for ${platform}:`,
           error.message
         );
-        skippedCount++;
+        skippedCount += chunk.length;
       } else {
-        upsertedCount++;
+        upsertedCount += count ?? chunk.length;
       }
     }
 

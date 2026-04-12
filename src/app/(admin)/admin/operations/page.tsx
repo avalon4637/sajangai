@@ -6,15 +6,58 @@ import {
   type HyphenStatus,
   type NotificationLogEntry,
 } from "./operations-client";
+import type { AiCallLog } from "@/types/schema";
+import type { AiTrendDay } from "./_components/ai-trend-section";
 
 export const dynamic = "force-dynamic";
 
-interface AiCallLogRow {
-  status: string | null;
-  latency_ms: number | null;
-  cost_krw: number | string | null;
-  model: string | null;
-  function_name: string | null;
+// Phase 3.1 — shape we actually need for stats (subset of AiCallLog)
+type AiCallLogRow = Pick<
+  AiCallLog,
+  "status" | "latency_ms" | "cost_krw" | "model" | "function_name"
+>;
+
+// Phase 3.3 — trend aggregation shape
+type TrendLogRow = Pick<
+  AiCallLog,
+  "status" | "latency_ms" | "cost_krw" | "created_at"
+>;
+
+/**
+ * Group ai_call_logs rows by calendar day (KST) and return 7 buckets.
+ * Missing days are zero-filled so the chart always has 7 bars.
+ */
+function computeAiTrend(rows: TrendLogRow[]): AiTrendDay[] {
+  const buckets = new Map<
+    string,
+    { calls: number; errors: number; costKrw: number; latencySum: number }
+  >();
+
+  // Pre-seed 7 days
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    buckets.set(key, { calls: 0, errors: 0, costKrw: 0, latencySum: 0 });
+  }
+
+  for (const row of rows) {
+    const day = (row.created_at ?? "").slice(0, 10);
+    if (!buckets.has(day)) continue;
+    const bucket = buckets.get(day)!;
+    bucket.calls += 1;
+    if (row.status === "error") bucket.errors += 1;
+    bucket.costKrw += Number(row.cost_krw ?? 0);
+    bucket.latencySum += row.latency_ms ?? 0;
+  }
+
+  return Array.from(buckets.entries()).map(([date, b]) => ({
+    date,
+    calls: b.calls,
+    errors: b.errors,
+    costKrw: Math.round(b.costKrw * 100) / 100,
+    avgLatencyMs: b.calls > 0 ? Math.round(b.latencySum / b.calls) : 0,
+  }));
 }
 
 /**
@@ -94,6 +137,17 @@ export default async function AdminOperationsPage() {
 
   const aiStats = computeAiStats((aiLogs ?? []) as AiCallLogRow[]);
 
+  // Phase 3.3 — AI 7-day trend (daily aggregate for charts)
+  const weekAgoForTrend = new Date();
+  weekAgoForTrend.setDate(weekAgoForTrend.getDate() - 7);
+  const { data: trendLogsRaw } = await supabase
+    .from("ai_call_logs")
+    .select("status, latency_ms, cost_krw, created_at")
+    .gte("created_at", weekAgoForTrend.toISOString())
+    .limit(50000);
+
+  const aiTrend = computeAiTrend((trendLogsRaw ?? []) as TrendLogRow[]);
+
   // Phase 1.3 — Recent notification history (last 7 days) from agent_activity_log
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
@@ -162,6 +216,7 @@ export default async function AdminOperationsPage() {
         businessName: bizMap[r.business_id] ?? "Unknown",
       }))}
       aiStats={aiStats}
+      aiTrend={aiTrend}
       hyphenStatus={hyphenStatus}
       notificationLogs={notificationLogs.map((log) => ({
         ...log,
