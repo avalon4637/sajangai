@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { activateSubscription } from "@/lib/billing/subscription";
 import { PRICING } from "@/lib/billing/pricing";
 import type { PlanInterval } from "@/lib/billing/pricing";
@@ -15,6 +16,9 @@ interface SubscribeRequest {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const supabase = await createClient();
 
   const {
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   // Rate limit: 3 attempts per 5 minutes per user
   const rlKey = getRateLimitKey(request, "billing-subscribe", user.id);
-  const rl = checkRateLimit(rlKey, 3, 5 * 60_000);
+  const rl = await checkRateLimit(rlKey, 3, 5 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요." },

@@ -1,7 +1,10 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
+import { checkAiDailyLimit } from "@/lib/ai/check-daily-limit";
+import { checkAccess } from "@/lib/billing/check-subscription";
 import { z } from "zod";
 
 const AiRequestSchema = z.object({
@@ -19,6 +22,13 @@ const AiRequestSchema = z.object({
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return new Response(
+      JSON.stringify({ error: "Forbidden" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   // Authentication check (must come before rate limit to use user.id as key)
   const supabase = await createClient();
   const {
@@ -34,7 +44,7 @@ export async function POST(req: Request) {
 
   // Rate limiting: 10 requests per minute (keyed by user.id to prevent IP spoofing)
   const rlKey = getRateLimitKey(req, "ai", user.id);
-  const rl = checkRateLimit(rlKey, 10);
+  const rl = await checkRateLimit(rlKey, 10);
   if (!rl.allowed) {
     return new Response(
       JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
@@ -47,6 +57,30 @@ export async function POST(req: Request) {
       JSON.stringify({ error: "ANTHROPIC_API_KEY가 설정되지 않았습니다." }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  // AI daily call limit check (look up user's current business)
+  const { data: userBiz } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single();
+
+  if (userBiz) {
+    const access = await checkAccess(userBiz.id);
+    const plan = access.status === "trial" ? "trial" : "active";
+    const dailyLimit = await checkAiDailyLimit(userBiz.id, plan);
+    if (!dailyLimit.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: "일일 AI 사용 한도에 도달했습니다. 내일 다시 시도해주세요.",
+          remaining: 0,
+          limit: dailyLimit.limit,
+        }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
+      );
+    }
   }
 
   // Request body validation

@@ -37,7 +37,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   if (!isValid) {
     console.error("Invalid PortOne webhook signature");
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    // Return 200 to stop PortOne from retrying forever (4xx triggers infinite retry)
+    return NextResponse.json(
+      { received: true, error: "Invalid signature" },
+      { status: 200 }
+    );
   }
 
   let payload: PortOneWebhookBody;
@@ -45,7 +49,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     payload = JSON.parse(body) as PortOneWebhookBody;
   } catch (err) {
     console.error("[billing/webhook]", err);
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    // Return 200 to prevent PortOne retry loop
+    return NextResponse.json(
+      { received: true, error: "Invalid JSON body" },
+      { status: 200 }
+    );
+
   }
 
   const supabase = await createClient();

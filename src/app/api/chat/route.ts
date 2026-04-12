@@ -5,6 +5,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamText, stepCountIs } from "ai";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { z } from "zod";
 import { CHAT_SYSTEM_PROMPT } from "@/lib/ai/jeongjang-prompts";
 import { buildBusinessProfile } from "@/lib/ai/business-profile";
@@ -13,6 +14,8 @@ import { getUserProfile, buildProfilePromptModifier } from "@/lib/queries/user-p
 import { loadMemoryContext, extractSessionSummary } from "@/lib/ai/chat-memory";
 import { buildPreferencePromptModifier, learnPreferences } from "@/lib/ai/preference-learner";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
+import { checkAiDailyLimit } from "@/lib/ai/check-daily-limit";
+import { checkAccess } from "@/lib/billing/check-subscription";
 
 export const maxDuration = 60;
 
@@ -45,6 +48,13 @@ async function saveMessage(
 }
 
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -59,7 +69,7 @@ export async function POST(req: Request) {
 
   // Rate limit: 10 requests per minute per user (keyed by user.id to prevent IP spoofing)
   const rlKey = getRateLimitKey(req, "chat", user.id);
-  const rl = checkRateLimit(rlKey, 10);
+  const rl = await checkRateLimit(rlKey, 10);
   if (!rl.allowed) {
     return new Response(
       JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
@@ -106,6 +116,23 @@ export async function POST(req: Request) {
 
     if (business) {
       verifiedBusinessId = business.id;
+    }
+  }
+
+  // AI daily call limit check
+  if (verifiedBusinessId) {
+    const access = await checkAccess(verifiedBusinessId);
+    const plan = access.status === "trial" ? "trial" : "active";
+    const dailyLimit = await checkAiDailyLimit(verifiedBusinessId, plan);
+    if (!dailyLimit.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: "일일 AI 사용 한도에 도달했습니다. 내일 다시 시도해주세요.",
+          remaining: 0,
+          limit: dailyLimit.limit,
+        }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
+      );
     }
   }
 

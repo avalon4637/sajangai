@@ -3,6 +3,7 @@
 // POST: Train or update brand voice profile with sample replies
 
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { getVoiceProfile, learnVoice } from "@/lib/ai/brand-voice";
 import { z } from "zod";
 
@@ -64,6 +65,10 @@ export async function GET() {
  * Stores result in brand_voice_profiles table.
  */
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

@@ -69,14 +69,18 @@ export async function editVendor(
       .single();
     if (!owned) return { success: false, error: "거래처를 찾을 수 없습니다." };
 
-    await updateVendor(input.id, {
-      name: input.name,
-      category: input.category || null,
-      contact_name: input.contactName || null,
-      phone: input.phone || null,
-      business_number: input.businessNumber || null,
-      memo: input.memo || null,
-    });
+    await updateVendor(
+      input.id,
+      {
+        name: input.name,
+        category: input.category || null,
+        contact_name: input.contactName || null,
+        phone: input.phone || null,
+        business_number: input.businessNumber || null,
+        memo: input.memo || null,
+      },
+      businessId
+    );
 
     revalidatePath("/vendors");
     return { success: true };
@@ -106,7 +110,7 @@ export async function removeVendor(
       .single();
     if (!owned) return { success: false, error: "거래처를 찾을 수 없습니다." };
 
-    await deleteVendor(vendorId);
+    await deleteVendor(vendorId, businessId);
 
     revalidatePath("/vendors");
     return { success: true };

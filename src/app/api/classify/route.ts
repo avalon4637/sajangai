@@ -3,11 +3,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { getCurrentBusinessId } from "@/lib/queries/business";
 import { classifyTransactions } from "@/lib/ai/expense-classifier";
 import type { ParsedTransaction } from "@/types/bookkeeping";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const supabase = await createClient();
     const {

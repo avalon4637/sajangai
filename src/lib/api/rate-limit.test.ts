@@ -1,98 +1,101 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { checkRateLimit, getRateLimitKey } from "./rate-limit";
+import { getRateLimitKey } from "./rate-limit";
 
-describe("checkRateLimit", () => {
+// Mock Supabase client
+const mockInsert = vi.fn().mockResolvedValue({ error: null });
+const mockSelectHead = vi.fn();
+const mockDeleteChain = vi.fn();
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn().mockResolvedValue({
+    from: vi.fn((table: string) => {
+      if (table === "rate_limit_entries") {
+        return {
+          insert: mockInsert,
+          select: () => ({
+            eq: () => ({
+              gte: mockSelectHead,
+            }),
+          }),
+          delete: () => ({
+            eq: () => ({
+              lt: mockDeleteChain,
+            }),
+          }),
+        };
+      }
+      return {};
+    }),
+  }),
+}));
+
+describe("checkRateLimit (Supabase-backed)", () => {
   beforeEach(() => {
-    // Reset the internal store by using unique keys per test
-    vi.useFakeTimers();
+    vi.clearAllMocks();
+    mockDeleteChain.mockResolvedValue({ error: null });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
+  it("should allow request when count is within limit", async () => {
+    mockSelectHead.mockResolvedValue({ count: 3, error: null });
 
-  it("should allow the first request", () => {
-    const result = checkRateLimit("test:first", 5, 60_000);
+    const { checkRateLimit } = await import("./rate-limit");
+    const result = await checkRateLimit("user1:chat", 10);
+
     expect(result.allowed).toBe(true);
-    expect(result.remaining).toBe(4);
+    expect(result.remaining).toBe(7);
+    expect(mockInsert).toHaveBeenCalledWith({ key: "user1:chat" });
   });
 
-  it("should allow requests within the limit", () => {
-    const key = "test:within-limit";
-    const limit = 3;
+  it("should block request when count exceeds limit", async () => {
+    mockSelectHead.mockResolvedValue({ count: 11, error: null });
 
-    const r1 = checkRateLimit(key, limit);
-    const r2 = checkRateLimit(key, limit);
-    const r3 = checkRateLimit(key, limit);
+    const { checkRateLimit } = await import("./rate-limit");
+    const result = await checkRateLimit("user1:chat", 10);
 
-    expect(r1.allowed).toBe(true);
-    expect(r1.remaining).toBe(2);
-    expect(r2.allowed).toBe(true);
-    expect(r2.remaining).toBe(1);
-    expect(r3.allowed).toBe(true);
-    expect(r3.remaining).toBe(0);
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
   });
 
-  it("should block request exceeding limit", () => {
-    const key = "test:exceed-limit";
-    const limit = 2;
+  it("should allow request at exactly the limit boundary", async () => {
+    mockSelectHead.mockResolvedValue({ count: 10, error: null });
 
-    checkRateLimit(key, limit);
-    checkRateLimit(key, limit);
-    const r3 = checkRateLimit(key, limit);
+    const { checkRateLimit } = await import("./rate-limit");
+    const result = await checkRateLimit("user1:chat", 10);
 
-    expect(r3.allowed).toBe(false);
-    expect(r3.remaining).toBe(0);
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(0);
   });
 
-  it("should reset window after expiry", () => {
-    const key = "test:window-reset";
-    const limit = 1;
-    const windowMs = 1000;
+  it("should fail open on DB error", async () => {
+    mockSelectHead.mockResolvedValue({ count: null, error: { message: "DB down" } });
 
-    const r1 = checkRateLimit(key, limit, windowMs);
-    expect(r1.allowed).toBe(true);
+    const { checkRateLimit } = await import("./rate-limit");
+    const result = await checkRateLimit("user1:chat", 10);
 
-    const r2 = checkRateLimit(key, limit, windowMs);
-    expect(r2.allowed).toBe(false);
-
-    // Advance time past the window
-    vi.advanceTimersByTime(1001);
-
-    const r3 = checkRateLimit(key, limit, windowMs);
-    expect(r3.allowed).toBe(true);
-    expect(r3.remaining).toBe(0); // limit - 1 = 0
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(9);
   });
 
-  it("should keep different keys independent", () => {
-    const limit = 1;
-
-    const r1 = checkRateLimit("key-a:route", limit);
-    expect(r1.allowed).toBe(true);
-
-    const r2 = checkRateLimit("key-b:route", limit);
-    expect(r2.allowed).toBe(true);
-
-    // key-a should be blocked now
-    const r3 = checkRateLimit("key-a:route", limit);
-    expect(r3.allowed).toBe(false);
-
-    // key-b should also be blocked
-    const r4 = checkRateLimit("key-b:route", limit);
-    expect(r4.allowed).toBe(false);
-  });
-
-  it("should return correct resetAt timestamp", () => {
+  it("should return correct resetAt timestamp", async () => {
     const now = Date.now();
+    mockSelectHead.mockResolvedValue({ count: 1, error: null });
+
+    const { checkRateLimit } = await import("./rate-limit");
     const windowMs = 30_000;
-    const result = checkRateLimit("test:reset-at", 5, windowMs);
-    // resetAt should be approximately now + windowMs
+    const result = await checkRateLimit("user1:chat", 5, windowMs);
+
     expect(result.resetAt).toBeGreaterThanOrEqual(now + windowMs - 100);
-    expect(result.resetAt).toBeLessThanOrEqual(now + windowMs + 100);
+    expect(result.resetAt).toBeLessThanOrEqual(now + windowMs + 200);
   });
 });
 
 describe("getRateLimitKey", () => {
+  it("should use userId when provided", () => {
+    const request = new Request("https://example.com");
+    const key = getRateLimitKey(request, "chat", "user-123");
+    expect(key).toBe("user-123:chat");
+  });
+
   it("should extract IP from x-forwarded-for header", () => {
     const request = new Request("https://example.com", {
       headers: { "x-forwarded-for": "192.168.1.1, 10.0.0.1" },

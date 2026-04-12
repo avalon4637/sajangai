@@ -3,12 +3,17 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { trackInsightAction } from "@/lib/insights/history";
 
 const VALID_ACTIONS = ["viewed", "acted", "dismissed"] as const;
 type TrackAction = (typeof VALID_ACTIONS)[number];
 
 export async function POST(request: Request): Promise<NextResponse> {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

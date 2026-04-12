@@ -48,7 +48,8 @@ export async function createVendor(data: VendorInsert): Promise<Vendor> {
  */
 export async function updateVendor(
   id: string,
-  data: VendorUpdate
+  data: VendorUpdate,
+  businessId: string
 ): Promise<Vendor> {
   const supabase = await createClient();
 
@@ -56,6 +57,7 @@ export async function updateVendor(
     .from("vendors")
     .update(data)
     .eq("id", id)
+    .eq("business_id", businessId)
     .select()
     .single();
 
@@ -69,10 +71,17 @@ export async function updateVendor(
 /**
  * Delete a vendor by id.
  */
-export async function deleteVendor(id: string): Promise<void> {
+export async function deleteVendor(
+  id: string,
+  businessId: string
+): Promise<void> {
   const supabase = await createClient();
 
-  const { error } = await supabase.from("vendors").delete().eq("id", id);
+  const { error } = await supabase
+    .from("vendors")
+    .delete()
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     throw new Error(`거래처 삭제 실패: ${error.message}`);

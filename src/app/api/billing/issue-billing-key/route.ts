@@ -3,9 +3,13 @@
 // This endpoint is kept for backwards compatibility but should not be called directly.
 // Card info should never be sent to our server — use @portone/browser-sdk instead.
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   return NextResponse.json(
     {
       error:

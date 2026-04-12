@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { updateInsightStatus, createActionResult } from "@/lib/insights/queries";
 import { track } from "@/lib/analytics/track";
 
 export async function POST(request: Request) {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

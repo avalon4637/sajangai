@@ -1,6 +1,7 @@
 // POST /api/feedback - Save AI output feedback (thumbs up/down)
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { z } from "zod/v4";
 
 const FeedbackSchema = z.object({
@@ -11,6 +12,9 @@ const FeedbackSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
   const supabase = await createClient();
   const {
     data: { user },

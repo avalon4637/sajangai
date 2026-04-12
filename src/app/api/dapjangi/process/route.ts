@@ -3,6 +3,7 @@
 // Returns a summary of processed reviews (count, auto-published, drafts, urgent)
 
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { processNewReviews } from "@/lib/ai/dapjangi-engine";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 
@@ -14,6 +15,10 @@ export const maxDuration = 120; // Allow up to 2 min for batch processing
  * Idempotent: safe to call multiple times (skips already-processed reviews).
  */
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,7 +30,7 @@ export async function POST(req: Request) {
 
   // Rate limiting: 5 requests per minute (keyed by user.id to prevent IP spoofing)
   const rlKey = getRateLimitKey(req, "dapjangi-process", user.id);
-  const rl = checkRateLimit(rlKey, 5);
+  const rl = await checkRateLimit(rlKey, 5);
   if (!rl.allowed) {
     return Response.json(
       { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },

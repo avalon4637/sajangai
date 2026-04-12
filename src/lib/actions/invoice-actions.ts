@@ -44,7 +44,7 @@ export async function markInvoiceAsPaid(
     }
 
     const today = new Date().toISOString().split("T")[0];
-    await markAsPaid(invoiceId, today);
+    await markAsPaid(invoiceId, today, businessId);
     revalidatePath("/invoices");
     return { success: true };
   } catch (err) {

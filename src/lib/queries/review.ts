@@ -139,7 +139,8 @@ export async function getUnprocessedReviews(
 export async function updateReviewReply(
   reviewId: string,
   aiReply: string,
-  replyStatus: "auto_published" | "draft" | "published" | "skipped"
+  replyStatus: "auto_published" | "draft" | "published" | "skipped",
+  businessId: string
 ): Promise<void> {
   const supabase = await createClient();
 
@@ -149,7 +150,8 @@ export async function updateReviewReply(
       ai_reply: aiReply,
       reply_status: replyStatus,
     })
-    .eq("id", reviewId);
+    .eq("id", reviewId)
+    .eq("business_id", businessId);
 
   if (error) {
     throw new Error(`리뷰 답글 업데이트 실패: ${error.message}`);

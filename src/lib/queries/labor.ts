@@ -91,13 +91,17 @@ export async function updateLaborRecord(
 /**
  * Delete a labor record by id.
  */
-export async function deleteLaborRecord(id: string): Promise<void> {
+export async function deleteLaborRecord(
+  id: string,
+  businessId: string
+): Promise<void> {
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("labor_records")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     throw new Error(`인건비 기록 삭제 실패: ${error.message}`);

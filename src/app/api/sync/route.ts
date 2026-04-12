@@ -1,12 +1,16 @@
 // Manual sync API route
 // POST /api/sync - Triggers a sync for the authenticated user's business
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { getCurrentBusinessId } from "@/lib/queries/business";
 import { runSync } from "@/lib/hyphen/sync-orchestrator";
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   // Authenticate the request
   const supabase = await createClient();
   const {

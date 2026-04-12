@@ -71,7 +71,8 @@ export async function createInvoice(data: InvoiceInsert): Promise<Invoice> {
  */
 export async function markAsPaid(
   invoiceId: string,
-  paidDate: string
+  paidDate: string,
+  businessId: string
 ): Promise<Invoice> {
   const supabase = await createClient();
 
@@ -79,6 +80,7 @@ export async function markAsPaid(
     .from("invoices")
     .update({ status: "paid", paid_date: paidDate })
     .eq("id", invoiceId)
+    .eq("business_id", businessId)
     .select()
     .single();
 

@@ -3,6 +3,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { analyzeWeeklyReviews } from "@/lib/ai/review-analyzer";
 import { syncNaverReviews } from "@/lib/naver/sync";
 import { runSync } from "@/lib/hyphen/sync-orchestrator";
@@ -102,6 +103,10 @@ export async function GET() {
 
 // POST: Trigger a specific operation for a business
 export async function POST(request: Request) {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const result = await requireAdmin();
   if ("error" in result) {
     return NextResponse.json(

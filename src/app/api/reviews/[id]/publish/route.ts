@@ -1,11 +1,15 @@
 // POST /api/reviews/[id]/publish - Publish an AI reply for a delivery review
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
   const supabase = await createClient();
   const {
     data: { user },

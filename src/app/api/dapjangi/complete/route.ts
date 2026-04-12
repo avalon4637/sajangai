@@ -3,8 +3,12 @@
 // Updates reply_status and replied_at in delivery_reviews table
 
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
   const supabase = await createClient();
   const {
     data: { user },

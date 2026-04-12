@@ -3,6 +3,7 @@
 // POST: Force regenerate report
 
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { generateSeriReport } from "@/lib/ai/seri-engine";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 import { z } from "zod";
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
 
   // Rate limiting: 10 requests per minute (keyed by user.id to prevent IP spoofing)
   const rlKey = getRateLimitKey(req, "seri-report", user.id);
-  const rl = checkRateLimit(rlKey, 10);
+  const rl = await checkRateLimit(rlKey, 10);
   if (!rl.allowed) {
     return Response.json(
       { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
@@ -106,6 +107,10 @@ export async function GET(req: Request) {
  *   - date: YYYY-MM-DD for a specific date
  */
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -118,7 +123,7 @@ export async function POST(req: Request) {
 
   // Rate limiting: 3 requests per minute (keyed by user.id to prevent IP spoofing)
   const rlKeyPost = getRateLimitKey(req, "seri-report-gen", user.id);
-  const rlPost = checkRateLimit(rlKeyPost, 3);
+  const rlPost = await checkRateLimit(rlKeyPost, 3);
   if (!rlPost.allowed) {
     return Response.json(
       { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },

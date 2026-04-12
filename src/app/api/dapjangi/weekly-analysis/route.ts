@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { getCurrentBusinessId } from "@/lib/queries/business";
 import { analyzeWeeklyReviews } from "@/lib/ai/review-analyzer";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
@@ -11,6 +12,10 @@ import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 export const maxDuration = 120; // Allow up to 2 min for AI analysis
 
 export async function POST(req: Request) {
+  if (!verifyCsrfOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,7 +30,7 @@ export async function POST(req: Request) {
 
   // Rate limiting: 3 requests per minute (AI-heavy endpoint)
   const rlKey = getRateLimitKey(req, "dapjangi-weekly", user.id);
-  const rl = checkRateLimit(rlKey, 3);
+  const rl = await checkRateLimit(rlKey, 3);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },

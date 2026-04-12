@@ -1,6 +1,7 @@
 // PATCH /api/reviews/[id]/reply - Update AI reply text for a delivery review
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { z } from "zod";
 
 const UpdateReplySchema = z.object({
@@ -11,6 +12,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!verifyCsrfOrigin(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
   const supabase = await createClient();
   const {
     data: { user },

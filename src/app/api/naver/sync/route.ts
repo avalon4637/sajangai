@@ -3,10 +3,14 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyCsrfOrigin } from "@/lib/api/csrf";
 import { checkRateLimit, getRateLimitKey } from "@/lib/api/rate-limit";
 import { syncNaverReviews } from "@/lib/naver/sync";
 
 export async function POST(request: Request) {
+  if (!verifyCsrfOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     // Auth check
     const supabase = await createClient();
@@ -44,7 +48,7 @@ export async function POST(request: Request) {
 
     // Rate limit: 3 requests per hour (3600000ms)
     const rateLimitKey = getRateLimitKey(request, "naver-sync", user.id);
-    const rateLimit = checkRateLimit(rateLimitKey, 3, 3600000);
+    const rateLimit = await checkRateLimit(rateLimitKey, 3, 3600000);
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
