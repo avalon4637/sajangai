@@ -83,38 +83,51 @@ export async function syncCardSales(
 
     const approvals = response.data?.list ?? [];
 
+    // Filter cancelled rows first so they don't consume a slot in the batch.
+    const validApprovals = approvals.filter(
+      (a) => a.appCancel !== "Y" && a.pchCancel !== "Y"
+    );
+    const cancelledCount = approvals.length - validApprovals.length;
+
+    if (validApprovals.length === 0) {
+      return { approvalsCount: 0, skippedCount: cancelledCount };
+    }
+
+    // Phase 4 — Batched upsert (was N+1, and also a latent dedup bug — the
+    // previous loop relied on a 23505 path that never fired because
+    // `revenues` had no UNIQUE before migration 20260412000003).
+    // Dedup key: (business_id, channel='카드', external_id=appNo).
     const supabase = await createClient();
-    let insertedCount = 0;
-    let skippedCount = 0;
+    const rows = validApprovals.map((a) =>
+      normalizeCardApproval(a, businessId, cardCompanyName)
+    );
 
-    for (const approval of approvals) {
-      // Skip cancelled
-      if (approval.appCancel === "Y" || approval.pchCancel === "Y") {
-        skippedCount++;
-        continue;
-      }
+    const CHUNK = 500;
+    let upsertedCount = 0;
+    let errorSkippedCount = 0;
 
-      const normalized = normalizeCardApproval(
-        approval,
-        businessId,
-        cardCompanyName
-      );
-
-      const { error } = await supabase.from("revenues").insert(normalized);
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      const { error, count } = await supabase
+        .from("revenues")
+        .upsert(chunk, {
+          onConflict: "business_id,channel,external_id",
+          ignoreDuplicates: true,
+          count: "exact",
+        });
 
       if (error) {
-        if (error.code === "23505") {
-          skippedCount++;
-        } else {
-          console.error("[SyncCard] Insert error:", error.message);
-          skippedCount++;
-        }
+        console.error("[SyncCard] Batch upsert error:", error.message);
+        errorSkippedCount += chunk.length;
       } else {
-        insertedCount++;
+        upsertedCount += count ?? 0;
       }
     }
 
-    return { approvalsCount: insertedCount, skippedCount };
+    return {
+      approvalsCount: upsertedCount,
+      skippedCount: cancelledCount + errorSkippedCount,
+    };
   } catch (error) {
     return {
       approvalsCount: 0,
@@ -203,17 +216,18 @@ export async function syncCardSettlements(
     const supabase = await createClient();
     const today = new Date().toISOString().slice(0, 10);
 
-    let upsertedCount = 0;
-    let skippedCount = 0;
-
-    for (const dep of deposits) {
+    // Phase 4 — Batched upsert (was N+1). `card_settlements` already has the
+    // UNIQUE index (business_id, card_company, pay_scheduled_date,
+    // sales_amount) from 20260412000000, so a chunked upsert with
+    // ignoreDuplicates: false keeps pay_date/status fresh on each sync.
+    const rows = deposits.map((dep) => {
       const status: "pending" | "settled" | "cancelled" = dep.payDate
         ? dep.payDate <= today
           ? "settled"
           : "pending"
         : "pending";
 
-      const row = {
+      return {
         business_id: businessId,
         card_company: dep.cardCompany || "카드",
         pay_date: dep.payDate || null,
@@ -224,17 +238,31 @@ export async function syncCardSettlements(
         transaction_count: dep.transactionCount,
         status,
       };
+    });
 
-      const { error } = await supabase.from("card_settlements").upsert(row, {
-        onConflict: "business_id,card_company,pay_scheduled_date,sales_amount",
-        ignoreDuplicates: false,
-      });
+    const CHUNK = 500;
+    let upsertedCount = 0;
+    let skippedCount = 0;
+
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      const { error, count } = await supabase
+        .from("card_settlements")
+        .upsert(chunk, {
+          onConflict:
+            "business_id,card_company,pay_scheduled_date,sales_amount",
+          ignoreDuplicates: false,
+          count: "exact",
+        });
 
       if (error) {
-        console.error("[SyncCardSettlements] Upsert error:", error.message);
-        skippedCount++;
+        console.error(
+          "[SyncCardSettlements] Batch upsert error:",
+          error.message
+        );
+        skippedCount += chunk.length;
       } else {
-        upsertedCount++;
+        upsertedCount += count ?? chunk.length;
       }
     }
 

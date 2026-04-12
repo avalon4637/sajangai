@@ -50,6 +50,10 @@ export function normalizeDeliveryOrder(
     category: "배달매출",
     amount: Math.round(amount),
     memo: memo || null,
+    // Phase 4 — dedup key for idempotent re-sync. Falls back to null when
+    // the upstream API omits the order number (row still inserts but bypasses
+    // the partial UNIQUE index).
+    external_id: order.orderNo || null,
   };
 }
 
@@ -115,6 +119,9 @@ export function normalizeCardApproval(
     category: "카드매출",
     amount: Math.round(amount),
     memo: memo || null,
+    // Phase 4 — dedup key for idempotent re-sync. appNo is the card approval
+    // number (unique per card company). Falls back to null if missing.
+    external_id: approval.appNo || null,
   };
 }
 

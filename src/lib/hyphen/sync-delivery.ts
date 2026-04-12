@@ -79,31 +79,47 @@ export async function syncDeliverySales(
 
     const orders = response.data?.touchOrderList ?? [];
 
+    if (orders.length === 0) {
+      return { platform, salesCount: 0, skippedCount: 0 };
+    }
+
+    // Phase 4 — Batched upsert (was N+1, and also a latent dedup bug — the
+    // previous loop relied on a 23505 path that never fired because
+    // `revenues` had no UNIQUE before migration 20260412000003).
+    // Dedup key: (business_id, channel, external_id) partial unique index.
+    // We use `ignoreDuplicates: true` so that re-syncs leave already-stored
+    // rows untouched (keeps any manual edits intact).
     const supabase = await createClient();
-    let insertedCount = 0;
+    const rows = orders.map((o) =>
+      normalizeDeliveryOrder(o, businessId, platform)
+    );
+
+    const CHUNK = 500;
+    let upsertedCount = 0;
     let skippedCount = 0;
 
-    for (const order of orders) {
-      const normalized = normalizeDeliveryOrder(order, businessId, platform);
-
-      const { error } = await supabase.from("revenues").insert(normalized);
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      const { error, count } = await supabase
+        .from("revenues")
+        .upsert(chunk, {
+          onConflict: "business_id,channel,external_id",
+          ignoreDuplicates: true,
+          count: "exact",
+        });
 
       if (error) {
-        if (error.code === "23505") {
-          skippedCount++;
-        } else {
-          console.error(
-            `[SyncDelivery] Insert error for ${platform}:`,
-            error.message
-          );
-          skippedCount++;
-        }
+        console.error(
+          `[SyncDelivery] Batch upsert error for ${platform}:`,
+          error.message
+        );
+        skippedCount += chunk.length;
       } else {
-        insertedCount++;
+        upsertedCount += count ?? 0;
       }
     }
 
-    return { platform, salesCount: insertedCount, skippedCount };
+    return { platform, salesCount: upsertedCount, skippedCount };
   } catch (error) {
     return {
       platform,

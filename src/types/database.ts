@@ -67,6 +67,7 @@ export type Database = {
           category: string | null;
           amount: number;
           memo: string | null;
+          external_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -77,6 +78,7 @@ export type Database = {
           category?: string | null;
           amount: number;
           memo?: string | null;
+          external_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -87,6 +89,7 @@ export type Database = {
           category?: string | null;
           amount?: number;
           memo?: string | null;
+          external_id?: string | null;
           created_at?: string;
         };
         Relationships: [];
