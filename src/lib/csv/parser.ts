@@ -25,7 +25,14 @@ export interface ParseResult {
 }
 
 export function parseCsv(csvContent: string): ParseResult {
-  const result = Papa.parse(csvContent, {
+  // Strip BOM (Byte Order Mark) from Excel-exported CSV files.
+  // Without this, the first column header is invisible and parsing fails.
+  let cleaned = csvContent;
+  if (cleaned.charCodeAt(0) === 0xfeff) {
+    cleaned = cleaned.slice(1);
+  }
+
+  const result = Papa.parse(cleaned, {
     header: true,
     skipEmptyLines: true,
     transformHeader: (header: string) => header.trim().toLowerCase(),
@@ -144,8 +151,14 @@ function normalizeDate(raw: string): string | null {
     if (month < 1 || month > 12 || day < 1 || day > 31) return null;
 
     const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const dateObj = new Date(dateStr);
+    const dateObj = new Date(dateStr + "T00:00:00");
     if (isNaN(dateObj.getTime())) return null;
+
+    // Reject dates that JS auto-corrected (e.g. Feb 31 → Mar 3).
+    // If the parsed day doesn't match the input day, the date was invalid.
+    if (dateObj.getDate() !== day || dateObj.getMonth() + 1 !== month) {
+      return null;
+    }
 
     return dateStr;
   }
