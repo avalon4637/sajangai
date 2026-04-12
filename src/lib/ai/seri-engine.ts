@@ -165,6 +165,36 @@ export async function generateSeriReport(
     detectCostAnomaly(businessId),
   ]);
 
+  // Early return if business has no financial data — skip Claude API calls
+  if (profit.grossRevenue === 0 && profit.totalCosts === 0) {
+    const emptyNarrative = "아직 매출·비용 데이터가 없어요. 데이터를 입력하시면 분석을 시작할게요.";
+    const emptyContent: SeriReportContent = {
+      yearMonth,
+      generatedAt: new Date().toISOString(),
+      profit,
+      cashFlow,
+      costAnomaly,
+      narratives: {
+        profitNarrative: emptyNarrative,
+        cashFlowNarrative: emptyNarrative,
+        costNarrative: emptyNarrative,
+        dailySummary: emptyNarrative,
+      },
+    };
+
+    const reportId = await saveReport(businessId, reportDate, emptyContent, emptyNarrative);
+
+    return {
+      id: reportId,
+      businessId,
+      reportDate,
+      content: emptyContent,
+      summary: emptyNarrative,
+      createdAt: new Date().toISOString(),
+      fromCache: false,
+    };
+  }
+
   // Build prompts for each analysis
   const profitPrompt = buildProfitPrompt(profit, yearMonth);
   const cashFlowPrompt = buildCashFlowPrompt(cashFlow);

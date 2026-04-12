@@ -23,6 +23,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
+  AlertTriangle,
   Clock,
   CreditCard,
   Check,
@@ -89,6 +90,7 @@ export function BillingPageClient({
   const isTrialActive = subscription?.status === "trial";
   const isActive = subscription?.status === "active";
   const isCancelled = subscription?.status === "cancelled";
+  const isPastDue = subscription?.status === "past_due";
   const isExpiredOrDue =
     !subscription ||
     subscription.status === "expired" ||
@@ -157,11 +159,13 @@ export function BillingPageClient({
 
       // Step 2: Check for errors (user cancelled or PG failure)
       if (!response || response.code !== undefined) {
-        const msg =
-          response?.code === "USER_CANCELLED"
-            ? null
-            : response?.message ?? "카드 등록에 실패했습니다.";
-        if (msg) setError(msg);
+        // User intentionally closed popup — suppress error
+        if (response?.code === "USER_CANCELLED") {
+          return;
+        }
+        setError(
+          response?.message || "카드 등록에 실패했습니다. 잠시 후 다시 시도해주세요."
+        );
         return;
       }
 
@@ -295,6 +299,23 @@ export function BillingPageClient({
         </div>
       )}
 
+      {/* Past due alert */}
+      {isPastDue && (
+        <div className="rounded-xl border-2 border-destructive/40 bg-destructive/5 p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-destructive">
+                결제에 실패했습니다
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                카드를 확인하고 다시 결제해주세요. 결제가 완료되지 않으면 서비스가 중단됩니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Plan selector - show when can subscribe */}
       {canSubscribe && (
         <div className="mb-6">
@@ -404,7 +425,7 @@ export function BillingPageClient({
       )}
 
       {/* Cancel subscription button */}
-      {isActive && (
+      {(isActive || isPastDue) && (
         <div className="mb-6">
           <AlertDialog>
             <AlertDialogTrigger asChild>

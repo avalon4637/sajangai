@@ -456,6 +456,8 @@ const TRIAL_NURTURE_COPY: Record<number, (businessName: string) => string> = {
     `[${name}] 체험 5일차! 재무 분석 결과가 준비됐어요. 놓치기 쉬운 지출 패턴을 알려드려요.`,
   6: (name) =>
     `[${name}] 체험 종료까지 1일! 지금까지 점장이 분석한 결과를 성적표로 확인해보세요. 계속 쓰시려면 점장 고용하기.`,
+  7: (name) =>
+    `[${name}] 오늘 체험이 종료됩니다! 점장 고용하시면 매일 매출·리뷰·비용 분석이 계속돼요. sajang.ai/billing`,
 };
 
 /**

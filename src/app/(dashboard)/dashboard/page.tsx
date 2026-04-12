@@ -20,6 +20,7 @@ import { ReviewAlertCard } from "@/components/dashboard/review-alert-card";
 import { CashflowWarningCard } from "@/components/dashboard/cashflow-warning-card";
 import { PeriodReportCard } from "@/components/dashboard/period-report-card";
 import { MobileChatInput } from "@/components/dashboard/mobile-chat-input";
+import { TrialBanner } from "@/components/billing/trial-banner";
 import type { ChatMessageData } from "@/components/jeongjang/chat-message";
 
 export default async function DashboardPage() {
@@ -58,6 +59,7 @@ export default async function DashboardPage() {
     weeklyReportData,
     weeklyRoi,
     latestMonthlyRoi,
+    subscription,
   ] = await Promise.all([
     getDailyBriefingData(businessId),
     getMonthlyKpi(businessId, currentMonth),
@@ -122,6 +124,16 @@ export default async function DashboardPage() {
       console.error("[dashboard] monthly ROI error:", err);
       return null;
     }),
+    // Subscription status for trial banner
+    supabase
+      .from("subscriptions")
+      .select("plan, status, trial_ends_at")
+      .eq("business_id", businessId)
+      .in("status", ["trial", "active", "expired"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then((res) => res.data),
   ]);
 
   const businessName = business?.name ?? "매장";
@@ -278,8 +290,34 @@ export default async function DashboardPage() {
       }
     : null;
 
+  // Trial banner computation
+  const trialBannerData = (() => {
+    if (!subscription) return null;
+    if (subscription.status !== "trial" && subscription.status !== "expired") return null;
+    const trialEnd = subscription.trial_ends_at
+      ? new Date(subscription.trial_ends_at)
+      : null;
+    const daysLeft = trialEnd
+      ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86_400_000))
+      : 0;
+    return {
+      daysLeft,
+      isExpired: subscription.status === "expired" || daysLeft === 0,
+    };
+  })();
+
   return (
     <div className="-m-4 md:-m-6 flex h-[calc(100dvh-3.5rem)] md:h-[100dvh] flex-col">
+      {/* Trial countdown banner - always visible for trial/expired users */}
+      {trialBannerData && (
+        <div className="shrink-0 px-2 pt-2 md:px-3 md:pt-3">
+          <TrialBanner
+            daysLeft={trialBannerData.daysLeft}
+            isExpired={trialBannerData.isExpired}
+          />
+        </div>
+      )}
+
       {/* Compact Briefing Strip */}
       <div className="shrink-0 px-2 pt-2 md:px-3 md:pt-3">
         {briefingData.hasAnyData ? (

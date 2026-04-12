@@ -212,6 +212,71 @@ export async function runMorningRoutine(
   const startTime = Date.now();
   const reportDate = date ?? new Date().toISOString().split("T")[0];
 
+  // Early return if business has no data at all — avoid expensive Claude API calls
+  const supabaseCheck = await createClient();
+  const [{ count: revenueCount }, { count: expenseCount }, { count: reviewCount }] =
+    await Promise.all([
+      supabaseCheck
+        .from("revenues")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId)
+        .limit(1),
+      supabaseCheck
+        .from("expenses")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId)
+        .limit(1),
+      supabaseCheck
+        .from("delivery_reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId)
+        .limit(1),
+    ]);
+
+  if ((revenueCount ?? 0) === 0 && (expenseCount ?? 0) === 0 && (reviewCount ?? 0) === 0) {
+    const emptyNarrative = "아직 매출·비용·리뷰 데이터가 없어요. 데이터를 입력하시면 아침 브리핑을 시작할게요.";
+    const now = new Date();
+    const yearMonth = reportDate.substring(0, 7);
+    const todayIso = now.toISOString().split("T")[0];
+
+    return {
+      businessId,
+      date: reportDate,
+      seriReport: {
+        id: "",
+        businessId,
+        reportDate,
+        content: {
+          yearMonth,
+          generatedAt: now.toISOString(),
+          profit: { grossRevenue: 0, deliveryCommissions: 0, cardFees: 0, netRevenue: 0, variableCosts: 0, fixedCosts: 0, laborCosts: 0, totalCosts: 0, netProfit: 0, profitMargin: 0, channelBreakdown: [] },
+          cashFlow: { projectionDays: 0, startDate: todayIso, endDate: todayIso, currentBalance: 0, dailyProjections: [], alertDays: [], overallRisk: "safe" as const, summary: { totalExpectedIncome: 0, totalExpectedExpense: 0, lowestProjectedBalance: 0, alertThreshold: 1_000_000 } },
+          costAnomaly: { currentWeek: { weekStart: todayIso, weekEnd: todayIso, revenue: 0, expenses: 0, costRatio: 0 }, previousWeeks: [], currentRatio: 0, averageRatio: 0, deviation: 0, isAnomaly: false, diagnosis: "normal_variation" as const, diagnosisLabel: "", recommendations: [] },
+          narratives: { profitNarrative: emptyNarrative, cashFlowNarrative: emptyNarrative, costNarrative: emptyNarrative, dailySummary: emptyNarrative },
+        },
+        summary: emptyNarrative,
+        createdAt: now.toISOString(),
+        fromCache: false,
+      },
+      dapjangiSummary: { processed: 0, autoPublished: 0, drafts: 0, urgent: 0, errors: 0 },
+      diagnosis: { businessId, generatedAt: now.toISOString(), diagnoses: [], dataSnapshot: { revenueWeeks: 0, reviewCount: 0, costRatio: null, sentimentTrend: "unknown" as const } },
+      insights: { businessId, generated: [], scored: [], errors: [], durationMs: 0 },
+      viralAnalysis: { churnRisks: [], totalAtRisk: 0, messages: [] },
+      briefing: {
+        id: "",
+        businessId,
+        date: reportDate,
+        content: { generatedAt: now.toISOString(), narrative: emptyNarrative, seriSummary: "", dapjangiSummary: "", structured: { oneLiner: emptyNarrative, revenue: 0, reviewCount: 0, negativeReviewCount: 0, alert: "", todayAction: "" } },
+        summary: emptyNarrative,
+        fromCache: false,
+      },
+      messageSent: false,
+      messageChannel: "none",
+      criticalAlerts: [],
+      durationMs: Date.now() - startTime,
+    };
+  }
+
   // Step 1 & 2: Run Seri and Dapjangi concurrently
   const [seriReport, dapjangiSummary] = await Promise.all([
     options.skipSeri

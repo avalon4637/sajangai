@@ -6,8 +6,8 @@
 // Computes the trial day number from subscriptions.trial_ends_at:
 //   day_number = 7 - days_remaining_until_trial_end
 //
-// Sends SMS (later AlimTalk) on D+1, D+3, D+5, D+6 only. D+2, D+4, D+7
-// deliberately have no nurture to avoid fatigue.
+// Sends SMS (later AlimTalk) on D+1, D+3, D+5, D+6, D+7. D+2, D+4
+// deliberately have no nurture to avoid fatigue. D+7 is expiry-day notice.
 //
 // Dedup: agent_activity_log.action='message_sent' is checked for today so we
 // never send twice if the cron runs twice.
@@ -16,7 +16,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendTrialNurture } from "@/lib/messaging/sender";
 
-const NURTURE_DAYS = new Set([1, 3, 5, 6]);
+const NURTURE_DAYS = new Set([1, 3, 5, 6, 7]);
 const TRIAL_LENGTH_DAYS = 7;
 
 interface TrialRow {

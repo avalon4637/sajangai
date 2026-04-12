@@ -105,6 +105,23 @@ export async function calculateRealProfit(
     throw new Error(`매출 데이터 조회 실패: ${revError.message}`);
   }
 
+  // Early return if no revenue data exists — avoid unnecessary downstream computation
+  if (!revenues || revenues.length === 0) {
+    return {
+      grossRevenue: 0,
+      deliveryCommissions: 0,
+      cardFees: 0,
+      netRevenue: 0,
+      variableCosts: 0,
+      fixedCosts: 0,
+      laborCosts: 0,
+      totalCosts: 0,
+      netProfit: 0,
+      profitMargin: 0,
+      channelBreakdown: [],
+    };
+  }
+
   // Fetch variable expenses
   const { data: variableExpenses, error: varError } = await supabase
     .from("expenses")
