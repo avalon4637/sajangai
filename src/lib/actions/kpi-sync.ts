@@ -1,13 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { calculateKpi } from "@/lib/kpi/calculator";
-import { getLastDayOfMonth, filterActiveFixedCosts } from "@/lib/utils";
 
 /**
  * Recalculate monthly KPI summary for a given business and month.
- * Aggregates revenues, variable expenses, and fixed costs,
- * then upserts the monthly_summaries table.
+ * Delegates to a Postgres function that uses pg_advisory_xact_lock
+ * to prevent race conditions from concurrent calls.
  */
 export async function recalculateMonthlyKpi(
   businessId: string,
@@ -15,86 +13,13 @@ export async function recalculateMonthlyKpi(
 ): Promise<void> {
   const supabase = await createClient();
 
-  // 1. Total revenue for the month
-  const { data: revenueData } = await supabase
-    .from("revenues")
-    .select("amount")
-    .eq("business_id", businessId)
-    .gte("date", `${yearMonth}-01`)
-    .lte("date", getLastDayOfMonth(yearMonth));
-
-  const totalRevenue =
-    revenueData?.reduce((sum, r) => sum + r.amount, 0) ?? 0;
-
-  // 2. Total variable expenses for the month
-  const { data: expenseData } = await supabase
-    .from("expenses")
-    .select("amount")
-    .eq("business_id", businessId)
-    .eq("type", "variable")
-    .gte("date", `${yearMonth}-01`)
-    .lte("date", getLastDayOfMonth(yearMonth));
-
-  const totalExpense =
-    expenseData?.reduce((sum, e) => sum + e.amount, 0) ?? 0;
-
-  // 3. Fixed expenses for the month (type='fixed' in expenses table)
-  const { data: fixedExpenseData } = await supabase
-    .from("expenses")
-    .select("amount")
-    .eq("business_id", businessId)
-    .eq("type", "fixed")
-    .gte("date", `${yearMonth}-01`)
-    .lte("date", getLastDayOfMonth(yearMonth));
-
-  const totalFixedExpense =
-    fixedExpenseData?.reduce((sum, e) => sum + e.amount, 0) ?? 0;
-
-  // 4. Fixed costs from fixed_costs table (filter by date range)
-  const monthStart = `${yearMonth}-01`;
-  const monthEnd = getLastDayOfMonth(yearMonth);
-  const { data: fixedCostData } = await supabase
-    .from("fixed_costs")
-    .select("amount, is_labor, start_date, end_date")
-    .eq("business_id", businessId);
-
-  // Filter active fixed costs by date range overlap with the month
-  const activeFixedCosts = filterActiveFixedCosts(fixedCostData ?? [], monthStart, monthEnd);
-
-  const totalFixedCostFromTable =
-    activeFixedCosts.reduce((sum, f) => sum + f.amount, 0);
-  const totalLaborCost =
-    activeFixedCosts
-      .filter((f) => f.is_labor)
-      .reduce((sum, f) => sum + f.amount, 0);
-
-  // Combined fixed costs = fixed_costs table + fixed type expenses
-  const totalFixedCost = totalFixedCostFromTable + totalFixedExpense;
-
-  // 5. Calculate KPI
-  const kpi = calculateKpi({
-    totalRevenue,
-    totalExpense,
-    totalFixedCost,
-    totalLaborCost,
+  const { error } = await supabase.rpc("recalculate_monthly_kpi", {
+    p_business_id: businessId,
+    p_year_month: yearMonth,
   });
 
-  // 6. Upsert monthly summary
-  await supabase.from("monthly_summaries").upsert(
-    {
-      business_id: businessId,
-      year_month: yearMonth,
-      total_revenue: totalRevenue,
-      total_expense: totalExpense,
-      total_fixed_cost: totalFixedCost,
-      total_labor_cost: totalLaborCost,
-      gross_profit: kpi.grossProfit,
-      net_profit: kpi.netProfit,
-      gross_margin: kpi.grossMargin,
-      labor_ratio: kpi.laborRatio,
-      fixed_cost_ratio: kpi.fixedCostRatio,
-      survival_score: kpi.survivalScore,
-    },
-    { onConflict: "business_id,year_month" }
-  );
+  if (error) {
+    console.error("[kpi-sync] recalculate_monthly_kpi RPC failed:", error);
+    throw new Error(`KPI recalculation failed: ${error.message}`);
+  }
 }
