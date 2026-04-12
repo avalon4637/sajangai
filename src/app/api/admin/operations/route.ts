@@ -10,6 +10,7 @@ import { isHyphenConfigured } from "@/lib/hyphen/client";
 import { runMorningRoutine } from "@/lib/ai/jeongjang-engine";
 import { fetchRevenueReviewSnapshot } from "@/lib/insights/cross-query";
 import { analyzeRevenueReviewCross } from "@/lib/ai/cross-diagnosis";
+import { saveMonthlyRoiReport } from "@/lib/roi/calculator";
 
 // Helper: verify admin and return supabase client
 async function requireAdmin() {
@@ -178,6 +179,30 @@ export async function POST(request: Request) {
         return NextResponse.json({
           success: false,
           message: `네이버 동기화 실패: ${errorMessage}`,
+        });
+      }
+    }
+
+    case "generate_monthly_roi": {
+      // Phase 2.3 — Calculate + persist monthly ROI report for the last
+      // complete month. If today is 2026-04-12, this generates the 2026-03
+      // report.
+      try {
+        const now = new Date();
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const yearMonth = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, "0")}`;
+        const breakdown = await saveMonthlyRoiReport(businessId, yearMonth);
+        return NextResponse.json({
+          success: true,
+          message: `${yearMonth} 월간 ROI 생성 완료 (총 가치 ${breakdown.totalValue.toLocaleString()}원, ${breakdown.roiMultiple}배 회수)`,
+          data: { yearMonth, breakdown },
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        return NextResponse.json({
+          success: false,
+          message: `월간 ROI 생성 실패: ${errorMessage}`,
         });
       }
     }

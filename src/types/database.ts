@@ -287,6 +287,107 @@ export type Database = {
         };
         Relationships: [];
       };
+      monthly_roi_reports: {
+        // Added in 20260412000001_monthly_roi_reports — Phase 2.3
+        Row: {
+          id: number;
+          business_id: string;
+          year_month: string;
+          fee_savings: number;
+          anomaly_prevention: number;
+          cost_savings: number;
+          customer_retention: number;
+          time_savings: number;
+          total_value: number;
+          subscription_cost: number;
+          roi_multiple: number;
+          narrative: string | null;
+          generated_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          business_id: string;
+          year_month: string;
+          fee_savings?: number;
+          anomaly_prevention?: number;
+          cost_savings?: number;
+          customer_retention?: number;
+          time_savings?: number;
+          total_value?: number;
+          subscription_cost?: number;
+          roi_multiple?: number;
+          narrative?: string | null;
+          generated_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          business_id?: string;
+          year_month?: string;
+          fee_savings?: number;
+          anomaly_prevention?: number;
+          cost_savings?: number;
+          customer_retention?: number;
+          time_savings?: number;
+          total_value?: number;
+          subscription_cost?: number;
+          roi_multiple?: number;
+          narrative?: string | null;
+          generated_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      card_settlements: {
+        // Added in 20260412000000_card_settlements — Phase 2.2 cashflow cache
+        Row: {
+          id: number;
+          business_id: string;
+          card_company: string;
+          pay_date: string | null;
+          pay_scheduled_date: string;
+          sales_amount: number;
+          pay_amount: number;
+          fee_total: number;
+          transaction_count: number;
+          status: "pending" | "settled" | "cancelled";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          business_id: string;
+          card_company: string;
+          pay_date?: string | null;
+          pay_scheduled_date: string;
+          sales_amount?: number;
+          pay_amount?: number;
+          fee_total?: number;
+          transaction_count?: number;
+          status?: "pending" | "settled" | "cancelled";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          business_id?: string;
+          card_company?: string;
+          pay_date?: string | null;
+          pay_scheduled_date?: string;
+          sales_amount?: number;
+          pay_amount?: number;
+          fee_total?: number;
+          transaction_count?: number;
+          status?: "pending" | "settled" | "cancelled";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       ai_call_logs: {
         // Added in 20260411000000_ai_call_logs — Phase 0.5 observability
         Row: {
@@ -757,6 +858,9 @@ export type Database = {
           current_period_start: string | null;
           current_period_end: string | null;
           cancelled_at: string | null;
+          billed_business_count: number;
+          base_price_krw: number;
+          extra_business_price_krw: number;
           created_at: string;
           updated_at: string;
         };
@@ -770,6 +874,9 @@ export type Database = {
           current_period_start?: string | null;
           current_period_end?: string | null;
           cancelled_at?: string | null;
+          billed_business_count?: number;
+          base_price_krw?: number;
+          extra_business_price_krw?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -783,6 +890,9 @@ export type Database = {
           current_period_start?: string | null;
           current_period_end?: string | null;
           cancelled_at?: string | null;
+          billed_business_count?: number;
+          base_price_krw?: number;
+          extra_business_price_krw?: number;
           created_at?: string;
           updated_at?: string;
         };

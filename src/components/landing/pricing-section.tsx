@@ -117,6 +117,17 @@ export function PricingSection() {
           </p>
         </div>
 
+        {/* Phase 2.6 — Multi-business pricing note */}
+        <div className="mt-6 rounded-xl bg-blue-50 px-4 py-3 text-center ring-1 ring-blue-100">
+          <p className="text-sm font-semibold text-blue-900">
+            사업장 2개 이상도 OK
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-blue-700 [word-break:keep-all]">
+            추가 사업장당 <span className="font-bold">+9,900원/월</span>. 한
+            계정으로 여러 매장을 동시에 관리할 수 있어요.
+          </p>
+        </div>
+
         {/* Bottom quote */}
         <p className="mt-6 text-center text-base font-semibold text-slate-800 [word-break:keep-all]">
           &ldquo;구독료가 아니에요. 점장 월급이에요.&rdquo;

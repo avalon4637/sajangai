@@ -5,6 +5,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { DIAGNOSIS_PROMPT } from "./jeongjang-prompts";
 import { callClaudeObject } from "./claude-client";
+import { appendLevel3Guidance } from "./level3-guidance";
 import { DiagnosisSchema } from "./schemas";
 import {
   generateManagementActions,
@@ -302,7 +303,12 @@ export async function diagnose(
     );
 
     try {
-      const result = await callClaudeObject(DIAGNOSIS_PROMPT, prompt, DiagnosisSchema);
+      // Phase 2.4 — Level 3 prescriptive guidance injection
+      const result = await callClaudeObject(
+        appendLevel3Guidance(DIAGNOSIS_PROMPT),
+        prompt,
+        DiagnosisSchema
+      );
       diagnoses = result.diagnoses;
     } catch {
       console.warn("[Diagnosis] Failed to get structured response from Claude");

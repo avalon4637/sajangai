@@ -91,6 +91,11 @@ const OPERATIONS = [
     description: "매출·리뷰 교차 분석으로 원인을 추정합니다",
   },
   {
+    action: "generate_monthly_roi",
+    label: "월간 ROI 생성",
+    description: "지난 달 점장 성과표를 계산하고 저장합니다",
+  },
+  {
     action: "weekly_review",
     label: "주간 리뷰 분석",
     description: "답장이가 최근 리뷰를 분석합니다",

@@ -10,7 +10,11 @@ import { OnboardingBriefing } from "@/components/dashboard/onboarding-briefing";
 import { BriefingRichCard } from "@/components/dashboard/briefing-rich-card";
 import { TodayBriefingCard } from "@/components/dashboard/today-briefing-card";
 import { WeeklyRoiCard } from "@/components/dashboard/weekly-roi-card";
-import { calculateWeeklyRoiMini } from "@/lib/roi/calculator";
+import { MonthlyRoiCard } from "@/components/dashboard/monthly-roi-card";
+import {
+  calculateWeeklyRoiMini,
+  loadLatestMonthlyRoi,
+} from "@/lib/roi/calculator";
 import { InsightCard } from "@/components/dashboard/insight-card";
 import { ReviewAlertCard } from "@/components/dashboard/review-alert-card";
 import { CashflowWarningCard } from "@/components/dashboard/cashflow-warning-card";
@@ -53,6 +57,7 @@ export default async function DashboardPage() {
     seriProfitReport,
     weeklyReportData,
     weeklyRoi,
+    latestMonthlyRoi,
   ] = await Promise.all([
     getDailyBriefingData(businessId),
     getMonthlyKpi(businessId, currentMonth),
@@ -110,6 +115,11 @@ export default async function DashboardPage() {
     // Phase 1.5 — Weekly ROI mini
     calculateWeeklyRoiMini(businessId).catch((err) => {
       console.error("[dashboard] weekly ROI error:", err);
+      return null;
+    }),
+    // Phase 2.3 — Latest monthly ROI report
+    loadLatestMonthlyRoi(businessId).catch((err) => {
+      console.error("[dashboard] monthly ROI error:", err);
       return null;
     }),
   ]);
@@ -288,12 +298,19 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Phase 1.5: Weekly ROI mini card — desktop only, shown alongside briefing */}
-      {weeklyRoi && (
-        <div className="hidden shrink-0 px-3 pt-2 sm:block md:px-6">
-          <WeeklyRoiCard roi={weeklyRoi} />
+      {/* Phase 1.5 + 2.3: ROI cards — desktop only */}
+      <div className="hidden shrink-0 px-3 pt-2 sm:block md:px-6">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {weeklyRoi && <WeeklyRoiCard roi={weeklyRoi} />}
+          {latestMonthlyRoi && (
+            <MonthlyRoiCard
+              yearMonth={latestMonthlyRoi.yearMonth}
+              breakdown={latestMonthlyRoi.breakdown}
+              generatedAt={latestMonthlyRoi.generatedAt}
+            />
+          )}
         </div>
-      )}
+      </div>
 
       {/* Mobile: Content Feed | Desktop: Chat Hub */}
       <div className="flex min-h-0 flex-1 flex-col">
@@ -346,6 +363,10 @@ export default async function DashboardPage() {
                   }
                   actionHref="/analysis"
                   actionLabel="상세 보기"
+                  /* Phase 2.5 — 1-click execution */
+                  insightId={insight.id}
+                  oneClickLabel={insight.action?.label ?? "적용"}
+                  oneClickType={insight.action?.type ?? "acknowledge"}
                 />
               ))}
             </div>

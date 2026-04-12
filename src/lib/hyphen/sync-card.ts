@@ -23,6 +23,14 @@ export interface CardSyncResult {
   error?: string;
 }
 
+// Phase 2.2 — Settlement sync result
+export interface CardSettlementSyncResult {
+  settlementsCount: number;
+  upsertedCount: number;
+  skippedCount: number;
+  error?: string;
+}
+
 /** Convert ISO date to yyyymmdd */
 function toYmd(isoDate: string): string {
   return isoDate.replace(/-/g, "").slice(0, 8);
@@ -152,4 +160,95 @@ export async function fetchCardDeposits(
 
 function getMockCardResult(): CardSyncResult {
   return { approvalsCount: 0, skippedCount: 0 };
+}
+
+// ─── Phase 2.2 — Card settlement sync ────────────────────────────────────────
+
+/**
+ * Sync card settlement (deposit) records for a business.
+ * Persists the output of fetchCardDeposits() into card_settlements table so
+ * the monthly ROI report and cashflow widget can query "돈이 언제 들어오는지".
+ *
+ * Uses UNIQUE (business_id, card_company, pay_scheduled_date, sales_amount)
+ * for dedup via upsert.
+ */
+export async function syncCardSettlements(
+  businessId: string,
+  credentials: Record<string, string> | undefined,
+  lastSyncAt: string | null
+): Promise<CardSettlementSyncResult> {
+  if (!credentials?.userId || !isHyphenConfigured()) {
+    return { settlementsCount: 0, upsertedCount: 0, skippedCount: 0 };
+  }
+
+  // Fetch window: last 30 days (or since lastSyncAt) + next 14 days forecast
+  const startDate = lastSyncAt
+    ? lastSyncAt.slice(0, 10)
+    : (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+        return d.toISOString().slice(0, 10);
+      })();
+  const endDateObj = new Date();
+  endDateObj.setDate(endDateObj.getDate() + 14);
+  const endDate = endDateObj.toISOString().slice(0, 10);
+
+  try {
+    const deposits = await fetchCardDeposits(credentials, startDate, endDate);
+
+    if (deposits.length === 0) {
+      return { settlementsCount: 0, upsertedCount: 0, skippedCount: 0 };
+    }
+
+    const supabase = await createClient();
+    const today = new Date().toISOString().slice(0, 10);
+
+    let upsertedCount = 0;
+    let skippedCount = 0;
+
+    for (const dep of deposits) {
+      const status: "pending" | "settled" | "cancelled" = dep.payDate
+        ? dep.payDate <= today
+          ? "settled"
+          : "pending"
+        : "pending";
+
+      const row = {
+        business_id: businessId,
+        card_company: dep.cardCompany || "카드",
+        pay_date: dep.payDate || null,
+        pay_scheduled_date: dep.payScheduledDate,
+        sales_amount: dep.salesAmount,
+        pay_amount: dep.payAmount,
+        fee_total: dep.feeTotal,
+        transaction_count: dep.transactionCount,
+        status,
+      };
+
+      const { error } = await supabase.from("card_settlements").upsert(row, {
+        onConflict: "business_id,card_company,pay_scheduled_date,sales_amount",
+        ignoreDuplicates: false,
+      });
+
+      if (error) {
+        console.error("[SyncCardSettlements] Upsert error:", error.message);
+        skippedCount++;
+      } else {
+        upsertedCount++;
+      }
+    }
+
+    return {
+      settlementsCount: deposits.length,
+      upsertedCount,
+      skippedCount,
+    };
+  } catch (error) {
+    return {
+      settlementsCount: 0,
+      upsertedCount: 0,
+      skippedCount: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }

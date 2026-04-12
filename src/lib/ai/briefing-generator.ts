@@ -9,6 +9,7 @@ import {
   buildBriefingEnhancedContext,
 } from "./jeongjang-prompts";
 import { callClaudeText } from "./claude-client";
+import { appendLevel3Guidance } from "./level3-guidance";
 import { buildPeriodComparison } from "@/lib/queries/period-comparison";
 import {
   getBusinessBenchmark,
@@ -260,7 +261,14 @@ export async function generateDailyBriefing(
     });
   }
 
-  const narrative = await callClaudeText(BRIEFING_SYSTEM_PROMPT, prompt);
+  // Phase 2.4 — inject Level 3 prescriptive guidance into the base prompt.
+  // Can be disabled via AI_LEVEL3_ENABLED=false env var for A/B comparison.
+  const narrative = await callClaudeText(
+    appendLevel3Guidance(BRIEFING_SYSTEM_PROMPT),
+    prompt,
+    1024,
+    { caller: "briefing-generator", businessId }
+  );
 
   const structured = parseNarrativeToStructured(narrative, seri, dapjangi);
 

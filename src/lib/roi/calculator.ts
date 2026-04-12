@@ -139,6 +139,82 @@ function getNextMonth(yearMonth: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+// ─── Phase 2.3 — Monthly ROI persistent report ───────────────────────────────
+
+/**
+ * Compute a fresh monthly ROI and upsert into monthly_roi_reports.
+ * Idempotent by (business_id, year_month) — safe to re-run.
+ */
+export async function saveMonthlyRoiReport(
+  businessId: string,
+  yearMonth: string
+): Promise<RoiBreakdown> {
+  const breakdown = await calculateMonthlyRoi(businessId, yearMonth);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any;
+
+  await supabase.from("monthly_roi_reports").upsert(
+    {
+      business_id: businessId,
+      year_month: yearMonth,
+      fee_savings: breakdown.feeSavings,
+      anomaly_prevention: breakdown.anomalyPrevention,
+      cost_savings: breakdown.costSavings,
+      customer_retention: breakdown.customerRetention,
+      time_savings: breakdown.timeSavings,
+      total_value: breakdown.totalValue,
+      subscription_cost: breakdown.subscriptionCost,
+      roi_multiple: breakdown.roiMultiple,
+      generated_at: new Date().toISOString(),
+    },
+    { onConflict: "business_id,year_month" }
+  );
+
+  return breakdown;
+}
+
+/**
+ * Load the most recent monthly ROI report for a business.
+ * Returns null when no report has been generated yet.
+ */
+export async function loadLatestMonthlyRoi(
+  businessId: string
+): Promise<{
+  yearMonth: string;
+  breakdown: RoiBreakdown;
+  generatedAt: string;
+} | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any;
+
+  const { data } = await supabase
+    .from("monthly_roi_reports")
+    .select("*")
+    .eq("business_id", businessId)
+    .order("year_month", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+
+  return {
+    yearMonth: data.year_month as string,
+    breakdown: {
+      feeSavings: Number(data.fee_savings),
+      anomalyPrevention: Number(data.anomaly_prevention),
+      costSavings: Number(data.cost_savings),
+      customerRetention: Number(data.customer_retention),
+      timeSavings: Number(data.time_savings),
+      totalValue: Number(data.total_value),
+      subscriptionCost: Number(data.subscription_cost),
+      roiMultiple: Number(data.roi_multiple),
+      period: data.year_month as string,
+    },
+    generatedAt: data.generated_at as string,
+  };
+}
+
 // ─── Phase 1.5 — Weekly ROI mini version ─────────────────────────────────────
 
 export interface WeeklyRoiMini {

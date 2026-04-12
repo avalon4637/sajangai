@@ -5,7 +5,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { decryptCredentials } from "./encryption";
 import { syncDeliverySales, syncDeliveryReviews } from "./sync-delivery";
-import { syncCardSales } from "./sync-card";
+import { syncCardSales, syncCardSettlements } from "./sync-card";
 import type { DeliveryPlatform } from "./types";
 
 /** Individual sync operation result */
@@ -55,6 +55,91 @@ function getCredentials(
     );
     return undefined;
   }
+}
+
+/**
+ * Phase 2.1 — Extract platform-specific credentials from a connection record.
+ *
+ * Supports two credential layouts:
+ *
+ *   A) Per-platform nested (new, preferred):
+ *      {
+ *        baemin:      { userId, userPw },
+ *        coupangeats: { userId, userPw },
+ *        yogiyo:      { userId, userPw },
+ *      }
+ *
+ *   B) Flat (legacy, single-platform fallback):
+ *      { userId, userPw }
+ *
+ * When a platform has no entry in layout A, and layout B does not exist either,
+ * we return undefined so the platform is skipped (not an error).
+ */
+function getPlatformCredentials(
+  all: Record<string, unknown> | undefined,
+  platform: DeliveryPlatform
+): Record<string, string> | undefined {
+  if (!all) return undefined;
+
+  // Layout A: per-platform nested
+  const nested = all[platform];
+  if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+    const scoped = nested as Record<string, string>;
+    if (scoped.userId) return scoped;
+  }
+
+  // Layout B: flat (applies to all platforms — legacy single-platform stores)
+  if (typeof all.userId === "string" && typeof all.userPw === "string") {
+    return all as Record<string, string>;
+  }
+
+  return undefined;
+}
+
+/**
+ * Phase 2.1 — Mark a connection as 'error' when we hit auth failures so that
+ * the next cron run skips it instead of burning API quota. The /admin/operations
+ * hyphen status card surfaces this via activeConnectionCount drops.
+ */
+async function markConnectionError(
+  connectionId: string,
+  errorMessage: string
+): Promise<void> {
+  try {
+    const supabase = await createClient();
+    await supabase
+      .from("api_connections")
+      .update({
+        status: "error",
+        last_sync_at: new Date().toISOString(),
+      } as Record<string, unknown>)
+      .eq("id", connectionId);
+    console.error(
+      `[Orchestrator] Connection ${connectionId} marked as error:`,
+      errorMessage
+    );
+  } catch (err) {
+    console.error("[Orchestrator] Failed to mark connection as error:", err);
+  }
+}
+
+/**
+ * Phase 2.1 — Heuristic auth-failure detection from API error text.
+ * Hyphen returns inconsistent error codes across delivery platforms, so we
+ * pattern-match on common auth-related substrings as a first line of defense.
+ */
+function isAuthFailure(error: string | undefined): boolean {
+  if (!error) return false;
+  const lower = error.toLowerCase();
+  return (
+    lower.includes("401") ||
+    lower.includes("403") ||
+    lower.includes("unauthorized") ||
+    lower.includes("authentication") ||
+    lower.includes("login") ||
+    lower.includes("비밀번호") ||
+    lower.includes("인증")
+  );
 }
 
 /**
@@ -240,7 +325,35 @@ export async function runSync(
           };
           operations.push(opResult);
           await logSyncResult(connection.id, "card_sales", opResult);
-          if (!result.error) {
+
+          if (isAuthFailure(result.error)) {
+            await markConnectionError(
+              connection.id,
+              result.error ?? "card auth failure"
+            );
+          } else if (!result.error) {
+            // Phase 2.2 — After successful card_sales, also sync settlements
+            try {
+              const settlementResult = await syncCardSettlements(
+                businessId,
+                credentials,
+                connection.last_sync_at
+              );
+              operations.push({
+                type: "card_settlements",
+                success: !settlementResult.error,
+                recordsCount: settlementResult.upsertedCount,
+                error: settlementResult.error,
+              });
+            } catch (err) {
+              operations.push({
+                type: "card_settlements",
+                success: false,
+                recordsCount: 0,
+                error: err instanceof Error ? err.message : "Unknown error",
+              });
+            }
+
             await updateLastSyncAt(connection.id);
           }
         } catch (error) {
@@ -252,18 +365,41 @@ export async function runSync(
           };
           operations.push(opResult);
           await logSyncResult(connection.id, "card_sales", opResult);
+          if (isAuthFailure(opResult.error)) {
+            await markConnectionError(connection.id, opResult.error ?? "");
+          }
         }
       } else if (connection.connection_type === "delivery") {
-        // Sync delivery sales and reviews for each platform
-        const platforms: DeliveryPlatform[] = ["baemin", "coupangeats", "yogiyo"];
+        // Sync delivery sales and reviews for each platform.
+        // Phase 2.1 — per-platform credential scoping + auth failure detection.
+        const platforms: DeliveryPlatform[] = [
+          "baemin",
+          "coupangeats",
+          "yogiyo",
+        ];
+
+        let authFailureSeen = false;
 
         for (const platform of platforms) {
+          const platformCreds = getPlatformCredentials(credentials, platform);
+
+          // Skip platforms with no credentials (expected for single-platform stores)
+          if (!platformCreds) {
+            operations.push({
+              type: `delivery_${platform}_skipped`,
+              success: true,
+              recordsCount: 0,
+              error: "no credentials for this platform",
+            });
+            continue;
+          }
+
           // Sync sales
           try {
             const salesResult = await syncDeliverySales(
               businessId,
               platform,
-              credentials,
+              platformCreds,
               connection.last_sync_at
             );
             const salesOp: SyncOperationResult = {
@@ -273,13 +409,19 @@ export async function runSync(
               error: salesResult.error,
             };
             operations.push(salesOp);
+            if (isAuthFailure(salesResult.error)) {
+              authFailureSeen = true;
+            }
           } catch (error) {
+            const msg =
+              error instanceof Error ? error.message : "Unknown error";
             operations.push({
               type: `delivery_sales_${platform}`,
               success: false,
               recordsCount: 0,
-              error: error instanceof Error ? error.message : "Unknown error",
+              error: msg,
             });
+            if (isAuthFailure(msg)) authFailureSeen = true;
           }
 
           // Sync reviews
@@ -287,7 +429,7 @@ export async function runSync(
             const reviewResult = await syncDeliveryReviews(
               businessId,
               platform,
-              credentials,
+              platformCreds,
               connection.last_sync_at
             );
             const reviewOp: SyncOperationResult = {
@@ -297,31 +439,59 @@ export async function runSync(
               error: reviewResult.error,
             };
             operations.push(reviewOp);
+            if (isAuthFailure(reviewResult.error)) {
+              authFailureSeen = true;
+            }
           } catch (error) {
+            const msg =
+              error instanceof Error ? error.message : "Unknown error";
             operations.push({
               type: `delivery_reviews_${platform}`,
               success: false,
               recordsCount: 0,
-              error: error instanceof Error ? error.message : "Unknown error",
+              error: msg,
             });
+            if (isAuthFailure(msg)) authFailureSeen = true;
           }
         }
 
-        // Update connection-level sync time
-        const allDeliverySuccess = operations
-          .filter((op) => op.type.startsWith("delivery_"))
-          .every((op) => op.success);
-        if (allDeliverySuccess) {
-          await updateLastSyncAt(connection.id);
+        // Phase 2.1 — if any platform reported auth failure, flip the whole
+        // connection to 'error' so the user is prompted to re-enter credentials.
+        if (authFailureSeen) {
+          await markConnectionError(
+            connection.id,
+            "delivery platform auth failure"
+          );
+        } else {
+          // Update connection-level sync time when at least one sync succeeded
+          const anyDeliverySuccess = operations
+            .filter(
+              (op) =>
+                op.type.startsWith("delivery_sales_") ||
+                op.type.startsWith("delivery_reviews_")
+            )
+            .some((op) => op.success && op.recordsCount >= 0);
+          if (anyDeliverySuccess) {
+            await updateLastSyncAt(connection.id);
+          }
         }
+
         // Log one aggregate entry for the delivery connection
         const totalDeliveryRecords = operations
           .filter((op) => op.type.startsWith("delivery_"))
           .reduce((sum, op) => sum + op.recordsCount, 0);
+        const allDeliverySuccess = operations
+          .filter(
+            (op) =>
+              op.type.startsWith("delivery_sales_") ||
+              op.type.startsWith("delivery_reviews_")
+          )
+          .every((op) => op.success);
         await logSyncResult(connection.id, "delivery", {
           type: "delivery",
-          success: allDeliverySuccess,
+          success: allDeliverySuccess && !authFailureSeen,
           recordsCount: totalDeliveryRecords,
+          error: authFailureSeen ? "auth failure" : undefined,
         });
       }
     }

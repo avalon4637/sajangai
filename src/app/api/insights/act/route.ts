@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateInsightStatus, createActionResult } from "@/lib/insights/queries";
+import { track } from "@/lib/analytics/track";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -47,6 +48,16 @@ export async function POST(request: Request) {
       insightEventId: insightId,
       businessId: insight.business_id,
       actionType,
+    });
+    // Phase 2.7 — analytics
+    void track({
+      distinctId: user.id,
+      event: "insight_acted",
+      properties: {
+        insightId,
+        actionType,
+        businessId: insight.business_id,
+      },
     });
     return NextResponse.json({ success: true });
   } catch (err) {
