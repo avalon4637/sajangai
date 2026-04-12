@@ -22,7 +22,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     expect(screen.getByText("사장AI")).toBeInTheDocument();
-    expect(screen.getByText("하루 990원, 점장 한 명")).toBeInTheDocument();
+    expect(screen.getByText("AI 점장에게 매장 관리를 맡겨보세요")).toBeInTheDocument();
   });
 
   it("should render Kakao login button", () => {
@@ -65,8 +65,8 @@ describe("LoginForm", () => {
   it("should render terms notice", () => {
     render(<LoginForm />);
 
-    expect(
-      screen.getByText(/서비스 이용약관 및 개인정보처리방침/)
-    ).toBeInTheDocument();
+    // The terms notice is split across multiple elements with links
+    expect(screen.getByText("서비스 이용약관")).toBeInTheDocument();
+    expect(screen.getByText("개인정보처리방침")).toBeInTheDocument();
   });
 });

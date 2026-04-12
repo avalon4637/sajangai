@@ -26,6 +26,11 @@ let businessChain = createChainMock();
 let updateChain = createChainMock();
 let callIndex = 0;
 
+// Mock CSRF to always pass in tests
+vi.mock("@/lib/api/csrf", () => ({
+  verifyCsrfOrigin: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockImplementation(async () => ({
     auth: {

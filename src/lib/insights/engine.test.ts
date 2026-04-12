@@ -12,6 +12,21 @@ vi.mock("./queries", () => ({
     reviews: [],
   }),
   upsertInsight: vi.fn().mockResolvedValue(undefined),
+  getRecentInsightsForDedup: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("./history", () => ({
+  getUserInsightHistory: vi.fn().mockResolvedValue({ dismissedScenarios: [], viewedScenarios: [], interactionCounts: {} }),
+}));
+
+vi.mock("./scoring", () => ({
+  scoreInsights: vi.fn().mockImplementation((insights: unknown[]) =>
+    (insights as { scenarioId: string }[]).map((i) => ({ insight: i, score: 1, shouldDisplay: true }))
+  ),
+}));
+
+vi.mock("./dedup", () => ({
+  deduplicateInsights: vi.fn().mockImplementation((generated: unknown[]) => generated),
 }));
 
 import { evaluateInsights } from "./engine";

@@ -12,6 +12,20 @@ vi.mock("@/hooks/use-auth", () => ({
   useAuth: () => ({ signOut: mockSignOut }),
 }));
 
+// Mock BusinessSwitcher (it has its own test)
+vi.mock("@/components/business/business-switcher", () => ({
+  BusinessSwitcher: ({ businesses, currentBusinessId }: { businesses: { id: string; name: string }[]; currentBusinessId: string }) => (
+    <div data-testid="business-switcher">{currentBusinessId}</div>
+  ),
+}));
+
+// Mock Collapsible components to simple HTML equivalents
+vi.mock("@/components/ui/collapsible", () => ({
+  Collapsible: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div data-testid="collapsible" {...props}>{children}</div>,
+  CollapsibleTrigger: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <button {...props}>{children}</button>,
+  CollapsibleContent: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+}));
+
 import { Sidebar, agentNavItems } from "../sidebar";
 
 describe("Sidebar", () => {
@@ -71,7 +85,7 @@ describe("Sidebar", () => {
     // pathname is /dashboard, so the 점장 link should have active style
     render(<Sidebar {...defaultProps} />);
     const dashboardLink = screen.getByText("점장").closest("a");
-    expect(dashboardLink?.className).toContain("bg-[#EFF6FF]");
+    expect(dashboardLink?.className).toContain("bg-primary/10");
   });
 
   it("displays business name and user email", () => {
