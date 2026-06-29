@@ -170,16 +170,18 @@ sajang.ai 프로젝트를 이어서 진행한다. 아래는 직전 세션에서 
 
 ---
 
-## 7. 깊은 이력(로컬 메모리) 수동 복사 안내
+## 7. 깊은 이력(로컬 메모리) — git에 포함됨
 
-이 인계서는 git으로 따라가지만, **세션 단위 깊은 이력은 git에 없습니다**.
-전체 작업 메모리/이력까지 신규 컴퓨터로 옮기려면 아래 폴더를 **같은 경로로 수동 복사**하세요:
+세션 단위 깊은 이력(SPEC 진행 표, 필드 리서치 피드백, 개발 결정, 세션 인계 노트)은
+원래 git 비추적 폴더(`C:\Users\E16\.claude\projects\c--Users-E16-sajang-ai\memory\`)에 있었으나,
+**2026-06-29부로 repo의 `docs/handoff-memory/`에 스냅샷으로 복사·커밋**했습니다.
+따라서 clone하면 이력도 함께 따라옵니다.
 
-```
-C:\Users\E16\.claude\projects\c--Users-E16-sajang-ai\memory\
-```
+신규 컴퓨터에서 이를 Claude Code 메모리로 **복원**하려면 `docs/handoff-memory/README.md`의
+복사 명령(PowerShell/Git Bash)을 실행해 동일 메모리 경로로 복사하세요.
 
-(SPEC 진행 표, 필드 리서치 피드백, 개발 결정 기록, 세션 인계 노트 등이 들어 있음. git 추적 대상이 아니라 clone으로는 안 따라옴.)
+> 이 스냅샷은 시점 복사본입니다. 이후 작업으로 원본 메모리가 갱신되면
+> `docs/handoff-memory/`도 다시 복사·재커밋해야 최신 상태가 인계됩니다.
 
 ---
 🗿 MoAI <email@mo.ai.kr>
